@@ -65,6 +65,8 @@ func main() {
 	time.Sleep(10 * time.Second) // A galeej way to keep the main routine busy
 	endChannel <- 1              // Send signal for routine to stop
 
+	wg.Wait()
+
 	// if len(os.Args) != 2 {
 	// 	fmt.Println("PID not entered!")
 	// 	os.Exit(1)
