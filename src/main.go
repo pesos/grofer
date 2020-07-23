@@ -25,11 +25,21 @@ func main() {
 	}
 
 	for {
-		cpu_percent, err := myProcess.CPUPercent()
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(cpu_percent)
-	}
+		status, _ := myProcess.IsRunning()
 
+		if status == true {
+
+			cpu_percent, err := myProcess.CPUPercent()
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			mem_percent, err := myProcess.MemoryPercent()
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println("CPU Percent: ", cpu_percent, " Memory Percent: ", mem_percent)
+		}
+
+	}
 }
