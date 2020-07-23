@@ -11,8 +11,6 @@ import (
 	"github.com/shirou/gopsutil/mem"
 )
 
-var wg sync.WaitGroup
-
 func printCPURates(cpuRates []float64) {
 	var outputString string
 	for index, rate := range cpuRates {
@@ -26,7 +24,7 @@ func printMemRates(memory *mem.VirtualMemoryStat) {
 }
 
 // Function to print out CPU usages and memory values
-func globalStats(endChannel chan int) {
+func globalStats(endChannel chan int, wg *sync.WaitGroup) {
 	for {
 		select {
 		case <-endChannel: // Stop execution if end signal received
@@ -56,10 +54,13 @@ func globalStats(endChannel chan int) {
 
 func main() {
 
+	var wg sync.WaitGroup
+
 	endChannel := make(chan int, 1) // Channel to signal end of routine
 
-	wg.Add(1)                  // Increment semaphore by 1 to allow new routine
-	go globalStats(endChannel) // Launch routine
+	wg.Add(1) // Increment semaphore by 1 to allow new routine
+
+	go globalStats(endChannel, &wg) // Launch routine
 
 	time.Sleep(10 * time.Second) // A galeej way to keep the main routine busy
 	endChannel <- 1              // Send signal for routine to stop
