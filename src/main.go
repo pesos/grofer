@@ -20,7 +20,16 @@ func printCPURates(cpuRates []float64) {
 }
 
 func printMemRates(memory *mem.VirtualMemoryStat) {
-	fmt.Println("Total:", float32(memory.Total)/(1024*1024*1024), "Avaiabe:", float32(memory.Available)/(1024*1024*1024), "Used:", float32(memory.Used)/(1024*1024*1024))
+	fmt.Println("Total virtual memory:", float32(memory.Total)/(1024*1024*1024), "Available:", float32(memory.Available)/(1024*1024*1024), "Used:", float32(memory.Used)/(1024*1024*1024))
+}
+
+func printIdleTime(cpuTimeStat []cpu.TimesStat) {
+	fmt.Print("Idle time: ")
+	for _, ind := range cpuTimeStat {
+		fmt.Print(ind.CPU, ":", ind.Idle, " ")
+	}
+	fmt.Println()
+
 }
 
 // Function to print out CPU usages and memory values
@@ -39,12 +48,19 @@ func globalStats(endChannel chan int, wg *sync.WaitGroup) {
 				log.Fatal(err)
 			}
 
+			//Times() used here for idle time, true used for per CPU idle time
+			cpuTimeStat, err := cpu.Times(true)
+			if err != nil {
+				log.Fatal(err)
+			}
+
 			memoryStat, err := mem.VirtualMemory()
 			if err != nil {
 				log.Fatal(err)
 			}
 
 			// Do something with values, just printing for now
+			printIdleTime(cpuTimeStat)
 			printCPURates(cpuUsageRates)
 			printMemRates(memoryStat)
 			println()
