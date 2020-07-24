@@ -6,17 +6,19 @@ import (
 )
 
 func Serve(processes []*Process, endChannel chan os.Signal, wg *sync.WaitGroup) {
-	for _, proc := range processes {
+
+	for {
 		select {
-		case <-endChannel: // Stop execution if end signal received
-			wg.Done()
+		case <-endChannel:
+			wg.Done() // Stop execution if end signal received
 			return
 
 		default:
-			proc.UpdateProcInfo()
-			proc.PrintStats()
-			//print it in some structured way
+			for _, proc := range processes {
+				proc.UpdateProcInfo()
+				proc.PrintStats() // print it in some structured way
+			}
 		}
 	}
-	return
+
 }

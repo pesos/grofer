@@ -2,8 +2,8 @@ package main
 
 import (
 	"os"
-	"os/signal"
 	"sync"
+	"time"
 
 	proc "github.com/pesos/grofer/src/process"
 )
@@ -23,10 +23,14 @@ func main() {
 	//go general.GlobalStats(endChannel, &wg) // Launch routine
 	go proc.Serve(procs, endChannel, &wg)
 
+	time.Sleep(5 * time.Second) // Replace with Termui code
+
+	// signal.Notify(endChannel, os.Kill) // Doesn't work for some reason
+	endChannel <- os.Kill
+
 	wg.Wait()
 
-	signal.Notify(endChannel, os.Interrupt)
-	signal.Notify(endChannel, os.Kill)
+	// signal.Notify(endChannel, os.Interrupt)
+	// <-endChannel
 
-	<-endChannel
 }
