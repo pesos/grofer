@@ -5,7 +5,7 @@ import (
 	"os/signal"
 	"sync"
 
-	proc "github.com/pesos/go-htop/src/process"
+	proc "github.com/pesos/grofer/src/process"
 )
 
 func main() {

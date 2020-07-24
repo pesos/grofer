@@ -1,4 +1,4 @@
-module github.com/pesos/go-htop
+module github.com/pesos/grofer
 
 go 1.14
 
