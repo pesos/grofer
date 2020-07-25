@@ -11,7 +11,7 @@ import (
 )
 
 // GlobalStats gets stats about the mem and the CPUs and prints it.
-func GlobalStats(endChannel chan os.Signal, dataChannel chan []float64, cpuChannel chan []float64, wg *sync.WaitGroup) {
+func GlobalStats(endChannel chan os.Signal, memChannel chan []float64, cpuChannel chan []float64, wg *sync.WaitGroup) {
 	for {
 		select {
 		case <-endChannel: // Stop execution if end signal received
@@ -31,7 +31,7 @@ func GlobalStats(endChannel chan os.Signal, dataChannel chan []float64, cpuChann
 			}
 
 			go PrintCPURates(cpuUsageRates, cpuChannel)
-			go PrintMemRates(memoryStat, dataChannel)
+			go PrintMemRates(memoryStat, memChannel)
 		}
 	}
 }

@@ -1,9 +1,7 @@
 package graphs
 
 import (
-	"fmt"
 	"log"
-	"math"
 	"os"
 	"strconv"
 	"sync"
@@ -14,23 +12,21 @@ import (
 
 var run = true
 
-func RenderCharts(endChannel chan os.Signal, dataChannel chan []float64, cpuChannel chan []float64, wg *sync.WaitGroup) {
+func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChannel chan []float64, wg *sync.WaitGroup) {
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
 	defer ui.Close()
 
-	nproc := len(cpuChannel)
-	fmt.Println(nproc)
-
-	pc := widgets.NewPieChart()
-	pc.Title = " Memory Usage "
-	pc.SetRect(0, 0, 25, 15)
-	pc.Data = []float64{0, 0}
-	pc.AngleOffset = -.5 * math.Pi
-	pc.LabelFormatter = func(i int, v float64) string {
-		return fmt.Sprintf("%.02f", v)
-	}
+	bc := widgets.NewBarChart()
+	bc.Data = []float64{3, 2}
+	bc.Labels = []string{"Total", "Used"}
+	bc.Title = " Memory (RAM) "
+	bc.SetRect(0, 0, 25, 15)
+	bc.BarWidth = 7
+	bc.BarColors = []ui.Color{ui.ColorRed, ui.ColorGreen}
+	bc.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorBlue)}
+	bc.NumStyles = []ui.Style{ui.NewStyle(ui.ColorYellow)}
 
 	type gaugeMap map[int]*widgets.Gauge
 
@@ -39,15 +35,15 @@ func RenderCharts(endChannel chan os.Signal, dataChannel chan []float64, cpuChan
 	pause := func() {
 		run = !run
 		if run {
-			pc.Title = " Memory Usage "
+			bc.Title = " Memory (RAM) "
 
 		} else {
-			pc.Title = " Memory (Stopped) "
+			bc.Title = " Memory (Stopped) "
 
 		}
 	}
 
-	ui.Render(pc)
+	// ui.Render(pc)
 
 	uiEvents := ui.PollEvents()
 
@@ -62,10 +58,10 @@ func RenderCharts(endChannel chan os.Signal, dataChannel chan []float64, cpuChan
 			case "s": // s to stop
 				pause()
 			}
-		case data := <-dataChannel:
+		case data := <-memChannel:
 			if run {
-				pc.Data = data
-				ui.Render(pc)
+				bc.Data = data
+				ui.Render(bc)
 			}
 		case cpu_data := <-cpuChannel:
 
