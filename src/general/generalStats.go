@@ -7,11 +7,12 @@ import (
 	"time"
 
 	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/mem"
 )
 
 // GlobalStats gets stats about the mem and the CPUs and prints it.
-func GlobalStats(endChannel chan os.Signal, memChannel chan []float64, cpuChannel chan []float64, wg *sync.WaitGroup) {
+func GlobalStats(endChannel chan os.Signal, memChannel chan []float64, cpuChannel chan []float64, diskChannel chan [][]string, wg *sync.WaitGroup) {
 	for {
 		select {
 		case <-endChannel: // Stop execution if end signal received
@@ -30,8 +31,15 @@ func GlobalStats(endChannel chan os.Signal, memChannel chan []float64, cpuChanne
 				log.Fatal(err)
 			}
 
+			partitions, err := disk.Partitions(false)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			// fmt.Println(len(partitions))
 			go PrintCPURates(cpuUsageRates, cpuChannel)
 			go PrintMemRates(memoryStat, memChannel)
+			go PrintDiskRates(partitions, diskChannel)
 		}
 	}
 }

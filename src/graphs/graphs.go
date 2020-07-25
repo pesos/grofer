@@ -12,17 +12,24 @@ import (
 
 var run = true
 
-func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChannel chan []float64, wg *sync.WaitGroup) {
+func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChannel chan []float64, diskChannel chan [][]string, wg *sync.WaitGroup) {
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
 	defer ui.Close()
 
+	table := widgets.NewTable()
+	table.TextStyle = ui.NewStyle(ui.ColorWhite)
+	table.TextAlignment = ui.AlignCenter
+	table.RowSeparator = false
+	table.SetRect(35, 15, 80, 20)
+	table.Title = " Disk "
+
 	bc := widgets.NewBarChart()
 	bc.Data = []float64{3, 2}
 	bc.Labels = []string{"Total", "Used"}
 	bc.Title = " Memory (RAM) "
-	bc.SetRect(0, 0, 25, 15)
+	bc.SetRect(35, 0, 70, 10)
 	bc.BarWidth = 7
 	bc.BarColors = []ui.Color{ui.ColorRed, ui.ColorGreen}
 	bc.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorBlue)}
@@ -63,13 +70,19 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 				bc.Data = data
 				ui.Render(bc)
 			}
+		case data := <-diskChannel:
+
+			if run {
+				table.Rows = data
+				ui.Render(table)
+			}
 		case cpu_data := <-cpuChannel:
 
 			if run {
 				for index, rate := range cpu_data {
 					tempGauge := widgets.NewGauge()
 					tempGauge.Title = " CPU " + strconv.Itoa(index)
-					tempGauge.SetRect(25, 0+(index*3), 60, 0+((index+1)*3))
+					tempGauge.SetRect(0, 0+(index*3), 35, 0+((index+1)*3))
 					tempGauge.Percent = int(rate)
 					tempGauge.BarColor = ui.ColorRed
 					tempGauge.BorderStyle.Fg = ui.ColorWhite
