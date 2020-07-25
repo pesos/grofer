@@ -49,11 +49,12 @@ to quickly create a Cobra application.`,
 		memChannel := make(chan []float64, 1)
 		cpuChannel := make(chan []float64, 1)
 		diskChannel := make(chan [][]string, 1)
+		netChannel := make(chan map[string][]float64, 1)
 
 		wg.Add(2)
 
-		go general.GlobalStats(endChannel, memChannel, cpuChannel, diskChannel, &wg)
-		go graphs.RenderCharts(endChannel, memChannel, cpuChannel, diskChannel, &wg)
+		go general.GlobalStats(endChannel, memChannel, cpuChannel, diskChannel, netChannel, &wg)
+		go graphs.RenderCharts(endChannel, memChannel, cpuChannel, diskChannel, netChannel, &wg)
 
 		wg.Wait()
 	}, //CALL TERMUI FUNCTION HERE

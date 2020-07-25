@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"math"
 	"strings"
+	"time"
 
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/mem"
+	"github.com/shirou/gopsutil/net"
 )
 
 // PrintCPURates print the cpu rates
@@ -21,7 +23,7 @@ func roundOff(num uint64) float64 {
 
 // PrintMemRates prints stats about the memory
 func PrintMemRates(memory *mem.VirtualMemoryStat, dataChannel chan []float64) {
-	data := []float64{roundOff(memory.Total), roundOff(memory.Used)}
+	data := []float64{roundOff(memory.Total), roundOff(memory.Available), roundOff(memory.Used)}
 	dataChannel <- data
 }
 
@@ -42,4 +44,14 @@ func PrintDiskRates(partitions []disk.PartitionStat, dataChannel chan [][]string
 		}
 	}
 	dataChannel <- rows
+}
+
+func PrintNetRates(netStats []net.IOCountersStat, dataChannel chan map[string][]float64) {
+	IO := make(map[string][]float64)
+	for _, IOStat := range netStats {
+		nic := []float64{float64(IOStat.PacketsSent), float64(IOStat.PacketsRecv)}
+		IO[IOStat.Name] = nic
+	}
+	dataChannel <- IO
+	time.Sleep(1 * time.Second)
 }
