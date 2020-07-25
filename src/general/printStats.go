@@ -2,19 +2,26 @@ package general
 
 import (
 	"fmt"
-	"strconv"
+	//"strconv"
 
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
 )
 
-// PrintCPURates print the cpu rates :O
-func PrintCPURates(cpuRates []float64) {
-	var outputString string
-	for index, rate := range cpuRates {
-		outputString = outputString + "CPU" + strconv.Itoa(index) + ": " + strconv.Itoa(int(rate)) + "% "
-	}
-	fmt.Println(outputString)
+// PrintCPURates print the cpu rates 
+func PrintCPURates(cpuRates []float64,cpuChannel chan []float64) {
+	//var outputString string
+	//for index, rate := range cpuRates {
+	//	outputString = outputString + "CPU" + strconv.Itoa(index) + ": " + strconv.Itoa(int(rate)) + "% "
+	//}
+	
+    //fmt.Println(outputString)
+    
+    var cpu_data []float64
+    for _, rate := range cpuRates {
+        cpu_data = append(cpu_data,float64(rate))
+    }
+    cpuChannel <- cpu_data
 }
 
 // PrintMemRates prints stats about the memory
