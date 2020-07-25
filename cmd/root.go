@@ -26,6 +26,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/pesos/grofer/src/general"
+	"github.com/pesos/grofer/src/graphs"
 )
 
 var cfgFile string
@@ -50,7 +51,7 @@ to quickly create a Cobra application.`,
 		wg.Add(2)
 
 		go general.GlobalStats(endChannel, dataChannel, &wg)
-		go graphs.renderMemoryChart(endChannel, dataChannel, &wg)
+		go graphs.RenderMemoryChart(endChannel, dataChannel, &wg)
 
 		wg.Wait()
 	}, //CALL TERMUI FUNCTION HERE

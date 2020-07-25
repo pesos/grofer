@@ -13,7 +13,7 @@ import (
 
 var run = true
 
-func renderMemoryChart(endChannel chan os.Signal, dataChannel chan []float64, wg *sync.WaitGroup) {
+func RenderMemoryChart(endChannel chan os.Signal, dataChannel chan []float64, wg *sync.WaitGroup) {
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
