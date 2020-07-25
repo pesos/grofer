@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/shirou/gopsutil/cpu"
-    "github.com/shirou/gopsutil/mem"
+	"github.com/shirou/gopsutil/mem"
 )
 
 // GlobalStats gets stats about the mem and the CPUs and prints it.
@@ -20,11 +20,11 @@ func GlobalStats(endChannel chan os.Signal, dataChannel chan []float64, cpuChann
 
 		default: // Get Memory and CPU rates per core for every 1 second
 
-			 cpuUsageRates, err := cpu.Percent(1*time.Second, true)
-			 if err != nil {
-			 	log.Fatal(err)
-			 }
-			
+			cpuUsageRates, err := cpu.Percent(1*time.Second, true)
+			if err != nil {
+				log.Fatal(err)
+			}
+
 			// //Times() used here for idle time, true used for per CPU idle time
 			// cpuTimeStat, err := cpu.Times(true)
 			// if err != nil {
@@ -40,7 +40,7 @@ func GlobalStats(endChannel chan os.Signal, dataChannel chan []float64, cpuChann
 			// PrintIdleTime(cpuTimeStat)
 			PrintCPURates(cpuUsageRates, cpuChannel)
 			PrintMemRates(memoryStat, dataChannel)
-			time.Sleep(1 * time.Second) // Introducing temporary delay, can be removed when computing CPUPercent
+			// time.Sleep(1 * time.Second) // Introducing temporary delay, can be removed when computing CPUPercent
 		}
 	}
 }

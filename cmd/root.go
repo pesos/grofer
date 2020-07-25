@@ -47,14 +47,14 @@ to quickly create a Cobra application.`,
 		var wg sync.WaitGroup
 		endChannel := make(chan os.Signal, 1)
 		dataChannel := make(chan []float64, 1)
-        cpuChannel := make(chan []float64,1)
+		cpuChannel := make(chan []float64, 1)
 
 		wg.Add(2)
 
 		go general.GlobalStats(endChannel, dataChannel, cpuChannel, &wg)
-		go graphs.RenderMemoryChart(endChannel, dataChannel,cpuChannel, &wg)
-        
-        //go graphs.RenderCPURatesChart(endChannel, cpuChannel, &wg)
+		go graphs.RenderMemoryChart(endChannel, dataChannel, cpuChannel, &wg)
+
+		//go graphs.RenderCPURatesChart(endChannel, cpuChannel, &wg)
 		wg.Wait()
 	}, //CALL TERMUI FUNCTION HERE
 }
