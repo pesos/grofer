@@ -52,9 +52,8 @@ to quickly create a Cobra application.`,
 		wg.Add(2)
 
 		go general.GlobalStats(endChannel, dataChannel, cpuChannel, &wg)
-		go graphs.RenderMemoryChart(endChannel, dataChannel, cpuChannel, &wg)
+		go graphs.OverallVisuals(endChannel, dataChannel, cpuChannel, &wg)
 
-		//go graphs.RenderCPURatesChart(endChannel, cpuChannel, &wg)
 		wg.Wait()
 	}, //CALL TERMUI FUNCTION HERE
 }

@@ -25,22 +25,13 @@ func GlobalStats(endChannel chan os.Signal, dataChannel chan []float64, cpuChann
 				log.Fatal(err)
 			}
 
-			// //Times() used here for idle time, true used for per CPU idle time
-			// cpuTimeStat, err := cpu.Times(true)
-			// if err != nil {
-			// 	log.Fatal(err)
-			// }
-
 			memoryStat, err := mem.VirtualMemory()
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			// Do something with values, just printing for now
-			// PrintIdleTime(cpuTimeStat)
 			PrintCPURates(cpuUsageRates, cpuChannel)
 			PrintMemRates(memoryStat, dataChannel)
-			// time.Sleep(1 * time.Second) // Introducing temporary delay, can be removed when computing CPUPercent
 		}
 	}
 }

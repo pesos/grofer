@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-func Serve(processes []*Process, endChannel chan os.Signal, wg *sync.WaitGroup) {
+func Serve(processes map[int32]*Process, pid int32, dataChannel chan *Process, endChannel chan os.Signal, wg *sync.WaitGroup) {
 
 	for {
 		select {
@@ -14,9 +14,9 @@ func Serve(processes []*Process, endChannel chan os.Signal, wg *sync.WaitGroup) 
 			return
 
 		default:
-			for _, proc := range processes {
-				proc.UpdateProcInfo()
-				proc.PrintStats() // print it in some structured way
+			for {
+				processes[pid].UpdateProcInfo()
+				dataChannel <- processes[pid]
 			}
 		}
 	}

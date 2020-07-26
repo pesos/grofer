@@ -25,15 +25,16 @@ type Process struct {
 }
 
 // InitAllProcs initialises the set of currently running processes in the system.
-func InitAllProcs() ([]*Process, error) {
-	var processes []*Process
+func InitAllProcs() (map[int32]*Process, error) {
+	var processes map[int32]*Process = make(map[int32]*Process)
+	//var processes []*Process
 	pids, err := proc.Processes()
 	if err != nil {
 		return processes, err
 	}
-	for _, pid := range pids {
-		tempProc := &Process{Proc: pid}
-		processes = append(processes, tempProc)
+	for _, proc := range pids {
+		tempProc := &Process{Proc: proc}
+		processes[proc.Pid] = tempProc
 	}
 	return processes, nil
 }
