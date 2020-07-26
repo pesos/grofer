@@ -53,7 +53,6 @@ to quickly create a Cobra application.`,
 			return err
 		}
 		go process.Serve(procs, pid, dataChannel, endChannel, &wg)
-		//time.Sleep(2 * time.Second)
 		go graphs.ProcVisuals(endChannel, dataChannel, &wg)
 
 		wg.Wait()

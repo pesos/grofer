@@ -12,8 +12,8 @@ import (
 
 var run = true
 
-// OverallVisuals handles plotting graphs and charts for system stats in general.
-func OverallVisuals(endChannel chan os.Signal, dataChannel chan []float64, cpuChannel chan []float64, wg *sync.WaitGroup) {
+// RenderCharts handles plotting graphs and charts for system stats in general.
+func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChannel chan []float64, diskChannel chan [][]string, netChannel chan map[string][]float64, wg *sync.WaitGroup) {
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
@@ -126,8 +126,6 @@ func OverallVisuals(endChannel chan os.Signal, dataChannel chan []float64, cpuCh
 				slg1.Title = " Network "
 				slg1.SetRect(35, 10, 80, 19)
 				ui.Render(slg1)
-				// fmt.Println(ipData)
-				// fmt.Println(opData)
 			}
 		case cpu_data := <-cpuChannel:
 
