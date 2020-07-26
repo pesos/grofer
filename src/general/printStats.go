@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"strings"
-	"time"
 
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/mem"
@@ -49,9 +48,9 @@ func PrintDiskRates(partitions []disk.PartitionStat, dataChannel chan [][]string
 func PrintNetRates(netStats []net.IOCountersStat, dataChannel chan map[string][]float64) {
 	IO := make(map[string][]float64)
 	for _, IOStat := range netStats {
-		nic := []float64{float64(IOStat.PacketsSent), float64(IOStat.PacketsRecv)}
+		nic := []float64{float64(IOStat.BytesSent) / (1024 * 1024), float64(IOStat.BytesRecv) / (1024 * 1024)}
 		IO[IOStat.Name] = nic
 	}
 	dataChannel <- IO
-	time.Sleep(1 * time.Second)
+	// time.Sleep(1 * time.Second)
 }

@@ -20,6 +20,18 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	}
 	defer ui.Close()
 
+	// sinData := func() [][]float64 {
+	// 	n := 220
+	// 	data := make([][]float64, 2)
+	// 	data[0] = make([]float64, n)
+	// 	data[1] = make([]float64, n)
+	// 	for i := 0; i < n; i++ {
+	// 		data[0][i] = 1 + math.Sin(float64(i)/5)
+	// 		data[1][i] = 1 + math.Cos(float64(i)/5)
+	// 	}
+	// 	return data
+	// }()
+
 	// Bar chart for Memory
 	bc := widgets.NewBarChart()
 	bc.Labels = []string{"Total", "Available", "Used"}
@@ -38,20 +50,17 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	table.SetRect(35, 19, 80, 24)
 	table.Title = " Disk "
 
-	// Spark Lines for Network stats
-	sl1 := widgets.NewSparkline()
-	sl1.Title = "Bytes Sent"
-	sl1.LineColor = ui.ColorRed
-
-	sl2 := widgets.NewSparkline()
-	sl2.Title = "Bytes Received"
-	sl2.LineColor = ui.ColorMagenta
-
-	ipData := []float64{}
-	opData := []float64{}
-
-	var prevIp float64 = 0
-	var prevOp float64 = 0
+	// Scatter Plot for Network stats
+	sp := widgets.NewPlot()
+	sp.Title = " Network Usage "
+	sp.Marker = widgets.MarkerDot
+	sp.Data = make([][]float64, 2)
+	sp.Data[0] = make([]float64, 40)
+	sp.Data[1] = make([]float64, 40)
+	sp.SetRect(35, 10, 80, 19)
+	sp.AxesColor = ui.ColorWhite
+	sp.LineColors[0] = ui.ColorCyan
+	sp.PlotType = widgets.ScatterPlot
 
 	// Gauges for CPU core usage
 	type gaugeMap map[int]*widgets.Gauge
@@ -98,35 +107,14 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 		case data := <-netChannel: // Update network stats & render dual sparkline
 			if run {
 				for _, value := range data {
-					if value[0] == prevIp {
-						ipData = append(ipData, 0)
-					} else {
-						ipData = append(ipData, value[0])
-						prevIp = value[0]
-					}
+					sp.Data[0] = append(sp.Data[0], value[0])
+					sp.Data[0] = sp.Data[0][1:]
 
-					if len(ipData) >= 200 {
-						ipData = ipData[1:]
-					}
-
-					if value[1] == prevOp {
-						opData = append(opData, 0)
-					} else {
-						opData = append(opData, value[1])
-						prevOp = value[1]
-					}
-
-					if len(opData) >= 200 {
-						opData = opData[1:]
-					}
+					sp.Data[1] = append(sp.Data[1], value[1])
+					sp.Data[1] = sp.Data[1][1:]
 				}
 
-				sl1.Data = ipData
-				sl2.Data = opData
-				slg1 := widgets.NewSparklineGroup(sl1, sl2)
-				slg1.Title = " Network "
-				slg1.SetRect(35, 10, 80, 19)
-				ui.Render(slg1)
+				ui.Render(sp)
 			}
 
 		case cpu_data := <-cpuChannel: // Update Gauge map with newer values
