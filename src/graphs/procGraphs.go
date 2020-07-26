@@ -105,7 +105,7 @@ func ProcVisuals(endChannel chan os.Signal, dataChannel chan *process.Process, w
 				endChannel <- os.Kill
 				wg.Done()
 				return
-			case "s": //s to stop
+			case "s": //s to pause
 				pause()
 			}
 		case data := <-dataChannel:
