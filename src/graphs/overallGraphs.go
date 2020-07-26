@@ -50,17 +50,28 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	table.SetRect(35, 19, 80, 24)
 	table.Title = " Disk "
 
-	// Scatter Plot for Network stats
-	sp := widgets.NewPlot()
-	sp.Title = " Network Usage "
-	sp.Marker = widgets.MarkerDot
-	sp.Data = make([][]float64, 2)
-	sp.Data[0] = make([]float64, 40)
-	sp.Data[1] = make([]float64, 40)
-	sp.SetRect(35, 10, 80, 19)
-	sp.AxesColor = ui.ColorWhite
-	sp.LineColors[0] = ui.ColorCyan
-	sp.PlotType = widgets.ScatterPlot
+	// sp := widgets.NewPlot()
+	// sp.Title = " Network Usage "
+	// sp.Marker = widgets.MarkerDot
+	// sp.Data = make([][]float64, 2)
+	// sp.Data[0] = make([]float64, 40)
+	// sp.Data[1] = make([]float64, 40)
+	// sp.SetRect(35, 10, 80, 19)
+	// sp.AxesColor = ui.ColorWhite
+	// sp.LineColors[0] = ui.ColorCyan
+	// sp.PlotType = widgets.ScatterPlot
+
+	// Spark Lines for Network stats
+	sl1 := widgets.NewSparkline()
+	sl1.Title = "Bytes Sent"
+	sl1.LineColor = ui.ColorRed
+
+	sl2 := widgets.NewSparkline()
+	sl2.Title = "Bytes Received"
+	sl2.LineColor = ui.ColorMagenta
+
+	ipData := make([]float64, 40)
+	opData := make([]float64, 40)
 
 	// Gauges for CPU core usage
 	type gaugeMap map[int]*widgets.Gauge
@@ -107,14 +118,26 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 		case data := <-netChannel: // Update network stats & render dual sparkline
 			if run {
 				for _, value := range data {
-					sp.Data[0] = append(sp.Data[0], value[0])
-					sp.Data[0] = sp.Data[0][1:]
+					// sp.Data[0] = append(sp.Data[0], value[0])
+					// sp.Data[0] = sp.Data[0][1:]
 
-					sp.Data[1] = append(sp.Data[1], value[1])
-					sp.Data[1] = sp.Data[1][1:]
+					ipData = append(ipData, value[0])
+					ipData = ipData[1:]
+
+					// sp.Data[1] = append(sp.Data[1], value[1])
+					// sp.Data[1] = sp.Data[1][1:]
+					opData = append(opData, value[1])
+					opData = opData[1:]
 				}
 
-				ui.Render(sp)
+				sl1.Data = ipData
+				sl2.Data = opData
+				slg1 := widgets.NewSparklineGroup(sl1, sl2)
+				slg1.Title = " Network "
+				slg1.SetRect(35, 10, 80, 19)
+				ui.Render(slg1)
+
+				// ui.Render(sp)
 			}
 
 		case cpu_data := <-cpuChannel: // Update Gauge map with newer values
