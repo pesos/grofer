@@ -3,12 +3,53 @@ package graphs
 import (
 	"log"
 	"os"
-	"strconv"
 	"sync"
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 )
+
+type gaugeMap map[int]*widgets.Gauge
+
+type mainPage struct {
+	Grid        *ui.Grid
+	MemoryChart *widgets.BarChart
+	// DiskChart   *widgets.Table
+	// NetworkChart *widgets.SparklineGroup
+	// CPUCharts gaugeMap
+}
+
+func newPage() *mainPage {
+	page := &mainPage{
+		Grid:        ui.NewGrid(),
+		MemoryChart: widgets.NewBarChart(),
+		// DiskChart:   widgets.NewTable(),
+		// NetworkChart: widgets.NewSparklineGroup(),
+		// CPUCharts: make(gaugeMap),
+	}
+	return page
+}
+
+func (page *mainPage) init() {
+	page.MemoryChart.Title = " Memory (RAM) "
+	page.MemoryChart.Labels = []string{"Total", "Available", "Used"}
+	page.MemoryChart.BarWidth = 4
+	page.MemoryChart.BarColors = []ui.Color{ui.ColorRed, ui.ColorGreen}
+	page.MemoryChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorBlue)}
+	page.MemoryChart.NumStyles = []ui.Style{ui.NewStyle(ui.ColorYellow)}
+
+	// page.DiskChart.Title = " Disk "
+	// page.DiskChart.TextStyle = ui.NewStyle(ui.ColorWhite)
+	// page.DiskChart.TextAlignment = ui.AlignCenter
+	// page.DiskChart.RowSeparator = false
+
+	page.Grid.Set(
+		ui.NewRow(.5,
+			// ui.NewCol(0.5, page.DiskChart),
+			ui.NewCol(0.5, page.MemoryChart),
+		),
+	)
+}
 
 var run = true
 
@@ -20,50 +61,17 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	}
 	defer ui.Close()
 
-	// Bar chart for Memory
-	bc := widgets.NewBarChart()
-	bc.Labels = []string{"Total", "Available", "Used"}
-	bc.Title = " Memory (RAM) "
-	bc.SetRect(35, 0, 65, 10)
-	bc.BarWidth = 8
-	bc.BarColors = []ui.Color{ui.ColorRed, ui.ColorGreen}
-	bc.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorBlue)}
-	bc.NumStyles = []ui.Style{ui.NewStyle(ui.ColorYellow)}
+	myPage := newPage()
 
-	// Table for Disk Usage
-	table := widgets.NewTable()
-	table.TextStyle = ui.NewStyle(ui.ColorWhite)
-	table.TextAlignment = ui.AlignCenter
-	table.RowSeparator = false
-	table.SetRect(35, 19, 80, 24)
-	table.Title = " Disk "
-
-	// Spark Lines for Network stats
-	sl1 := widgets.NewSparkline()
-	sl1.Title = "Bytes Sent"
-	sl1.LineColor = ui.ColorRed
-
-	sl2 := widgets.NewSparkline()
-	sl2.Title = "Bytes Received"
-	sl2.LineColor = ui.ColorMagenta
-
-	ipData := []float64{}
-	opData := []float64{}
-
-	var prevIp float64 = 0
-	var prevOp float64 = 0
-
-	// Gauges for CPU core usage
-	type gaugeMap map[int]*widgets.Gauge
-	gMap := make(gaugeMap)
+	myPage.init()
 
 	pause := func() {
 		run = !run
 		if run {
-			bc.Title = " Memory (RAM) "
+			myPage.MemoryChart.Title = " Memory (RAM) "
 
 		} else {
-			bc.Title = " Memory (Stopped) "
+			myPage.MemoryChart.Title = " Memory (Stopped) "
 
 		}
 	}
@@ -85,64 +93,17 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 
 		case data := <-memChannel: // Update memory values
 			if run {
-				bc.Data = data
-				ui.Render(bc)
+				myPage.MemoryChart.Data = data
+				ui.Render(myPage.Grid)
 			}
 
-		case data := <-diskChannel: // Update disk values
-			if run {
-				table.Rows = data
-				ui.Render(table)
-			}
+			// case <-diskChannel: // Update disk values
+			// 	if run {
+			// 		data := [][]string{[]string{"Mount", "Total", "Used", "Used %"}, []string{"Mount", "Total", "Used", "Used %"}}
+			// 		myPage.DiskChart.Rows = data
+			// 		ui.Render(myPage.Grid)
+			// 	}
 
-		case data := <-netChannel: // Update network stats & render dual sparkline
-			if run {
-				for _, value := range data {
-					if value[0] == prevIp {
-						ipData = append(ipData, 0)
-					} else {
-						ipData = append(ipData, value[0])
-						prevIp = value[0]
-					}
-
-					if len(ipData) >= 200 {
-						ipData = ipData[1:]
-					}
-
-					if value[1] == prevOp {
-						opData = append(opData, 0)
-					} else {
-						opData = append(opData, value[1])
-						prevOp = value[1]
-					}
-
-					if len(opData) >= 200 {
-						opData = opData[1:]
-					}
-				}
-
-				sl1.Data = ipData
-				sl2.Data = opData
-				slg1 := widgets.NewSparklineGroup(sl1, sl2)
-				slg1.Title = " Network "
-				slg1.SetRect(35, 10, 80, 19)
-				ui.Render(slg1)
-			}
-
-		case cpu_data := <-cpuChannel: // Update Gauge map with newer values
-			if run {
-				for index, rate := range cpu_data {
-					tempGauge := widgets.NewGauge()
-					tempGauge.Title = " CPU " + strconv.Itoa(index)
-					tempGauge.SetRect(0, 0+(index*3), 35, 0+((index+1)*3))
-					tempGauge.Percent = int(rate)
-					tempGauge.BarColor = ui.ColorRed
-					tempGauge.BorderStyle.Fg = ui.ColorWhite
-					tempGauge.TitleStyle.Fg = ui.ColorCyan
-					gMap[index] = tempGauge
-					ui.Render(gMap[index])
-				}
-			}
 		}
 	}
 }
