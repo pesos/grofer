@@ -58,7 +58,7 @@ func ProcVisuals(endChannel chan os.Signal, dataChannel chan *process.Process, w
 	memStat := widgets.NewBarChart()
 	memStat.Data = []float64{0, 0, 0, 0}
 	memStat.Labels = []string{"RSS", "Data", "Stack", "Swap"}
-	memStat.Title = " Mem Stats "
+	memStat.Title = " Mem Stats (mb) "
 	memStat.SetRect(45, 10, 85, 20)
 	memStat.BarWidth = 8
 	memStat.BarColors = []ui.Color{ui.ColorRed, ui.ColorGreen, ui.ColorYellow, ui.ColorCyan}
@@ -87,10 +87,10 @@ func ProcVisuals(endChannel chan os.Signal, dataChannel chan *process.Process, w
 	pause := func() {
 		run = !run
 		if run {
-			bc.Title = " No. of context switches "
+			bc.Title = " Ctx switches "
 
 		} else {
-			bc.Title = " No. of context switches (Stopped) "
+			bc.Title = " Ctx switches "
 
 		}
 	}
