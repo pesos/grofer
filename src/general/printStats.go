@@ -2,10 +2,13 @@ package general
 
 import (
 	"fmt"
-	//"strconv"
+	"math"
+	"strings"
+	"time"
 
-	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/mem"
+	"github.com/shirou/gopsutil/net"
 )
 
 // PrintCPURates print the cpu rates
@@ -13,21 +16,42 @@ func PrintCPURates(cpuRates []float64, cpuChannel chan []float64) {
 	cpuChannel <- cpuRates
 }
 
+func roundOff(num uint64) float64 {
+	x := float64(num) / (1024 * 1024 * 1024)
+	return math.Round(x*10) / 10
+}
+
 // PrintMemRates prints stats about the memory
 func PrintMemRates(memory *mem.VirtualMemoryStat, dataChannel chan []float64) {
-	// fmt.Println("Total virtual memory:", float64(memory.Total)/(1024*1024*1024),
-	// "Available:", float64(memory.Available)/(1024*1024*1024),
-	// "Used:", float64(memory.Used)/(1024*1024*1024))
-	data := []float64{float64(memory.Available) / (1024 * 1024 * 1024), float64(memory.Used) / (1024 * 1024 * 1024)}
+	data := []float64{roundOff(memory.Total), roundOff(memory.Available), roundOff(memory.Used)}
 	dataChannel <- data
 }
 
-// PrintIdleTime prints idle time per CPU
-func PrintIdleTime(cpuTimeStat []cpu.TimesStat) {
-	fmt.Print("Idle time: ")
-	for _, ind := range cpuTimeStat {
-		fmt.Print(ind.CPU, ":", ind.Idle, " ")
-	}
-	fmt.Println()
+func PrintDiskRates(partitions []disk.PartitionStat, dataChannel chan [][]string) {
+	rows := [][]string{[]string{"Mount", "Total", "Used", "Used %"}}
+	for _, value := range partitions {
+		usageVals, _ := disk.Usage(value.Mountpoint)
+		stats := strings.Split(usageVals.String(), ",")[1]
+		// fmt.Println(stats)
+		if strings.Contains(stats, "ext") {
 
+			path := usageVals.Path
+			total := fmt.Sprintf("%.2f G", float64(usageVals.Total)/(1024*1024*1024))
+			used := fmt.Sprintf("%.2f G", float64(usageVals.Used)/(1024*1024*1024))
+			usedPercent := fmt.Sprintf("%.2f %s", usageVals.UsedPercent, "%")
+			row := []string{path, total, used, usedPercent}
+			rows = append(rows, row)
+		}
+	}
+	dataChannel <- rows
+}
+
+func PrintNetRates(netStats []net.IOCountersStat, dataChannel chan map[string][]float64) {
+	IO := make(map[string][]float64)
+	for _, IOStat := range netStats {
+		nic := []float64{float64(IOStat.PacketsSent), float64(IOStat.PacketsRecv)}
+		IO[IOStat.Name] = nic
+	}
+	dataChannel <- IO
+	time.Sleep(1 * time.Second)
 }

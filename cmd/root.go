@@ -46,8 +46,10 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var wg sync.WaitGroup
 		endChannel := make(chan os.Signal, 1)
-		dataChannel := make(chan []float64, 1)
+		memChannel := make(chan []float64, 1)
 		cpuChannel := make(chan []float64, 1)
+		diskChannel := make(chan [][]string, 1)
+		netChannel := make(chan map[string][]float64, 1)
 
 		wg.Add(2)
 
