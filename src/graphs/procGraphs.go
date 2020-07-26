@@ -33,7 +33,6 @@ func ProcVisuals(endChannel chan os.Signal, dataChannel chan *process.Process, w
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
-	defer ui.Close()
 
 	bc := widgets.NewBarChart()
 	bc.Data = []float64{0, 0}
@@ -103,6 +102,7 @@ func ProcVisuals(endChannel chan os.Signal, dataChannel chan *process.Process, w
 			switch e.ID {
 			case "q", "<C-c>": //q or Ctrl-C to quit
 				endChannel <- os.Kill
+				ui.Close()
 				wg.Done()
 				return
 			case "s": //s to pause
