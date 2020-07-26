@@ -76,4 +76,16 @@ func (p *Process) UpdateProcInfo() {
 	if err == nil {
 		p.Status = tempStatus
 	}
+
+	tempExe, err := p.Proc.Exe()
+	if err == nil {
+		p.Exe = tempExe
+	} else {
+		p.Exe = "NA"
+	}
+
+	tempAffinity, err := p.Proc.CPUAffinity()
+	if err == nil {
+		p.CPUAffinity = tempAffinity
+	}
 }

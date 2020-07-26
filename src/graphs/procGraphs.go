@@ -28,6 +28,25 @@ func getInMB(bytes uint64, precision int) float64 {
 	return trim(temp, precision)
 }
 
+func getChildProcs(proc *process.Process) [][]string {
+	childProcs := [][]string{
+		[]string{"PID", "\t\t\t\tCommand"},
+	}
+	var temp []string
+	for _, proc := range proc.Children {
+		exe, err := proc.Exe()
+		if err == nil {
+			temp = []string{strconv.Itoa(int(proc.Pid)), exe}
+		} else {
+			temp = []string{strconv.Itoa(int(proc.Pid)), "NA"}
+		}
+
+		childProcs = append(childProcs, temp)
+	}
+
+	return childProcs
+}
+
 // ProcVisuals renders graphs and charts for per-process stats.
 func ProcVisuals(endChannel chan os.Signal, dataChannel chan *process.Process, wg *sync.WaitGroup) {
 	if err := ui.Init(); err != nil {
@@ -38,6 +57,8 @@ func ProcVisuals(endChannel chan os.Signal, dataChannel chan *process.Process, w
 	bc.Data = []float64{0, 0}
 	bc.Labels = []string{"Volun", "Involun"}
 	bc.Title = " Ctx switches "
+	bc.BorderStyle.Fg = ui.ColorWhite
+	bc.TitleStyle.Fg = ui.ColorCyan
 	bc.SetRect(65, 0, 45, 10)
 	bc.BarWidth = 8
 	bc.BarColors = []ui.Color{ui.ColorRed, ui.ColorGreen}
@@ -59,6 +80,8 @@ func ProcVisuals(endChannel chan os.Signal, dataChannel chan *process.Process, w
 	memStat.Data = []float64{0, 0, 0, 0}
 	memStat.Labels = []string{"RSS", "Data", "Stack", "Swap"}
 	memStat.Title = " Mem Stats (mb) "
+	memStat.BorderStyle.Fg = ui.ColorWhite
+	memStat.TitleStyle.Fg = ui.ColorCyan
 	memStat.SetRect(45, 10, 85, 20)
 	memStat.BarWidth = 8
 	memStat.BarColors = []ui.Color{ui.ColorRed, ui.ColorGreen, ui.ColorYellow, ui.ColorCyan}
@@ -69,6 +92,8 @@ func ProcVisuals(endChannel chan os.Signal, dataChannel chan *process.Process, w
 	pageFaults.Data = []float64{0, 0}
 	pageFaults.Labels = []string{"Minor", "Major"}
 	pageFaults.Title = " Page Faults "
+	pageFaults.BorderStyle.Fg = ui.ColorWhite
+	pageFaults.TitleStyle.Fg = ui.ColorCyan
 	pageFaults.SetRect(85, 0, 65, 10)
 	pageFaults.BarWidth = 8
 	pageFaults.BarColors = []ui.Color{ui.ColorRed, ui.ColorGreen}
@@ -135,9 +160,8 @@ func ProcVisuals(endChannel chan os.Signal, dataChannel chan *process.Process, w
 
 				// update proc info
 				table.Rows = [][]string{
-					[]string{"Attribute", "Value"},
-					[]string{"", ""},
 					[]string{"Name", data.Name},
+					[]string{"Command", data.Exe},
 					[]string{"Status", statusMap[data.Status] + " (" + data.Status + ")"},
 					[]string{"Background", strconv.FormatBool(data.Background)},
 					[]string{"Foreground", strconv.FormatBool(data.Foreground)},
@@ -145,7 +169,8 @@ func ProcVisuals(endChannel chan os.Signal, dataChannel chan *process.Process, w
 					[]string{"Creation Time", strconv.FormatInt(data.CreateTime, 10)},
 					[]string{"Foreground", strconv.FormatBool(data.Foreground)},
 					[]string{"Nice value", strconv.Itoa(int(data.Nice))},
-					[]string{"Thread Count", strconv.Itoa(int(data.NumThreads))},
+					[]string{"Thread count", strconv.Itoa(int(data.NumThreads))},
+					[]string{"Child process count", strconv.Itoa(len(data.Children))},
 				}
 				table.Title = " PID: " + strconv.Itoa(int(data.Proc.Pid)) + " "
 				table.BorderStyle.Fg = ui.ColorWhite
