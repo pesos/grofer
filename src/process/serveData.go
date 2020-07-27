@@ -18,10 +18,10 @@ func Serve(processes map[int32]*Process, pid int32, dataChannel chan *Process, e
 
 		default:
 			func() {
-				mut.Lock()
+				// mut.Lock()
 				processes[pid].UpdateProcInfo()
 				dataChannel <- processes[pid]
-				mut.Unlock()
+				// mut.Unlock()
 			}()
 		}
 	}
@@ -37,7 +37,7 @@ func ServeProcs(dataChannel chan map[int32]*Process, endChannel chan os.Signal, 
 
 		default:
 			func() {
-				mut.Lock()
+				// mut.Lock()
 				procs, err := InitAllProcs()
 				if err == nil {
 					for _, info := range procs {
@@ -45,9 +45,9 @@ func ServeProcs(dataChannel chan map[int32]*Process, endChannel chan os.Signal, 
 					}
 					dataChannel <- procs
 				}
-				mut.Unlock()
+				// mut.Unlock()
 			}()
 		}
-		time.Sleep(1 * time.Second)
+		time.Sleep(10 * time.Millisecond)
 	}
 }
