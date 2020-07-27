@@ -41,22 +41,33 @@ to quickly create a Cobra application.`,
 		}
 
 		pid, _ := cmd.Flags().GetInt32("pid")
-
 		var wg sync.WaitGroup
-		endChannel := make(chan os.Signal, 1)
-		dataChannel := make(chan *process.Process, 1)
 
-		wg.Add(2)
+		if pid != -1 {
+			endChannel := make(chan os.Signal, 1)
+			dataChannel := make(chan *process.Process, 1)
 
-		procs, err := process.InitAllProcs()
-		if err != nil {
-			return err
+			wg.Add(2)
+
+			procs, err := process.InitAllProcs()
+			if err != nil {
+				return err
+			}
+
+			go process.Serve(procs, pid, dataChannel, endChannel, &wg)
+			go graphs.ProcVisuals(endChannel, dataChannel, &wg)
+			wg.Wait()
+		} else {
+			dataChannel := make(chan map[int32]*process.Process, 1)
+			endChannel := make(chan os.Signal, 1)
+
+			wg.Add(2)
+
+			go process.ServeProcs(dataChannel, endChannel, &wg)
+			go graphs.AllProcVisuals(dataChannel, endChannel, &wg)
+			wg.Wait()
 		}
-		go process.Serve(procs, pid, dataChannel, endChannel, &wg)
 
-		go graphs.ProcVisuals(endChannel, dataChannel, &wg)
-
-		wg.Wait()
 		return nil
 	},
 }
@@ -73,5 +84,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// procCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	procCmd.Flags().Int32P("pid", "p", 1, "specify pid of process")
+	procCmd.Flags().Int32P("pid", "p", -1, "specify pid of process")
 }

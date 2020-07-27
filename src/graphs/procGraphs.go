@@ -137,13 +137,24 @@ func getChildProcs(proc *process.Process) []string {
 	for _, proc := range proc.Children {
 		exe, err := proc.Exe()
 		if err == nil {
-			childProcs = append(childProcs, strconv.Itoa(int(proc.Pid))+"            "+exe)
+			temp := strconv.Itoa(int(proc.Pid))
+			for i := 0; i < 22-len(strconv.Itoa(int(proc.Pid))); i++ {
+				temp = temp + " "
+			}
+			temp = temp + "[" + exe + "](fg:green,bg:black)"
+			childProcs = append(childProcs, temp)
 		} else {
 			childProcs = append(childProcs, strconv.Itoa(int(proc.Pid))+"            "+"NA")
 		}
 	}
 
 	return childProcs
+}
+
+func getDateFromUnix(createTime int64) string {
+	t := time.Unix(createTime, 0)
+	date := t.Format(time.UnixDate)
+	return date
 }
 
 // ProcVisuals renders graphs and charts for per-process stats.
@@ -231,8 +242,7 @@ func ProcVisuals(endChannel chan os.Signal, dataChannel chan *process.Process, w
 					[]string{"Background", strconv.FormatBool(data.Background)},
 					[]string{"Foreground", strconv.FormatBool(data.Foreground)},
 					[]string{"Running", strconv.FormatBool(data.IsRunning)},
-					[]string{"Creation Time", strconv.FormatInt(data.CreateTime, 10)},
-					[]string{"Foreground", strconv.FormatBool(data.Foreground)},
+					[]string{"Creation Time", getDateFromUnix(data.CreateTime)},
 					[]string{"Nice value", strconv.Itoa(int(data.Nice))},
 					[]string{"Thread count", strconv.Itoa(int(data.NumThreads))},
 					[]string{"Child process count", strconv.Itoa(len(data.Children))},
