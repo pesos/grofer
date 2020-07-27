@@ -129,9 +129,10 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	}
 
 	myPage := newPage(numCores)
+	myPage.MemoryChart.BarGap = 13
 
-	ipData := make([]float64, 40)
-	opData := make([]float64, 40)
+	ipData := make([]float64, 65)
+	opData := make([]float64, 65)
 
 	// Bar chart for Memory
 	bc := widgets.NewBarChart()
