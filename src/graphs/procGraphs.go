@@ -29,13 +29,13 @@ func getInMB(bytes uint64, precision int) float64 {
 }
 
 func getChildProcs(proc *process.Process) []string {
-	childProcs := []string{"PID            Command"}
+	childProcs := []string{"PID                   Command"}
 	for _, proc := range proc.Children {
 		exe, err := proc.Exe()
 		if err == nil {
-			childProcs = append(childProcs, strconv.Itoa(int(proc.Pid))+"        "+exe)
+			childProcs = append(childProcs, strconv.Itoa(int(proc.Pid))+"            "+exe)
 		} else {
-			childProcs = append(childProcs, strconv.Itoa(int(proc.Pid))+"        "+"NA")
+			childProcs = append(childProcs, strconv.Itoa(int(proc.Pid))+"            "+"NA")
 		}
 	}
 
