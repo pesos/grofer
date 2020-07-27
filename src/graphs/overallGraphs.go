@@ -35,20 +35,24 @@ func newPage(numCores int) *mainPage {
 }
 
 func (page *mainPage) init(numCores int) {
+
+	// Initialize Bar Graph for Memory Chart
 	page.MemoryChart.Title = " Memory (RAM) "
 	page.MemoryChart.Labels = []string{"Total", "Available", "Used", "Free"}
 	page.MemoryChart.BarWidth = 8
+	page.MemoryChart.BarGap = 9
 	page.MemoryChart.BarColors = []ui.Color{ui.ColorRed, ui.ColorGreen}
 	page.MemoryChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorBlue)}
 	page.MemoryChart.NumStyles = []ui.Style{ui.NewStyle(ui.ColorYellow)}
 
+	// Initialize Table for Disk Chart
 	page.DiskChart.Title = " Disk "
 	page.DiskChart.TextStyle = ui.NewStyle(ui.ColorWhite)
 	page.DiskChart.TextAlignment = ui.AlignLeft
 	page.DiskChart.RowSeparator = false
 	page.DiskChart.ColumnWidths = []int{9, 9, 9, 9, 9, 11}
-	// page.DiskChart.FillRow = true
 
+	// Initialize Plot for Network Chart
 	page.NetworkChart.Title = " Network data "
 	page.NetworkChart.HorizontalScale = 1
 	page.NetworkChart.AxesColor = ui.ColorWhite
@@ -57,10 +61,10 @@ func (page *mainPage) init(numCores int) {
 	page.NetworkChart.DrawDirection = 1
 	page.NetworkChart.DataLabels = []string{"ip kB", "op kB"}
 
+	// Initialize Gauges for each CPU Core usage
 	for i := 0; i < numCores; i++ {
 		tempGauge := widgets.NewGauge()
 		tempGauge.Title = " CPU " + strconv.Itoa(i) + " "
-		// tempGauge.SetRect(0, 0+(i*3), 35, 0+((i+1)*3))
 		tempGauge.Percent = 0
 		tempGauge.BarColor = ui.ColorRed
 		tempGauge.BorderStyle.Fg = ui.ColorWhite
@@ -68,9 +72,7 @@ func (page *mainPage) init(numCores int) {
 		page.CPUCharts = append(page.CPUCharts, tempGauge)
 	}
 
-	// var rows *ui.GridItem
-	// rows.Entry = page.CPUCharts
-
+	// Initialize Grid layout
 	if numCores == 8 {
 		page.Grid.Set(
 			ui.NewCol(0.54,
@@ -82,7 +84,6 @@ func (page *mainPage) init(numCores int) {
 				ui.NewRow(0.125, page.CPUCharts[5]),
 				ui.NewRow(0.125, page.CPUCharts[6]),
 				ui.NewRow(0.125, page.CPUCharts[7]),
-				// ui.NewRow(0.125, page.CPUCharts),
 			),
 			ui.NewCol(0.46,
 				ui.NewRow(0.34, page.MemoryChart),
@@ -120,6 +121,7 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	}
 	defer ui.Close()
 
+	// Get number of cores in machine
 	numCores := runtime.NumCPU()
 
 	if numCores != 4 && numCores != 8 { // Commit die!
@@ -128,38 +130,16 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 		return
 	}
 
+	// Create new page
 	myPage := newPage(numCores)
-	myPage.MemoryChart.BarGap = 13
 
+	// Initialize slices for Network Data
 	ipData := make([]float64, 65)
 	opData := make([]float64, 65)
 
-	// Bar chart for Memory
-	bc := widgets.NewBarChart()
-	bc.Labels = []string{"Total", "Available", "Used"}
-	bc.Title = " Memory (RAM) "
-	bc.BarWidth = 10
-	bc.BarColors = []ui.Color{ui.ColorRed, ui.ColorGreen}
-	bc.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorBlue)}
-	bc.NumStyles = []ui.Style{ui.NewStyle(ui.ColorYellow)}
-
-	// Table for Disk Usage
-	table := widgets.NewTable()
-	table.TextStyle = ui.NewStyle(ui.ColorWhite)
-	table.TextAlignment = ui.AlignCenter
-	table.RowSeparator = false
-	table.SetRect(35, 16, 80, 24)
-	table.Title = " Disk "
-
+	// Pause to pause updating data
 	pause := func() {
 		run = !run
-		if run {
-			myPage.MemoryChart.Title = " Memory (RAM) "
-
-		} else {
-			myPage.MemoryChart.Title = " Memory (Stopped) "
-
-		}
 	}
 
 	uiEvents := ui.PollEvents()
@@ -205,7 +185,6 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 			}
 
 		case cpu_data := <-cpuChannel: // Update Gauge map with newer values
-			// nproc = len(cpu_data)
 			if run {
 				for index, rate := range cpu_data {
 					myPage.CPUCharts[index].Title = " CPU " + strconv.Itoa(index) + " "
@@ -216,17 +195,12 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 				}
 			}
 
-		case <-tick:
+		case <-tick: // Update page with new values
 			w, h := ui.TerminalDimensions()
 
 			myPage.Grid.SetRect(0, 0, w, h)
 			ui.Render(myPage.Grid)
 
-		case data := <-memChannel: // Update memory values
-			if run {
-
-				bc.Data = data
-			}
 		}
 	}
 }
