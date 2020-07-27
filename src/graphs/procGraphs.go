@@ -24,7 +24,7 @@ type proccessPage struct {
 	MemStatsChart    *widgets.BarChart
 }
 
-func newProcsPage() *proccessPage {
+func newProcPage() *proccessPage {
 	page := &proccessPage{
 		Grid:             ui.NewGrid(),
 		CPUChart:         widgets.NewGauge(),
@@ -114,6 +114,8 @@ func (page *proccessPage) init() {
 		),
 	)
 
+	w, h := ui.TerminalDimensions()
+	page.Grid.SetRect(0, 0, w, h)
 }
 
 var runProc = true
@@ -153,7 +155,7 @@ func getChildProcs(proc *process.Process) []string {
 
 func getDateFromUnix(createTime int64) string {
 	t := time.Unix(createTime, 0)
-	date := t.Format(time.UnixDate)
+	date := t.Format(time.RFC822)
 	return date
 }
 
@@ -164,7 +166,7 @@ func ProcVisuals(endChannel chan os.Signal, dataChannel chan *process.Process, w
 	}
 
 	// Create new page
-	myPage := newProcsPage()
+	myPage := newProcPage()
 
 	var statusMap map[string]string = map[string]string{
 		"R": "Running",
