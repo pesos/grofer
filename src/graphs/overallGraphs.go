@@ -3,6 +3,7 @@ package graphs
 import (
 	"log"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -13,26 +14,26 @@ import (
 type gaugeMap map[int]*widgets.Gauge
 
 type mainPage struct {
-	Grid        *ui.Grid
-	MemoryChart *widgets.BarChart
-	DiskChart   *widgets.Table
-	// NetworkChart *widgets.SparklineGroup
-	// CPUCharts gaugeMap
+	Grid         *ui.Grid
+	MemoryChart  *widgets.BarChart
+	DiskChart    *widgets.Table
+	NetworkChart *widgets.Plot
+	CPUCharts    []*widgets.Gauge
 }
 
-func newPage() *mainPage {
+func newPage(numCores int) *mainPage {
 	page := &mainPage{
-		Grid:        ui.NewGrid(),
-		MemoryChart: widgets.NewBarChart(),
-		DiskChart:   widgets.NewTable(),
-		// NetworkChart: widgets.NewSparklineGroup(),
-		// CPUCharts: make(gaugeMap),
+		Grid:         ui.NewGrid(),
+		MemoryChart:  widgets.NewBarChart(),
+		DiskChart:    widgets.NewTable(),
+		NetworkChart: widgets.NewPlot(),
+		CPUCharts:    make([]*widgets.Gauge, 0),
 	}
-	page.init()
+	page.init(numCores)
 	return page
 }
 
-func (page *mainPage) init() {
+func (page *mainPage) init(numCores int) {
 	page.MemoryChart.Title = " Memory (RAM) "
 	page.MemoryChart.Labels = []string{"Total", "Available", "Used"}
 	page.MemoryChart.BarWidth = 8
@@ -44,16 +45,39 @@ func (page *mainPage) init() {
 	page.DiskChart.TextStyle = ui.NewStyle(ui.ColorWhite)
 	page.DiskChart.TextAlignment = ui.AlignCenter
 	page.DiskChart.RowSeparator = false
-	page.DiskChart.ColumnWidths = []int{10, 10, 10, 10}
+	page.DiskChart.ColumnWidths = []int{8, 8, 8, 8}
+
+	page.NetworkChart.Title = " Network data "
+	page.NetworkChart.HorizontalScale = 1
+	page.NetworkChart.AxesColor = ui.ColorWhite
+	page.NetworkChart.LineColors[0] = ui.ColorCyan
+	page.NetworkChart.LineColors[1] = ui.ColorRed
+	page.NetworkChart.DrawDirection = 1
+	page.NetworkChart.DataLabels = []string{"ip kB", "op kB"}
+
+	for i := 0; i < numCores; i++ {
+		tempGauge := widgets.NewGauge()
+		tempGauge.Title = " CPU " + strconv.Itoa(i) + " "
+		// tempGauge.SetRect(0, 0+(i*3), 35, 0+((i+1)*3))
+		tempGauge.Percent = 0
+		tempGauge.BarColor = ui.ColorRed
+		tempGauge.BorderStyle.Fg = ui.ColorWhite
+		tempGauge.TitleStyle.Fg = ui.ColorCyan
+		page.CPUCharts = append(page.CPUCharts, tempGauge)
+	}
 
 	page.Grid.Set(
-		ui.NewRow(1,
-			ui.NewCol(0.6,
-				ui.NewRow(0.33, page.MemoryChart),
-				ui.NewRow(0.33, page.DiskChart),
-			),
+		ui.NewCol(0.46,
+			ui.NewRow(0.34, page.MemoryChart),
+			ui.NewRow(0.34, page.DiskChart),
+			ui.NewRow(0.34, page.NetworkChart),
+		),
+		ui.NewCol(0.54,
+			ui.NewRow(0.125, page.CPUCharts[0]),
+			ui.NewRow(0.125, page.CPUCharts[1]),
 		),
 	)
+	// page.Grid.Items[1].Entry = page.CPUCharts
 	w, h := ui.TerminalDimensions()
 	page.Grid.SetRect(0, 0, w, h)
 }
@@ -68,9 +92,14 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	}
 	defer ui.Close()
 
-	myPage := newPage()
+	// numCores := 8
 
-	myPage.init()
+	myPage := newPage(8)
+
+	// myPage.init()
+
+	ipData := make([]float64, 40)
+	opData := make([]float64, 40)
 
 	pause := func() {
 		run = !run
@@ -101,17 +130,30 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 		case data := <-memChannel: // Update memory values
 			if run {
 				myPage.MemoryChart.Data = data
-				// w, h := ui.TerminalDimensions()
-				// data := [][]string{[]string{"Mount", "Total", "Used", "Used %"}}
-				// myPage.DiskChart.Rows = data
-
 			}
 
 		case data := <-diskChannel: // Update disk values
 			if run {
 				myPage.DiskChart.Rows = data
-				// ui.Render(myPage.Grid)
 			}
+
+		case data := <-netChannel: // Update network stats & render braille plots
+			if run {
+				for _, value := range data {
+
+					ipData = append(ipData, value[0])
+					ipData = ipData[1:]
+
+					opData = append(opData, value[1])
+					opData = opData[1:]
+				}
+
+				temp := [][]float64{}
+				temp = append(temp, ipData)
+				temp = append(temp, opData)
+				myPage.NetworkChart.Data = temp
+			}
+
 		case <-tick:
 			w, h := ui.TerminalDimensions()
 

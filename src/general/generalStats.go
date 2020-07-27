@@ -7,6 +7,7 @@ import (
 
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/mem"
+	"github.com/shirou/gopsutil/net"
 )
 
 // GlobalStats gets stats about the mem and the CPUs and prints it.
@@ -34,17 +35,17 @@ func GlobalStats(endChannel chan os.Signal, memChannel chan []float64, cpuChanne
 				log.Fatal(err)
 			}
 
-			// netIO, err := net.IOCounters(false)
-			// if err != nil {
-			// 	log.Fatal(err)
-			// }
+			netIO, err := net.IOCounters(false)
+			if err != nil {
+				log.Fatal(err)
+			}
 
 			// fmt.Println(len(partitions))
 			// go PrintCPURates(cpuUsageRates, cpuChannel)
 			go PrintMemRates(memoryStat, memChannel)
 			go PrintDiskRates(partitions, diskChannel)
 			// time.Sleep(5 * time.Second)
-			// PrintNetRates(netIO, netChannel)
+			PrintNetRates(netIO, netChannel)
 		}
 	}
 }
