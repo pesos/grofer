@@ -28,19 +28,24 @@ func PrintMemRates(memory *mem.VirtualMemoryStat, dataChannel chan []float64) {
 }
 
 func PrintDiskRates(partitions []disk.PartitionStat, dataChannel chan [][]string) {
-	rows := [][]string{[]string{"Mount", "Total", "Used", "Used%"}}
+	rows := [][]string{[]string{"Mount", "Total", "Used", "Used %"}}
 	for _, value := range partitions {
 		usageVals, _ := disk.Usage(value.Mountpoint)
-		stats := strings.Split(usageVals.String(), ",")[1]
+		// stats := strings.Split(usageVals.String(), ",")[1]
 		// fmt.Println(stats)
-		if strings.Contains(stats, "ext") {
+		if strings.HasPrefix(value.Device, "/dev/loop") {
+			continue
+		} else if strings.HasPrefix(value.Mountpoint, "/var/lib/docker") {
+			continue
+		} else {
 
 			path := usageVals.Path
-			total := fmt.Sprintf("%.2fG", float64(usageVals.Total)/(1024*1024*1024))
-			used := fmt.Sprintf("%.2fG", float64(usageVals.Used)/(1024*1024*1024))
-			usedPercent := fmt.Sprintf("%.2f%s", usageVals.UsedPercent, "%")
+			total := fmt.Sprintf("%.2f G", float64(usageVals.Total)/(1024*1024*1024))
+			used := fmt.Sprintf("%.2f G", float64(usageVals.Used)/(1024*1024*1024))
+			usedPercent := fmt.Sprintf("%.2f %s", usageVals.UsedPercent, "%")
 			row := []string{path, total, used, usedPercent}
 			rows = append(rows, row)
+
 		}
 	}
 	dataChannel <- rows
