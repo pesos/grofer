@@ -32,7 +32,11 @@ func PrintDiskRates(partitions []disk.PartitionStat, dataChannel chan [][]string
 		usageVals, _ := disk.Usage(value.Mountpoint)
 		// stats := strings.Split(usageVals.String(), ",")[1]
 		// fmt.Println(stats)
-		if strings.Contains(value.Device, "/dev/sda") || strings.Contains(value.Device, "/dev/disk") {
+		if strings.HasPrefix(value.Device, "/dev/loop") {
+			continue
+		} else if strings.HasPrefix(value.Mountpoint, "/var/lib/docker") {
+			continue
+		} else {
 
 			path := usageVals.Path
 			total := fmt.Sprintf("%.2f G", float64(usageVals.Total)/(1024*1024*1024))
@@ -40,6 +44,7 @@ func PrintDiskRates(partitions []disk.PartitionStat, dataChannel chan [][]string
 			usedPercent := fmt.Sprintf("%.2f %s", usageVals.UsedPercent, "%")
 			row := []string{path, total, used, usedPercent}
 			rows = append(rows, row)
+
 		}
 	}
 	dataChannel <- rows
