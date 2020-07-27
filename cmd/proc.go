@@ -53,6 +53,7 @@ to quickly create a Cobra application.`,
 			return err
 		}
 		go process.Serve(procs, pid, dataChannel, endChannel, &wg)
+
 		go graphs.ProcVisuals(endChannel, dataChannel, &wg)
 
 		wg.Wait()
