@@ -92,26 +92,28 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 				pl2 := widgets.NewPlot()
 
 				temp := [][]float64{}
-				temp = append(temp, opData)
+				temp = append(temp, ipData)
+                temp = append(temp,opData)
 				pl.Data = temp
 				pl.HorizontalScale = 1
 				pl.AxesColor = ui.ColorWhite
 				pl.LineColors[0] = ui.ColorCyan
+                pl.LineColors[1] = ui.ColorRed
+
 				pl.Title = " I/P Data "
 				pl.SetRect(35, 0, 70, 13)
 
 				temp2 := [][]float64{}
 				temp2 = append(temp2, opData)
-				pl2.Data = temp
+				pl2.Data = temp2
 				pl2.HorizontalScale = 1
 				pl2.LineColors[0] = ui.ColorCyan
-				//pl2.LineColors[1] = ui.ColorRed
 				pl2.AxesColor = ui.ColorWhite
 				pl2.Title = " O/P Data "
 				pl2.SetRect(35, 13, 70, 26)
 
 				ui.Render(pl)
-				ui.Render(pl2)
+				//ui.Render(pl2)
 
 			}
 
