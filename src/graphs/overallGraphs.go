@@ -120,6 +120,7 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	}
 	defer ui.Close()
 
+<<<<<<< HEAD
 	numCores := runtime.NumCPU()
 
 	if numCores != 4 && numCores != 8 { // Commit die!
@@ -132,6 +133,32 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 
 	ipData := make([]float64, 40)
 	opData := make([]float64, 40)
+=======
+	// Bar chart for Memory
+	bc := widgets.NewBarChart()
+	bc.Labels = []string{"Total", "Available", "Used"}
+	bc.Title = " Memory (RAM) "
+	bc.BarWidth = 10
+	bc.BarColors = []ui.Color{ui.ColorRed, ui.ColorGreen}
+	bc.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorBlue)}
+	bc.NumStyles = []ui.Style{ui.NewStyle(ui.ColorYellow)}
+
+	// Table for Disk Usage
+	table := widgets.NewTable()
+	table.TextStyle = ui.NewStyle(ui.ColorWhite)
+	table.TextAlignment = ui.AlignCenter
+	table.RowSeparator = false
+	table.SetRect(35, 16, 80, 24)
+	table.Title = " Disk "
+
+	ipData := make([]float64, 40)
+	opData := make([]float64, 40)
+	// var nproc int
+
+	// Gauges for CPU core usage
+	type gaugeMap map[int]*widgets.Gauge
+	gMap := make(gaugeMap)
+>>>>>>> master
 
 	pause := func() {
 		run = !run
@@ -159,11 +186,14 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 				pause()
 			}
 
+<<<<<<< HEAD
 		case data := <-memChannel: // Update memory values
 			if run {
 				myPage.MemoryChart.Data = data
 			}
 
+=======
+>>>>>>> master
 		case data := <-diskChannel: // Update disk values
 			if run {
 				myPage.DiskChart.Rows = data
@@ -180,15 +210,47 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 					opData = opData[1:]
 				}
 
+<<<<<<< HEAD
 				temp := [][]float64{}
 				temp = append(temp, ipData)
 				temp = append(temp, opData)
 				myPage.NetworkChart.Data = temp
+=======
+				pl := widgets.NewPlot()
+				pl2 := widgets.NewPlot()
+
+				temp := [][]float64{}
+				temp = append(temp, ipData)
+				temp = append(temp, opData)
+				pl.Data = temp
+				pl.HorizontalScale = 1
+				pl.AxesColor = ui.ColorWhite
+				pl.LineColors[0] = ui.ColorCyan
+				pl.LineColors[1] = ui.ColorRed
+
+				pl.Title = " Network data "
+				pl.SetRect(35, 0, 80, 8)
+
+				temp2 := [][]float64{}
+				temp2 = append(temp2, opData)
+				pl2.Data = temp2
+				pl2.HorizontalScale = 1
+				pl2.LineColors[0] = ui.ColorCyan
+				pl2.AxesColor = ui.ColorWhite
+				pl2.Title = " O/P Data "
+				pl2.SetRect(35, 13, 70, 26)
+
+				ui.Render(pl)
+				//ui.Render(pl2)
+
+>>>>>>> master
 			}
 
 		case cpu_data := <-cpuChannel: // Update Gauge map with newer values
+			// nproc = len(cpu_data)
 			if run {
 				for index, rate := range cpu_data {
+<<<<<<< HEAD
 					myPage.CPUCharts[index].Title = " CPU " + strconv.Itoa(index) + " "
 					myPage.CPUCharts[index].Percent = int(rate)
 					myPage.CPUCharts[index].BarColor = ui.ColorRed
@@ -202,6 +264,29 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 
 			myPage.Grid.SetRect(0, 0, w, h)
 			ui.Render(myPage.Grid)
+=======
+					tempGauge := widgets.NewGauge()
+					tempGauge.Title = " CPU " + strconv.Itoa(index) + " "
+					tempGauge.SetRect(0, 0+(index*3), 35, 0+((index+1)*3))
+					tempGauge.Percent = int(rate)
+					tempGauge.BarColor = ui.ColorRed
+					tempGauge.BorderStyle.Fg = ui.ColorWhite
+					tempGauge.TitleStyle.Fg = ui.ColorCyan
+					gMap[index] = tempGauge
+					ui.Render(gMap[index])
+				}
+			}
+
+		case data := <-memChannel: // Update memory values
+			if run {
+				// _, term_breadth := ui.TerminalDimensions()
+
+				bc.Data = data
+				bc.SetRect(35, 8, 80, 16)
+				ui.Render(bc)
+			}
+
+>>>>>>> master
 		}
 	}
 }
