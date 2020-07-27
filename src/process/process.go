@@ -22,6 +22,8 @@ type Process struct {
 	NumThreads     int32
 	PageFault      *proc.PageFaultsStat
 	Status         string
+	Exe            string
+	CPUAffinity    []int32
 }
 
 // InitAllProcs initialises the set of currently running processes in the system.

@@ -14,20 +14,15 @@ var run = true
 
 // RenderCharts handles plotting graphs and charts for system stats in general.
 func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChannel chan []float64, diskChannel chan [][]string, netChannel chan map[string][]float64, wg *sync.WaitGroup) {
+
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
 	defer ui.Close()
 
-	table := widgets.NewTable()
-	table.TextStyle = ui.NewStyle(ui.ColorWhite)
-	table.TextAlignment = ui.AlignCenter
-	table.RowSeparator = false
-	table.SetRect(35, 24, 80, 30)
-	table.Title = " Disk "
-
+	
+	// Bar chart for Memory
 	bc := widgets.NewBarChart()
-	bc.Data = []float64{3, 2}
 	bc.Labels = []string{"Total", "Available", "Used"}
 	bc.Title = " Memory (RAM) "
 	bc.SetRect(35, 0, 65, 10)
@@ -36,15 +31,19 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	bc.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorBlue)}
 	bc.NumStyles = []ui.Style{ui.NewStyle(ui.ColorYellow)}
 
-	type gaugeMap map[int]*widgets.Gauge
-	type netStatMap map[int]*widgets.Sparkline
+	// Table for Disk Usage
+	table := widgets.NewTable()
+	table.TextStyle = ui.NewStyle(ui.ColorWhite)
+	table.TextAlignment = ui.AlignCenter
+	table.RowSeparator = false
+	table.SetRect(35, 24, 80, 29)
+	table.Title = " Disk "
 
 	ipData := make([]float64, 40)
 	opData := make([]float64, 40)
 
-	var prevIp float64 = 0
-	var prevOp float64 = 0
-
+	// Gauges for CPU core usage
+	type gaugeMap map[int]*widgets.Gauge
 	gMap := make(gaugeMap)
 
 	pause := func() {
@@ -62,51 +61,40 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 
 	for {
 		select {
-		case e := <-uiEvents:
+		case e := <-uiEvents: // For keyboard events
 			switch e.ID {
 			case "q", "<C-c>": // q or Ctrl-C to quit
 				endChannel <- os.Kill
 				wg.Done()
 				return
+
 			case "s": // s to stop
 				pause()
 			}
-		case data := <-memChannel:
+
+		case data := <-memChannel: // Update memory values
 			if run {
 				bc.Data = data
 				ui.Render(bc)
 			}
-		case data := <-diskChannel:
+
+		case data := <-diskChannel: // Update disk values
 			if run {
 				table.Rows = data
 				ui.Render(table)
 			}
-		case data := <-netChannel:
+
+		case data := <-netChannel: // Update network stats & render dual sparkline
 			if run {
 				for _, value := range data {
 
-					if value[0] == prevIp {
-						ipData = append(ipData, 0)
-					} else {
-						ipData = append(ipData, value[0])
-						prevIp = value[0]
-					}
+					ipData = append(ipData, value[0])
+					ipData = ipData[1:]
 
-					if len(ipData) >= 200 {
-						ipData = ipData[1:]
-					}
-
-					if value[1] == prevOp {
-						opData = append(opData, 0)
-					} else {
-						opData = append(opData, value[1])
-						prevOp = value[1]
-					}
-
-					if len(opData) >= 200 {
-						opData = opData[1:]
-					}
+					opData = append(opData, value[1])
+					opData = opData[1:]
 				}
+
 				slg1 := widgets.NewPlot()
 				slg2 := widgets.NewPlot()
 
@@ -128,9 +116,11 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 
 				ui.Render(slg1)
 				ui.Render(slg2)
-			}
-		case cpu_data := <-cpuChannel:
 
+
+			}
+
+		case cpu_data := <-cpuChannel: // Update Gauge map with newer values
 			if run {
 				for index, rate := range cpu_data {
 					tempGauge := widgets.NewGauge()
