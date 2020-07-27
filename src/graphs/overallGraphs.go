@@ -20,7 +20,6 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	}
 	defer ui.Close()
 
-	
 	// Bar chart for Memory
 	bc := widgets.NewBarChart()
 	bc.Labels = []string{"Total", "Available", "Used"}
@@ -84,7 +83,7 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 				ui.Render(table)
 			}
 
-		case data := <-netChannel: // Update network stats & render dual sparkline
+		case data := <-netChannel: // Update network stats & render braille plots
 			if run {
 				for _, value := range data {
 
@@ -95,28 +94,28 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 					opData = opData[1:]
 				}
 
-				slg1 := widgets.NewPlot()
-				slg2 := widgets.NewPlot()
+				pl := widgets.NewPlot()
+				pl2 := widgets.NewPlot()
 
 				temp := [][]float64{}
 				temp = append(temp, ipData)
-				slg1.Data = temp
-				slg1.HorizontalScale = 1
-				slg1.AxesColor = ui.ColorWhite
-				slg1.Title = " I/P Data "
-				slg1.SetRect(35, 10, 80, 17)
+				pl.Data = temp
+				pl.HorizontalScale = 1
+				pl.AxesColor = ui.ColorWhite
+				pl.LineColors[0] = ui.ColorCyan
+				pl.Title = " I/P Data "
+				pl.SetRect(35, 10, 80, 17)
 
 				temp2 := [][]float64{}
 				temp2 = append(temp2, opData)
-				slg2.Data = temp
-				slg2.HorizontalScale = 1
-				slg2.AxesColor = ui.ColorWhite
-				slg2.Title = " O/P Data "
-				slg2.SetRect(35, 17, 80, 24)
+				pl2.Data = temp
+				pl2.HorizontalScale = 1
+				pl2.AxesColor = ui.ColorWhite
+				pl2.Title = " O/P Data "
+				pl2.SetRect(35, 17, 80, 24)
 
-				ui.Render(slg1)
-				ui.Render(slg2)
-
+				ui.Render(pl)
+				ui.Render(pl2)
 
 			}
 
