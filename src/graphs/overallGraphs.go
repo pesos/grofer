@@ -93,14 +93,14 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 
 				temp := [][]float64{}
 				temp = append(temp, ipData)
-                temp = append(temp,opData)
+				temp = append(temp, opData)
 				pl.Data = temp
 				pl.HorizontalScale = 1
 				pl.AxesColor = ui.ColorWhite
 				pl.LineColors[0] = ui.ColorCyan
-                pl.LineColors[1] = ui.ColorRed
+				pl.LineColors[1] = ui.ColorRed
 
-				pl.Title = " I/P Data "
+				pl.Title = " Network data "
 				pl.SetRect(35, 0, 70, 13)
 
 				temp2 := [][]float64{}
