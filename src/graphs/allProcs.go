@@ -1,15 +1,53 @@
 package graphs
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
+	"time"
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 	"github.com/pesos/grofer/src/process"
 )
+
+type allProcPage struct {
+	Grid         *ui.Grid
+	HeadingTable *widgets.Table
+	BodyList     *widgets.List
+}
+
+func newProcsPage() *allProcPage {
+	page := &allProcPage{
+		Grid:         ui.NewGrid(),
+		HeadingTable: widgets.NewTable(),
+		BodyList:     widgets.NewList(),
+	}
+	page.init()
+	return page
+}
+
+func (page *allProcPage) init() {
+	page.HeadingTable.TextStyle = ui.NewStyle(ui.ColorWhite)
+	page.HeadingTable.Rows = [][]string{[]string{" PID", " Command", " CPU", " Memory", " Foreground", " Creation Time", " Thread Count"}}
+	page.HeadingTable.ColumnWidths = []int{10, 40, 10, 10, 15, 25, 15}
+	page.HeadingTable.TextAlignment = ui.AlignLeft
+	page.HeadingTable.RowSeparator = false
+
+	page.BodyList.TextStyle = ui.NewStyle(ui.ColorWhite)
+	page.BodyList.TitleStyle.Fg = ui.ColorCyan
+
+	page.Grid.Set(
+		ui.NewRow(0.12, page.HeadingTable),
+		ui.NewRow(0.88, page.BodyList),
+	)
+
+	w, h := ui.TerminalDimensions()
+	page.Grid.SetRect(0, 0, w, h)
+}
 
 var runAllProc = true
 
@@ -18,10 +56,58 @@ func getData(procs map[int32]*process.Process) []string {
 	for pid, info := range procs {
 		if info.Exe != "NA" {
 			temp := strconv.Itoa(int(pid))
-			for i := 0; i < 21-len(strconv.Itoa(int(pid))); i++ {
+
+			for i := 0; i < 12-len(strconv.Itoa(int(pid))); i++ {
 				temp = temp + " "
 			}
-			temp = temp + "[" + info.Exe + "](fg:green,bg:black)"
+
+			commands := strings.Split(info.Exe, "/")
+			command := commands[len(commands)-1]
+
+			if len(command) > 40 {
+				command = command[:40]
+			} else {
+				temp = temp + "[" + command + "](fg:green,bg:black)"
+				for i := 0; i < 41-len(command); i++ {
+					temp = temp + " "
+				}
+			}
+
+			cpuPercent := fmt.Sprintf("%.2f%s", info.CPUPercent, "%")
+			temp = temp + cpuPercent
+			for i := 0; i < 11-len(cpuPercent); i++ {
+				temp = temp + " "
+			}
+
+			memPercent := fmt.Sprintf("%.2f%s", info.MemoryPercent, "%")
+			temp = temp + memPercent
+			for i := 0; i < 11-len(memPercent); i++ {
+				temp = temp + " "
+			}
+
+			if info.Foreground {
+				temp = temp + "True"
+				for i := 0; i < 12; i++ {
+					temp = temp + " "
+				}
+			} else {
+				temp = temp + "False"
+				for i := 0; i < 11; i++ {
+					temp = temp + " "
+				}
+			}
+
+			ctime := info.CreateTime
+			createTime := getDateFromUnix(ctime)
+			temp = temp + createTime
+			for i := 0; i < 26-len(createTime); i++ {
+				temp = temp + " "
+			}
+
+			threads := info.NumThreads
+			threadCount := strconv.FormatInt(int64(threads), 10)
+			temp = temp + threadCount
+
 			data = append(data, temp)
 		}
 	}
@@ -33,23 +119,27 @@ func AllProcVisuals(dataChannel chan map[int32]*process.Process, endChannel chan
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
 
-	headerTable := widgets.NewTable()
-	headerTable.TextStyle = ui.NewStyle(ui.ColorWhite)
-	headerTable.Rows = [][]string{[]string{"PID", "Command"}}
-	headerTable.ColumnWidths = []int{20, 137}
-	headerTable.SetRect(0, 0, 158, 3)
-	headerTable.RowSeparator = false
-	ui.Render(headerTable)
+	// headerTable := widgets.NewTable()
+	// headerTable.TextStyle = ui.NewStyle(ui.ColorWhite)
+	// headerTable.Rows = [][]string{[]string{"PID", "Command"}}
+	// headerTable.ColumnWidths = []int{20, 137}
+	// headerTable.SetRect(0, 0, 158, 3)
+	// headerTable.RowSeparator = false
+	// ui.Render(headerTable)
 
-	procTable := widgets.NewList()
-	procTable.TextStyle = ui.NewStyle(ui.ColorWhite)
-	procTable.TitleStyle.Fg = ui.ColorCyan
-	procTable.SetRect(0, 3, 158, 38)
+	// procTable := widgets.NewList()
+	// procTable.TextStyle = ui.NewStyle(ui.ColorWhite)
+	// procTable.TitleStyle.Fg = ui.ColorCyan
+	// procTable.SetRect(0, 3, 158, 38)
+
+	myPage := newProcsPage()
 
 	pause := func() {
 		run = !run
 	}
+
 	uiEvents := ui.PollEvents()
+	tick := time.Tick(100 * time.Millisecond)
 
 	previousKey := ""
 	for {
@@ -64,25 +154,25 @@ func AllProcVisuals(dataChannel chan map[int32]*process.Process, endChannel chan
 			case "s": //s to pause
 				pause()
 			case "j", "<Down>":
-				procTable.ScrollDown()
+				myPage.BodyList.ScrollDown()
 			case "k", "<Up>":
-				procTable.ScrollUp()
+				myPage.BodyList.ScrollUp()
 			case "<C-d>":
-				procTable.ScrollHalfPageDown()
+				myPage.BodyList.ScrollHalfPageDown()
 			case "<C-u>":
-				procTable.ScrollHalfPageUp()
+				myPage.BodyList.ScrollHalfPageUp()
 			case "<C-f>":
-				procTable.ScrollPageDown()
+				myPage.BodyList.ScrollPageDown()
 			case "<C-b>":
-				procTable.ScrollPageUp()
+				myPage.BodyList.ScrollPageUp()
 			case "g":
 				if previousKey == "g" {
-					procTable.ScrollTop()
+					myPage.BodyList.ScrollTop()
 				}
 			case "<Home>":
-				procTable.ScrollTop()
+				myPage.BodyList.ScrollTop()
 			case "G", "<End>":
-				procTable.ScrollBottom()
+				myPage.BodyList.ScrollBottom()
 			}
 
 			if previousKey == "g" {
@@ -92,8 +182,13 @@ func AllProcVisuals(dataChannel chan map[int32]*process.Process, endChannel chan
 			}
 
 		case data := <-dataChannel:
-			procTable.Rows = getData(data)
-			ui.Render(procTable)
+			myPage.BodyList.Rows = getData(data)
+
+		case <-tick: // Update page with new values
+			w, h := ui.TerminalDimensions()
+
+			myPage.Grid.SetRect(0, 0, w, h)
+			ui.Render(myPage.Grid)
 		}
 	}
 }
