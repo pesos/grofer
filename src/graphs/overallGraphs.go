@@ -122,7 +122,7 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 			if run {
 				for index, rate := range cpu_data {
 					tempGauge := widgets.NewGauge()
-					tempGauge.Title = " CPU " + strconv.Itoa(index)
+					tempGauge.Title = " CPU " + strconv.Itoa(index) + " "
 					tempGauge.SetRect(0, 0+(index*3), 35, 0+((index+1)*3))
 					tempGauge.Percent = int(rate)
 					tempGauge.BarColor = ui.ColorRed
