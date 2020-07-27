@@ -5,6 +5,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/mem"
 )
 
@@ -28,10 +29,10 @@ func GlobalStats(endChannel chan os.Signal, memChannel chan []float64, cpuChanne
 				log.Fatal(err)
 			}
 
-			// partitions, err := disk.Partitions(false)
-			// if err != nil {
-			// 	log.Fatal(err)
-			// }
+			partitions, err := disk.Partitions(false)
+			if err != nil {
+				log.Fatal(err)
+			}
 
 			// netIO, err := net.IOCounters(false)
 			// if err != nil {
@@ -41,7 +42,7 @@ func GlobalStats(endChannel chan os.Signal, memChannel chan []float64, cpuChanne
 			// fmt.Println(len(partitions))
 			// go PrintCPURates(cpuUsageRates, cpuChannel)
 			go PrintMemRates(memoryStat, memChannel)
-			// PrintDiskRates(partitions, diskChannel)
+			go PrintDiskRates(partitions, diskChannel)
 			// time.Sleep(5 * time.Second)
 			// PrintNetRates(netIO, netChannel)
 		}

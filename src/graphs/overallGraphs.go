@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"sync"
+	"time"
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
@@ -14,7 +15,7 @@ type gaugeMap map[int]*widgets.Gauge
 type mainPage struct {
 	Grid        *ui.Grid
 	MemoryChart *widgets.BarChart
-	// DiskChart   *widgets.Table
+	DiskChart   *widgets.Table
 	// NetworkChart *widgets.SparklineGroup
 	// CPUCharts gaugeMap
 }
@@ -23,10 +24,11 @@ func newPage() *mainPage {
 	page := &mainPage{
 		Grid:        ui.NewGrid(),
 		MemoryChart: widgets.NewBarChart(),
-		// DiskChart:   widgets.NewTable(),
+		DiskChart:   widgets.NewTable(),
 		// NetworkChart: widgets.NewSparklineGroup(),
 		// CPUCharts: make(gaugeMap),
 	}
+	page.init()
 	return page
 }
 
@@ -38,17 +40,21 @@ func (page *mainPage) init() {
 	page.MemoryChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorBlue)}
 	page.MemoryChart.NumStyles = []ui.Style{ui.NewStyle(ui.ColorYellow)}
 
-	// page.DiskChart.Title = " Disk "
-	// page.DiskChart.TextStyle = ui.NewStyle(ui.ColorWhite)
-	// page.DiskChart.TextAlignment = ui.AlignCenter
-	// page.DiskChart.RowSeparator = false
+	page.DiskChart.Title = " Disk "
+	page.DiskChart.TextStyle = ui.NewStyle(ui.ColorWhite)
+	page.DiskChart.TextAlignment = ui.AlignCenter
+	page.DiskChart.RowSeparator = false
 
 	page.Grid.Set(
-		ui.NewRow(.5,
-			// ui.NewCol(0.5, page.DiskChart),
-			ui.NewCol(0.5, page.MemoryChart),
+		ui.NewRow(1,
+			ui.NewCol(0.5,
+				ui.NewRow(0.33, page.MemoryChart),
+				ui.NewRow(0.33, page.DiskChart),
+			),
 		),
 	)
+	w, h := ui.TerminalDimensions()
+	page.Grid.SetRect(0, 0, w, h)
 }
 
 var run = true
@@ -77,7 +83,7 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	}
 
 	uiEvents := ui.PollEvents()
-
+	tick := time.Tick(time.Second)
 	for {
 		select {
 		case e := <-uiEvents: // For keyboard events
@@ -94,16 +100,22 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 		case data := <-memChannel: // Update memory values
 			if run {
 				myPage.MemoryChart.Data = data
-				ui.Render(myPage.Grid)
+				// w, h := ui.TerminalDimensions()
+				// data := [][]string{[]string{"Mount", "Total", "Used", "Used %"}}
+				// myPage.DiskChart.Rows = data
+
 			}
 
-			// case <-diskChannel: // Update disk values
-			// 	if run {
-			// 		data := [][]string{[]string{"Mount", "Total", "Used", "Used %"}, []string{"Mount", "Total", "Used", "Used %"}}
-			// 		myPage.DiskChart.Rows = data
-			// 		ui.Render(myPage.Grid)
-			// 	}
+		case data := <-diskChannel: // Update disk values
+			if run {
+				myPage.DiskChart.Rows = data
+				// ui.Render(myPage.Grid)
+			}
+		case <-tick:
+			w, h := ui.TerminalDimensions()
 
+			myPage.Grid.SetRect(0, 0, w, h)
+			ui.Render(myPage.Grid)
 		}
 	}
 }

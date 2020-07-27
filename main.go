@@ -17,6 +17,6 @@ package main
 
 import "github.com/pesos/grofer/cmd"
 
-func main2() {
+func main() {
 	cmd.Execute()
 }
