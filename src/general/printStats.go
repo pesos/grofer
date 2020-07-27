@@ -30,9 +30,9 @@ func PrintDiskRates(partitions []disk.PartitionStat, dataChannel chan [][]string
 	rows := [][]string{[]string{"Mount", "Total", "Used", "Used %"}}
 	for _, value := range partitions {
 		usageVals, _ := disk.Usage(value.Mountpoint)
-		stats := strings.Split(usageVals.String(), ",")[1]
+		// stats := strings.Split(usageVals.String(), ",")[1]
 		// fmt.Println(stats)
-		if strings.Contains(stats, "ext") {
+		if strings.Contains(value.Device, "/dev/sda") || strings.Contains(value.Device, "/dev/disk") {
 
 			path := usageVals.Path
 			total := fmt.Sprintf("%.2f G", float64(usageVals.Total)/(1024*1024*1024))
