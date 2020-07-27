@@ -100,10 +100,10 @@ func (page *proccessPage) init() {
 	// Initialize Grid layout
 	page.Grid.Set(
 		ui.NewCol(0.5,
-			ui.NewRow(0.2, page.CPUChart),
-			ui.NewRow(0.2, page.MemChart),
-			ui.NewRow(0.3, page.PIDTable),
-			ui.NewRow(0.3, page.ChildProcsList),
+			ui.NewRow(0.1, page.CPUChart),
+			ui.NewRow(0.1, page.MemChart),
+			ui.NewRow(0.4, page.PIDTable),
+			ui.NewRow(0.4, page.ChildProcsList),
 		),
 		ui.NewCol(0.5,
 			ui.NewRow(0.6,
