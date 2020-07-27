@@ -35,7 +35,7 @@ func newPage() *mainPage {
 func (page *mainPage) init() {
 	page.MemoryChart.Title = " Memory (RAM) "
 	page.MemoryChart.Labels = []string{"Total", "Available", "Used"}
-	page.MemoryChart.BarWidth = 4
+	page.MemoryChart.BarWidth = 8
 	page.MemoryChart.BarColors = []ui.Color{ui.ColorRed, ui.ColorGreen}
 	page.MemoryChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorBlue)}
 	page.MemoryChart.NumStyles = []ui.Style{ui.NewStyle(ui.ColorYellow)}
@@ -44,10 +44,11 @@ func (page *mainPage) init() {
 	page.DiskChart.TextStyle = ui.NewStyle(ui.ColorWhite)
 	page.DiskChart.TextAlignment = ui.AlignCenter
 	page.DiskChart.RowSeparator = false
+	page.DiskChart.ColumnWidths = []int{10, 10, 10, 10}
 
 	page.Grid.Set(
 		ui.NewRow(1,
-			ui.NewCol(0.5,
+			ui.NewCol(0.6,
 				ui.NewRow(0.33, page.MemoryChart),
 				ui.NewRow(0.33, page.DiskChart),
 			),
