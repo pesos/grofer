@@ -34,12 +34,12 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	table.TextStyle = ui.NewStyle(ui.ColorWhite)
 	table.TextAlignment = ui.AlignCenter
 	table.RowSeparator = false
-	table.SetRect(35, 26, 80, 31)
+	table.SetRect(35, 16, 80, 24)
 	table.Title = " Disk "
 
 	ipData := make([]float64, 40)
 	opData := make([]float64, 40)
-	var nproc int
+	// var nproc int
 
 	// Gauges for CPU core usage
 	type gaugeMap map[int]*widgets.Gauge
@@ -101,7 +101,7 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 				pl.LineColors[1] = ui.ColorRed
 
 				pl.Title = " Network data "
-				pl.SetRect(35, 0, 70, 13)
+				pl.SetRect(35, 0, 80, 8)
 
 				temp2 := [][]float64{}
 				temp2 = append(temp2, opData)
@@ -118,7 +118,7 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 			}
 
 		case cpu_data := <-cpuChannel: // Update Gauge map with newer values
-			nproc = len(cpu_data)
+			// nproc = len(cpu_data)
 			if run {
 				for index, rate := range cpu_data {
 					tempGauge := widgets.NewGauge()
@@ -135,10 +135,10 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 
 		case data := <-memChannel: // Update memory values
 			if run {
-				_, term_breadth := ui.TerminalDimensions()
+				// _, term_breadth := ui.TerminalDimensions()
 
 				bc.Data = data
-				bc.SetRect(0, nproc*3, 35, term_breadth)
+				bc.SetRect(35, 8, 80, 16)
 				ui.Render(bc)
 			}
 
