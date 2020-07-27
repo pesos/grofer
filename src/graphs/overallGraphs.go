@@ -23,7 +23,7 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	table.TextStyle = ui.NewStyle(ui.ColorWhite)
 	table.TextAlignment = ui.AlignCenter
 	table.RowSeparator = false
-	table.SetRect(35, 19, 80, 24)
+	table.SetRect(35, 24, 80, 30)
 	table.Title = " Disk "
 
 	bc := widgets.NewBarChart()
@@ -38,25 +38,14 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 
 	type gaugeMap map[int]*widgets.Gauge
 	type netStatMap map[int]*widgets.Sparkline
-	// var ipData, opData []float64
 
-	ipData := []float64{}
-	opData := []float64{}
+	ipData := make([]float64, 40)
+	opData := make([]float64, 40)
 
 	var prevIp float64 = 0
 	var prevOp float64 = 0
 
 	gMap := make(gaugeMap)
-
-	// netMap := make(netStatMap)
-
-	sl1 := widgets.NewSparkline()
-	sl1.Title = "Bytes Sent"
-	sl1.LineColor = ui.ColorRed
-
-	sl2 := widgets.NewSparkline()
-	sl2.Title = "Bytes Received"
-	sl2.LineColor = ui.ColorMagenta
 
 	pause := func() {
 		run = !run
@@ -68,8 +57,6 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 
 		}
 	}
-
-	// ui.Render(pc)
 
 	uiEvents := ui.PollEvents()
 
@@ -120,12 +107,27 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 						opData = opData[1:]
 					}
 				}
-				sl1.Data = ipData
-				sl2.Data = opData
-				slg1 := widgets.NewSparklineGroup(sl1, sl2)
-				slg1.Title = " Network "
-				slg1.SetRect(35, 10, 80, 19)
+				slg1 := widgets.NewPlot()
+				slg2 := widgets.NewPlot()
+
+				temp := [][]float64{}
+				temp = append(temp, ipData)
+				slg1.Data = temp
+				slg1.HorizontalScale = 1
+				slg1.AxesColor = ui.ColorWhite
+				slg1.Title = " I/P Data "
+				slg1.SetRect(35, 10, 80, 17)
+
+				temp2 := [][]float64{}
+				temp2 = append(temp2, opData)
+				slg2.Data = temp
+				slg2.HorizontalScale = 1
+				slg2.AxesColor = ui.ColorWhite
+				slg2.Title = " O/P Data "
+				slg2.SetRect(35, 17, 80, 24)
+
 				ui.Render(slg1)
+				ui.Render(slg2)
 			}
 		case cpu_data := <-cpuChannel:
 
