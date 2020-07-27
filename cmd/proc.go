@@ -20,6 +20,8 @@ import (
 	"os"
 	"sync"
 
+	"github.com/pesos/grofer/src/utils"
+
 	"github.com/pesos/grofer/src/graphs"
 	"github.com/pesos/grofer/src/process"
 	"github.com/spf13/cobra"
@@ -52,6 +54,11 @@ to quickly create a Cobra application.`,
 			procs, err := process.InitAllProcs()
 			if err != nil {
 				return err
+			}
+
+			if _, exists := procs[pid]; !exists {
+				utils.ErrorMsg()
+				return fmt.Errorf("invalid pid")
 			}
 
 			go process.Serve(procs, pid, dataChannel, endChannel, &wg)
