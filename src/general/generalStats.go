@@ -46,6 +46,7 @@ func GlobalStats(endChannel chan os.Signal, memChannel chan []float64, cpuChanne
 			go PrintCPURates(cpuUsageRates, cpuChannel)
 			go PrintMemRates(memoryStat, memChannel)
 			go PrintDiskRates(partitions, diskChannel)
+			// time.Sleep(5 * time.Second)
 			PrintNetRates(netIO, netChannel)
 		}
 	}
