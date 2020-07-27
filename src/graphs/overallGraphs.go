@@ -36,7 +36,7 @@ func newPage(numCores int) *mainPage {
 
 func (page *mainPage) init(numCores int) {
 	page.MemoryChart.Title = " Memory (RAM) "
-	page.MemoryChart.Labels = []string{"Total", "Available", "Used"}
+	page.MemoryChart.Labels = []string{"Total", "Available", "Used", "Free"}
 	page.MemoryChart.BarWidth = 8
 	page.MemoryChart.BarColors = []ui.Color{ui.ColorRed, ui.ColorGreen}
 	page.MemoryChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorBlue)}
@@ -44,9 +44,10 @@ func (page *mainPage) init(numCores int) {
 
 	page.DiskChart.Title = " Disk "
 	page.DiskChart.TextStyle = ui.NewStyle(ui.ColorWhite)
-	page.DiskChart.TextAlignment = ui.AlignCenter
+	page.DiskChart.TextAlignment = ui.AlignLeft
 	page.DiskChart.RowSeparator = false
-	page.DiskChart.ColumnWidths = []int{8, 8, 8, 8}
+	page.DiskChart.ColumnWidths = []int{9, 9, 9, 9, 9, 11}
+	// page.DiskChart.FillRow = true
 
 	page.NetworkChart.Title = " Network data "
 	page.NetworkChart.HorizontalScale = 1
@@ -92,10 +93,10 @@ func (page *mainPage) init(numCores int) {
 	} else if numCores == 4 {
 		page.Grid.Set(
 			ui.NewCol(0.54,
-				ui.NewRow(0.125, page.CPUCharts[0]),
-				ui.NewRow(0.125, page.CPUCharts[1]),
-				ui.NewRow(0.125, page.CPUCharts[2]),
-				ui.NewRow(0.125, page.CPUCharts[3]),
+				ui.NewRow(0.25, page.CPUCharts[0]),
+				ui.NewRow(0.25, page.CPUCharts[1]),
+				ui.NewRow(0.25, page.CPUCharts[2]),
+				ui.NewRow(0.25, page.CPUCharts[3]),
 			),
 			ui.NewCol(0.46,
 				ui.NewRow(0.34, page.MemoryChart),
@@ -120,6 +121,13 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	defer ui.Close()
 
 	numCores := runtime.NumCPU()
+
+	if numCores != 4 && numCores != 8 { // Commit die!
+		endChannel <- os.Kill
+		wg.Done()
+		return
+	}
+
 	myPage := newPage(numCores)
 
 	ipData := make([]float64, 40)
@@ -137,7 +145,7 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	}
 
 	uiEvents := ui.PollEvents()
-	tick := time.Tick(time.Second)
+	tick := time.Tick(100 * time.Millisecond)
 	for {
 		select {
 		case e := <-uiEvents: // For keyboard events
