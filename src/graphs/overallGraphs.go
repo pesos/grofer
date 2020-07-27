@@ -20,12 +20,13 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	}
 	defer ui.Close()
 
+	
+
 	// Bar chart for Memory
 	bc := widgets.NewBarChart()
 	bc.Labels = []string{"Total", "Available", "Used"}
 	bc.Title = " Memory (RAM) "
-	bc.SetRect(35, 0, 65, 10)
-	bc.BarWidth = 8
+	bc.BarWidth = 10
 	bc.BarColors = []ui.Color{ui.ColorRed, ui.ColorGreen}
 	bc.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorBlue)}
 	bc.NumStyles = []ui.Style{ui.NewStyle(ui.ColorYellow)}
@@ -35,11 +36,12 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	table.TextStyle = ui.NewStyle(ui.ColorWhite)
 	table.TextAlignment = ui.AlignCenter
 	table.RowSeparator = false
-	table.SetRect(35, 24, 80, 29)
+	table.SetRect(35, 26, 80, 31)
 	table.Title = " Disk "
 
 	ipData := make([]float64, 40)
 	opData := make([]float64, 40)
+	var nproc int
 
 	// Gauges for CPU core usage
 	type gaugeMap map[int]*widgets.Gauge
@@ -71,12 +73,6 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 				pause()
 			}
 
-		case data := <-memChannel: // Update memory values
-			if run {
-				bc.Data = data
-				ui.Render(bc)
-			}
-
 		case data := <-diskChannel: // Update disk values
 			if run {
 				table.Rows = data
@@ -98,21 +94,23 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 				pl2 := widgets.NewPlot()
 
 				temp := [][]float64{}
-				temp = append(temp, ipData)
+				temp = append(temp, opData)
 				pl.Data = temp
 				pl.HorizontalScale = 1
 				pl.AxesColor = ui.ColorWhite
 				pl.LineColors[0] = ui.ColorCyan
 				pl.Title = " I/P Data "
-				pl.SetRect(35, 10, 80, 17)
+				pl.SetRect(35, 0, 70, 13)
 
 				temp2 := [][]float64{}
 				temp2 = append(temp2, opData)
 				pl2.Data = temp
 				pl2.HorizontalScale = 1
+                pl2.LineColors[0] = ui.ColorCyan
+				//pl2.LineColors[1] = ui.ColorRed
 				pl2.AxesColor = ui.ColorWhite
 				pl2.Title = " O/P Data "
-				pl2.SetRect(35, 17, 80, 24)
+				pl2.SetRect(35, 13, 70, 26)
 
 				ui.Render(pl)
 				ui.Render(pl2)
@@ -120,6 +118,7 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 			}
 
 		case cpu_data := <-cpuChannel: // Update Gauge map with newer values
+			nproc = len(cpu_data)
 			if run {
 				for index, rate := range cpu_data {
 					tempGauge := widgets.NewGauge()
@@ -133,6 +132,16 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 					ui.Render(gMap[index])
 				}
 			}
+
+		case data := <-memChannel: // Update memory values
+			if run {
+				_,term_breadth := ui.TerminalDimensions()
+
+                bc.Data = data
+				bc.SetRect(0, nproc*3, 35, term_breadth)
+				ui.Render(bc)
+			}
+
 		}
 	}
 }
