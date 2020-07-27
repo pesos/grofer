@@ -4,7 +4,9 @@ import (
 	"log"
 	"os"
 	"sync"
+	"time"
 
+	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/net"
@@ -20,10 +22,10 @@ func GlobalStats(endChannel chan os.Signal, memChannel chan []float64, cpuChanne
 
 		default: // Get Memory and CPU rates per core periodically
 
-			// cpuUsageRates, err := cpu.Percent(time.Second, true)
-			// if err != nil {
-			// 	log.Fatal(err)
-			// }
+			cpuUsageRates, err := cpu.Percent(time.Second, true)
+			if err != nil {
+				log.Fatal(err)
+			}
 
 			memoryStat, err := mem.VirtualMemory()
 			if err != nil {
@@ -41,7 +43,7 @@ func GlobalStats(endChannel chan os.Signal, memChannel chan []float64, cpuChanne
 			}
 
 			// fmt.Println(len(partitions))
-			// go PrintCPURates(cpuUsageRates, cpuChannel)
+			go PrintCPURates(cpuUsageRates, cpuChannel)
 			go PrintMemRates(memoryStat, memChannel)
 			go PrintDiskRates(partitions, diskChannel)
 			// time.Sleep(5 * time.Second)

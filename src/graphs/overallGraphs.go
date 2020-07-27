@@ -3,6 +3,7 @@ package graphs
 import (
 	"log"
 	"os"
+	"runtime"
 	"strconv"
 	"sync"
 	"time"
@@ -66,18 +67,44 @@ func (page *mainPage) init(numCores int) {
 		page.CPUCharts = append(page.CPUCharts, tempGauge)
 	}
 
-	page.Grid.Set(
-		ui.NewCol(0.46,
-			ui.NewRow(0.34, page.MemoryChart),
-			ui.NewRow(0.34, page.DiskChart),
-			ui.NewRow(0.34, page.NetworkChart),
-		),
-		ui.NewCol(0.54,
-			ui.NewRow(0.125, page.CPUCharts[0]),
-			ui.NewRow(0.125, page.CPUCharts[1]),
-		),
-	)
-	// page.Grid.Items[1].Entry = page.CPUCharts
+	// var rows *ui.GridItem
+	// rows.Entry = page.CPUCharts
+
+	if numCores == 8 {
+		page.Grid.Set(
+			ui.NewCol(0.54,
+				ui.NewRow(0.125, page.CPUCharts[0]),
+				ui.NewRow(0.125, page.CPUCharts[1]),
+				ui.NewRow(0.125, page.CPUCharts[2]),
+				ui.NewRow(0.125, page.CPUCharts[3]),
+				ui.NewRow(0.125, page.CPUCharts[4]),
+				ui.NewRow(0.125, page.CPUCharts[5]),
+				ui.NewRow(0.125, page.CPUCharts[6]),
+				ui.NewRow(0.125, page.CPUCharts[7]),
+				// ui.NewRow(0.125, page.CPUCharts),
+			),
+			ui.NewCol(0.46,
+				ui.NewRow(0.34, page.MemoryChart),
+				ui.NewRow(0.34, page.DiskChart),
+				ui.NewRow(0.34, page.NetworkChart),
+			),
+		)
+	} else if numCores == 4 {
+		page.Grid.Set(
+			ui.NewCol(0.54,
+				ui.NewRow(0.125, page.CPUCharts[0]),
+				ui.NewRow(0.125, page.CPUCharts[1]),
+				ui.NewRow(0.125, page.CPUCharts[2]),
+				ui.NewRow(0.125, page.CPUCharts[3]),
+			),
+			ui.NewCol(0.46,
+				ui.NewRow(0.34, page.MemoryChart),
+				ui.NewRow(0.34, page.DiskChart),
+				ui.NewRow(0.34, page.NetworkChart),
+			),
+		)
+	}
+
 	w, h := ui.TerminalDimensions()
 	page.Grid.SetRect(0, 0, w, h)
 }
@@ -92,11 +119,8 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	}
 	defer ui.Close()
 
-	// numCores := 8
-
-	myPage := newPage(8)
-
-	// myPage.init()
+	numCores := runtime.NumCPU()
+	myPage := newPage(numCores)
 
 	ipData := make([]float64, 40)
 	opData := make([]float64, 40)
@@ -152,6 +176,17 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 				temp = append(temp, ipData)
 				temp = append(temp, opData)
 				myPage.NetworkChart.Data = temp
+			}
+
+		case cpu_data := <-cpuChannel: // Update Gauge map with newer values
+			if run {
+				for index, rate := range cpu_data {
+					myPage.CPUCharts[index].Title = " CPU " + strconv.Itoa(index) + " "
+					myPage.CPUCharts[index].Percent = int(rate)
+					myPage.CPUCharts[index].BarColor = ui.ColorRed
+					myPage.CPUCharts[index].BorderStyle.Fg = ui.ColorWhite
+					myPage.CPUCharts[index].TitleStyle.Fg = ui.ColorCyan
+				}
 			}
 
 		case <-tick:
