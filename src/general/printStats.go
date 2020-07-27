@@ -22,12 +22,12 @@ func roundOff(num uint64) float64 {
 
 // PrintMemRates prints stats about the memory
 func PrintMemRates(memory *mem.VirtualMemoryStat, dataChannel chan []float64) {
-	data := []float64{roundOff(memory.Total), roundOff(memory.Available), roundOff(memory.Used)}
+	data := []float64{roundOff(memory.Total), roundOff(memory.Available), roundOff(memory.Used), roundOff(memory.Free)}
 	dataChannel <- data
 }
 
 func PrintDiskRates(partitions []disk.PartitionStat, dataChannel chan [][]string) {
-	rows := [][]string{[]string{"Mount", "Total", "Used", "Used %"}}
+	rows := [][]string{[]string{"Mount", "Total", "Used %", "Used", "Free", "FS Type"}}
 	for _, value := range partitions {
 		usageVals, _ := disk.Usage(value.Mountpoint)
 		// stats := strings.Split(usageVals.String(), ",")[1]
@@ -42,7 +42,9 @@ func PrintDiskRates(partitions []disk.PartitionStat, dataChannel chan [][]string
 			total := fmt.Sprintf("%.2f G", float64(usageVals.Total)/(1024*1024*1024))
 			used := fmt.Sprintf("%.2f G", float64(usageVals.Used)/(1024*1024*1024))
 			usedPercent := fmt.Sprintf("%.2f %s", usageVals.UsedPercent, "%")
-			row := []string{path, total, used, usedPercent}
+			free := fmt.Sprintf("%.2f G", float64(usageVals.Free)/(1024*1024*1024))
+			fs := usageVals.Fstype
+			row := []string{path, total, usedPercent, used, free, fs}
 			rows = append(rows, row)
 
 		}
