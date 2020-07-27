@@ -20,8 +20,6 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	}
 	defer ui.Close()
 
-	
-
 	// Bar chart for Memory
 	bc := widgets.NewBarChart()
 	bc.Labels = []string{"Total", "Available", "Used"}
@@ -106,7 +104,7 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 				temp2 = append(temp2, opData)
 				pl2.Data = temp
 				pl2.HorizontalScale = 1
-                pl2.LineColors[0] = ui.ColorCyan
+				pl2.LineColors[0] = ui.ColorCyan
 				//pl2.LineColors[1] = ui.ColorRed
 				pl2.AxesColor = ui.ColorWhite
 				pl2.Title = " O/P Data "
@@ -135,9 +133,9 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 
 		case data := <-memChannel: // Update memory values
 			if run {
-				_,term_breadth := ui.TerminalDimensions()
+				_, term_breadth := ui.TerminalDimensions()
 
-                bc.Data = data
+				bc.Data = data
 				bc.SetRect(0, nproc*3, 35, term_breadth)
 				ui.Render(bc)
 			}
