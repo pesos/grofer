@@ -38,8 +38,8 @@ func ServeProcs(dataChannel chan map[int32]*Process, endChannel chan os.Signal, 
 					info.UpdateProcForVisual()
 				}
 				dataChannel <- procs
+				time.Sleep(1 * time.Second)
 			}
 		}
-		time.Sleep(10 * time.Millisecond)
 	}
 }

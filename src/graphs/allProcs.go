@@ -135,7 +135,7 @@ func AllProcVisuals(dataChannel chan map[int32]*process.Process, endChannel chan
 	myPage := newProcsPage()
 
 	pause := func() {
-		run = !run
+		runAllProc = !runAllProc
 	}
 
 	uiEvents := ui.PollEvents()
@@ -182,7 +182,9 @@ func AllProcVisuals(dataChannel chan map[int32]*process.Process, endChannel chan
 			}
 
 		case data := <-dataChannel:
-			myPage.BodyList.Rows = getData(data)
+			if runAllProc {
+				myPage.BodyList.Rows = getData(data)
+			}
 
 		case <-tick: // Update page with new values
 			w, h := ui.TerminalDimensions()
