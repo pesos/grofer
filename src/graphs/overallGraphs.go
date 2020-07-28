@@ -20,6 +20,7 @@ type mainPage struct {
 	DiskChart    *widgets.Table
 	NetworkChart *widgets.Plot
 	CPUCharts    []*widgets.Gauge
+    //NetPara      *widgets.Paragraph
 }
 
 func newPage(numCores int) *mainPage {
@@ -29,6 +30,7 @@ func newPage(numCores int) *mainPage {
 		DiskChart:    widgets.NewTable(),
 		NetworkChart: widgets.NewPlot(),
 		CPUCharts:    make([]*widgets.Gauge, 0),
+        //NetPara:    widgets.NewParagraph(),
 	}
 	page.init(numCores)
 	return page
@@ -53,13 +55,18 @@ func (page *mainPage) init(numCores int) {
 	page.DiskChart.ColumnWidths = []int{9, 9, 9, 9, 9, 11}
 
 	// Initialize Plot for Network Chart
-	page.NetworkChart.Title = " Network data "
+	page.NetworkChart.Title = " Network data(in kB) "
 	page.NetworkChart.HorizontalScale = 1
 	page.NetworkChart.AxesColor = ui.ColorWhite
 	page.NetworkChart.LineColors[0] = ui.ColorCyan
 	page.NetworkChart.LineColors[1] = ui.ColorRed
 	page.NetworkChart.DrawDirection = 1
-	page.NetworkChart.DataLabels = []string{"ip kB", "op kB"}
+	page.NetworkChart.DataLabels = []string{"ip kB", "op kB"}     //refer issue #214 for details
+
+    //Initialize paragraph for NetPara
+    //page.NetPara.Text = "Legend:\n[ip Data(in kB)](fg:cyan)\n[op Data(in kB)](fg:red)"
+    //page.NetPara.Border = false
+
 
 	// Initialize Gauges for each CPU Core usage
 	for i := 0; i < numCores; i++ {
@@ -104,7 +111,7 @@ func (page *mainPage) init(numCores int) {
 				ui.NewRow(0.34, page.DiskChart),
 				ui.NewRow(0.34, page.NetworkChart),
 			),
-		)
+       )
 	}
 
 	w, h := ui.TerminalDimensions()
