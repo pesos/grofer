@@ -1,6 +1,7 @@
 package graphs
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"runtime"
@@ -11,35 +12,6 @@ import (
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 )
-
-// This is used to do something just once.
-// When used inside select, it'll run only
-// for the first time and never again
-var on sync.Once
-
-// Global variable to set the first time to
-var initialTime time.Time
-
-// Gets difference between two time variables
-// Returns values as milliseconds of type int64
-// Ensure t1 > t2 to get positive values
-
-var (
-	counter               = 0
-	prevBytesRecv float64 = 0
-	prevBytesSent float64 = 0
-)
-
-func getTimeDifference(t1, t2 time.Time) float64 {
-	diff := t1.Sub(t2).Seconds()
-	return float64(diff)
-}
-
-// Returns a new time variable
-func getTime() time.Time {
-	t := time.Now()
-	return t
-}
 
 type mainPage struct {
 	Grid         *ui.Grid
@@ -82,7 +54,7 @@ func (page *mainPage) init(numCores int) {
 	page.DiskChart.ColumnWidths = []int{9, 9, 9, 9, 9, 11}
 
 	// Initialize Plot for Network Chart
-	page.NetworkChart.Title = " Network data(in kB) "
+	page.NetworkChart.Title = " Network data(in mB) "
 	page.NetworkChart.HorizontalScale = 1
 	page.NetworkChart.AxesColor = ui.ColorWhite
 	page.NetworkChart.LineColors[0] = ui.ColorCyan
@@ -93,7 +65,7 @@ func (page *mainPage) init(numCores int) {
 	//Initialize paragraph for NetPara
 	page.NetPara.Text = "[Received(kB)](fg:cyan)\n\n[Sent(kB)](fg:red)"
 	page.NetPara.Border = true
-	page.NetPara.Title = "Legend"
+	page.NetPara.Title = " RX/TX "
 
 	// Initialize Gauges for each CPU Core usage
 	for i := 0; i < numCores; i++ {
@@ -138,8 +110,11 @@ func (page *mainPage) init(numCores int) {
 			),
 			ui.NewCol(0.46,
 				ui.NewRow(0.34, page.MemoryChart),
+				ui.NewRow(0.34,
+					ui.NewCol(0.25, page.NetPara),
+					ui.NewCol(0.75, page.NetworkChart),
+				),
 				ui.NewRow(0.34, page.DiskChart),
-				ui.NewRow(0.34, page.NetworkChart),
 			),
 		)
 	}
@@ -158,6 +133,9 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	}
 	defer ui.Close()
 
+	var totalBytesRecv float64
+	var totalBytesSent float64
+
 	// Get number of cores in machine
 	numCores := runtime.NumCPU()
 
@@ -171,8 +149,8 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	myPage := newPage(numCores)
 
 	// Initialize slices for Network Data
-	ipData := make([]float64, 65)
-	opData := make([]float64, 65)
+	ipData := make([]float64, 5)
+	opData := make([]float64, 5)
 
 	// Pause to pause updating data
 	pause := func() {
@@ -207,44 +185,45 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 		case data := <-netChannel: // Update network stats & render braille plots
 			if run {
 
-				// on.Do(func() {
-				// 	initialTime = getTime()
-				// }) // This will run for the very first time data comes from netChannel and never again
+				var curBytesRecv, curBytesSent float64
 
-				var totalSent, totalRecv float64
-				totalSent = data["all"][0]
-				totalRecv = data["all"][1]
+				for _, netInterface := range data {
+					curBytesRecv += netInterface[1]
+					curBytesSent += netInterface[0]
+				}
 
-				currTime := getTime()
+				var recentBytesRecv, recentBytesSent float64
 
-				//elapsed := getTimeDifference(currTime, initialTime)
-				//if elapsed != 0 {
-				totalRecv = (totalRecv - prevBytesRecv)
-				totalSent = (totalSent - prevBytesSent)
+				if totalBytesRecv != 0 {
+					recentBytesRecv = curBytesRecv - totalBytesRecv
+					recentBytesSent = curBytesSent - totalBytesSent
 
-				// ipData = append(ipData, totalRecv)
-				// ipData = ipData[1:]
-				// opData = append(opData, totalSent)
-				// opData = opData[1:]
-				//}
-				// for _, value := range data {
+					if int(recentBytesRecv) < 0 {
+						recentBytesRecv = 0
+					}
+					if int(recentBytesSent) < 0 {
+						recentBytesSent = 0
+					}
 
-				// 	ipData = append(ipData, value[0])
-				// 	ipData = ipData[1:]
+					ipData = append(ipData, recentBytesRecv)
+					opData = append(opData, recentBytesSent)
+				}
 
-				// 	opData = append(opData, value[1])
-				// 	opData = opData[1:]
-				// }
+				totalBytesRecv = curBytesRecv
+				totalBytesSent = curBytesSent
 
-				ipData = append(ipData, totalRecv)
-				ipData = ipData[1:]
-				opData = append(opData, totalSent)
-				opData = opData[1:]
+				titles := make([]string, 2)
 
-				counter++
-				initialTime = currTime
-				prevBytesSent = totalSent
-				prevBytesRecv = totalRecv
+				for i := 0; i < 2; i++ {
+					if i == 0 {
+						titles[i] = fmt.Sprintf("[Total RX](fg:cyan): %5.1f %s\n\n", totalBytesRecv/1024, "mB")
+					} else {
+						titles[i] = fmt.Sprintf("[Total TX](fg:red): %5.1f %s", totalBytesSent/1024, "mB")
+					}
+
+				}
+
+				myPage.NetPara.Text = titles[0] + titles[1]
 
 				temp := [][]float64{}
 				temp = append(temp, ipData)
