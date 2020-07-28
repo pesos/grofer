@@ -59,7 +59,7 @@ func (page *mainPage) init(numCores int) {
 	page.NetworkChart.AxesColor = ui.ColorWhite
 	page.NetworkChart.LineColors[0] = ui.ColorCyan
 	page.NetworkChart.LineColors[1] = ui.ColorRed
-	page.NetworkChart.DrawDirection = 1
+	page.NetworkChart.DrawDirection = widgets.DrawLeft
 	page.NetworkChart.DataLabels = []string{"ip kB", "op kB"} //refer issue #214 for details
 
 	//Initialize paragraph for NetPara
