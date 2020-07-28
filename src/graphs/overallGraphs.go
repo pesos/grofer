@@ -23,9 +23,16 @@ var initialTime time.Time
 // Gets difference between two time variables
 // Returns values as milliseconds of type int64
 // Ensure t1 > t2 to get positive values
-func getTimeDifference(t1, t2 time.Time) int64 {
-	diff := t1.Sub(t2).Milliseconds()
-	return diff
+
+var (
+	counter               = 0
+	prevBytesRecv float64 = 0
+	prevBytesSent float64 = 0
+)
+
+func getTimeDifference(t1, t2 time.Time) float64 {
+	diff := t1.Sub(t2).Seconds()
+	return float64(diff)
 }
 
 // Returns a new time variable
@@ -200,18 +207,44 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 		case data := <-netChannel: // Update network stats & render braille plots
 			if run {
 
-				on.Do(func() {
-					initialTime = getTime()
-				}) // This will run for the very first time data comes from netChannel and never again
+				// on.Do(func() {
+				// 	initialTime = getTime()
+				// }) // This will run for the very first time data comes from netChannel and never again
 
-				for _, value := range data {
+				var totalSent, totalRecv float64
+				totalSent = data["all"][0]
+				totalRecv = data["all"][1]
 
-					ipData = append(ipData, value[0])
-					ipData = ipData[1:]
+				currTime := getTime()
 
-					opData = append(opData, value[1])
-					opData = opData[1:]
-				}
+				//elapsed := getTimeDifference(currTime, initialTime)
+				//if elapsed != 0 {
+				totalRecv = (totalRecv - prevBytesRecv)
+				totalSent = (totalSent - prevBytesSent)
+
+				// ipData = append(ipData, totalRecv)
+				// ipData = ipData[1:]
+				// opData = append(opData, totalSent)
+				// opData = opData[1:]
+				//}
+				// for _, value := range data {
+
+				// 	ipData = append(ipData, value[0])
+				// 	ipData = ipData[1:]
+
+				// 	opData = append(opData, value[1])
+				// 	opData = opData[1:]
+				// }
+
+				ipData = append(ipData, totalRecv)
+				ipData = ipData[1:]
+				opData = append(opData, totalSent)
+				opData = opData[1:]
+
+				counter++
+				initialTime = currTime
+				prevBytesSent = totalSent
+				prevBytesRecv = totalRecv
 
 				temp := [][]float64{}
 				temp = append(temp, ipData)

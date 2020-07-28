@@ -49,5 +49,6 @@ func GlobalStats(endChannel chan os.Signal, memChannel chan []float64, cpuChanne
 			// time.Sleep(5 * time.Second)
 			PrintNetRates(netIO, netChannel)
 		}
+		time.Sleep(1 * time.Second)
 	}
 }
