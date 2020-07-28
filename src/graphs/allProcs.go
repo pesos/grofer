@@ -32,8 +32,8 @@ func newProcsPage() *allProcPage {
 
 func (page *allProcPage) init() {
 	page.HeadingTable.TextStyle = ui.NewStyle(ui.ColorWhite)
-	page.HeadingTable.Rows = [][]string{[]string{" PID", " Command", " CPU", " Memory", " Foreground", " Creation Time", " Thread Count"}}
-	page.HeadingTable.ColumnWidths = []int{10, 40, 10, 10, 15, 25, 15}
+	page.HeadingTable.Rows = [][]string{[]string{" PID", " Command", " CPU", " Memory", " Status", " Foreground", " Creation Time", " Thread Count"}}
+	page.HeadingTable.ColumnWidths = []int{10, 40, 10, 10, 8, 12, 23, 15}
 	page.HeadingTable.TextAlignment = ui.AlignLeft
 	page.HeadingTable.RowSeparator = false
 
@@ -85,14 +85,20 @@ func getData(procs map[int32]*process.Process) []string {
 				temp = temp + " "
 			}
 
+			status := info.Status
+			temp = temp + status
+			for i := 0; i < 9-len(status); i++ {
+				temp = temp + " "
+			}
+
 			if info.Foreground {
 				temp = temp + "True"
-				for i := 0; i < 12; i++ {
+				for i := 0; i < 9; i++ {
 					temp = temp + " "
 				}
 			} else {
 				temp = temp + "False"
-				for i := 0; i < 11; i++ {
+				for i := 0; i < 8; i++ {
 					temp = temp + " "
 				}
 			}
@@ -100,7 +106,7 @@ func getData(procs map[int32]*process.Process) []string {
 			ctime := info.CreateTime
 			createTime := getDateFromUnix(ctime)
 			temp = temp + createTime
-			for i := 0; i < 26-len(createTime); i++ {
+			for i := 0; i < 24-len(createTime); i++ {
 				temp = temp + " "
 			}
 
