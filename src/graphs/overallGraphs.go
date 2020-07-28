@@ -149,8 +149,8 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 	myPage := newPage(numCores)
 
 	// Initialize slices for Network Data
-	ipData := make([]float64, 5)
-	opData := make([]float64, 5)
+	ipData := make([]float64, 40)
+	opData := make([]float64, 40)
 
 	// Pause to pause updating data
 	pause := func() {
@@ -204,6 +204,9 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 					if int(recentBytesSent) < 0 {
 						recentBytesSent = 0
 					}
+
+					ipData = ipData[1:]
+					opData = opData[1:]
 
 					ipData = append(ipData, recentBytesRecv)
 					opData = append(opData, recentBytesSent)
