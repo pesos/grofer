@@ -120,4 +120,11 @@ func (p *Process) UpdateProcForVisual() {
 	if err == nil {
 		p.Status = tempStatus
 	}
+
+	tempExe, err := p.Proc.Exe()
+	if err == nil {
+		p.Exe = tempExe
+	} else {
+		p.Exe = "NA"
+	}
 }
