@@ -12,7 +12,27 @@ import (
 	"github.com/gizak/termui/v3/widgets"
 )
 
-type gaugeMap map[int]*widgets.Gauge
+// This is used to do something just once.
+// When used inside select, it'll run only
+// for the first time and never again
+var on sync.Once
+
+// Global variable to set the first time to
+var initialTime time.Time
+
+// Gets difference between two time variables
+// Returns values as milliseconds of type int64
+// Ensure t1 > t2 to get positive values
+func getTimeDifference(t1, t2 time.Time) int64 {
+	diff := t1.Sub(t2).Milliseconds()
+	return diff
+}
+
+// Returns a new time variable
+func getTime() time.Time {
+	t := time.Now()
+	return t
+}
 
 type mainPage struct {
 	Grid         *ui.Grid
@@ -179,6 +199,11 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 
 		case data := <-netChannel: // Update network stats & render braille plots
 			if run {
+
+				on.Do(func() {
+					initialTime = getTime()
+				}) // This will run for the very first time data comes from netChannel and never again
+
 				for _, value := range data {
 
 					ipData = append(ipData, value[0])
