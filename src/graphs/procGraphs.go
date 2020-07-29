@@ -42,67 +42,68 @@ func newProcPage() *proccessPage {
 func (page *proccessPage) init() {
 	// Initialize Gauge for CPU Chart
 	page.CPUChart.Title = " CPU % "
-	page.CPUChart.BarColor = ui.ColorRed
-	page.CPUChart.BorderStyle.Fg = ui.ColorWhite
-	page.CPUChart.TitleStyle.Fg = ui.ColorCyan
+	page.CPUChart.BarColor = ui.ColorGreen
+	page.CPUChart.BorderStyle.Fg = ui.ColorCyan
+	page.CPUChart.TitleStyle.Fg = ui.ColorWhite
 
 	// Initialize Gauge for Memory Chart
 	page.MemChart.Title = " Mem % "
-	page.MemChart.BarColor = ui.ColorRed
-	page.MemChart.BorderStyle.Fg = ui.ColorWhite
-	page.MemChart.TitleStyle.Fg = ui.ColorCyan
+	page.MemChart.BarColor = ui.ColorGreen
+	page.MemChart.BorderStyle.Fg = ui.ColorCyan
+	page.MemChart.TitleStyle.Fg = ui.ColorWhite
 
 	// Initialize Table for PID Details Table
 	page.PIDTable.TextStyle = ui.NewStyle(ui.ColorWhite)
 	page.PIDTable.TextAlignment = ui.AlignCenter
 	page.PIDTable.RowSeparator = false
 	page.PIDTable.Title = " PID "
-	page.PIDTable.TitleStyle.Fg = ui.ColorCyan
+	page.PIDTable.BorderStyle.Fg = ui.ColorCyan
+	page.PIDTable.TitleStyle.Fg = ui.ColorWhite
 
 	// Initialize List for Child Processes list
 	page.ChildProcsList.Title = " Child Processes "
-	page.ChildProcsList.BorderStyle.Fg = ui.ColorWhite
-	page.ChildProcsList.TitleStyle.Fg = ui.ColorCyan
+	page.ChildProcsList.BorderStyle.Fg = ui.ColorCyan
+	page.ChildProcsList.TitleStyle.Fg = ui.ColorWhite
 
 	// Initialize Bar Chart for CTX Swicthes Chart
 	page.CTXSwitchesChart.Data = []float64{0, 0}
 	page.CTXSwitchesChart.Labels = []string{"Volun", "Involun"}
 	page.CTXSwitchesChart.Title = " Ctx switches "
-	page.CTXSwitchesChart.BorderStyle.Fg = ui.ColorWhite
-	page.CTXSwitchesChart.TitleStyle.Fg = ui.ColorCyan
+	page.CTXSwitchesChart.BorderStyle.Fg = ui.ColorCyan
+	page.CTXSwitchesChart.TitleStyle.Fg = ui.ColorWhite
 	page.CTXSwitchesChart.BarWidth = 10
-	page.CTXSwitchesChart.BarColors = []ui.Color{ui.ColorRed, ui.ColorGreen}
-	page.CTXSwitchesChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorBlue)}
+	page.CTXSwitchesChart.BarColors = []ui.Color{ui.ColorGreen, ui.ColorCyan}
+	page.CTXSwitchesChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorWhite)}
 	page.CTXSwitchesChart.NumStyles = []ui.Style{ui.NewStyle(ui.ColorBlack)}
 
 	// Initialize Bar Chart for Page Faults Chart
 	page.PageFaultsChart.Data = []float64{0, 0}
 	page.PageFaultsChart.Labels = []string{"minr", "mjr"}
 	page.PageFaultsChart.Title = " Page Faults "
-	page.PageFaultsChart.BorderStyle.Fg = ui.ColorWhite
-	page.PageFaultsChart.TitleStyle.Fg = ui.ColorCyan
+	page.PageFaultsChart.BorderStyle.Fg = ui.ColorCyan
+	page.PageFaultsChart.TitleStyle.Fg = ui.ColorWhite
 	page.PageFaultsChart.BarWidth = 10
-	page.PageFaultsChart.BarColors = []ui.Color{ui.ColorRed, ui.ColorGreen, ui.ColorYellow, ui.ColorCyan}
-	page.PageFaultsChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorBlue)}
+	page.PageFaultsChart.BarColors = []ui.Color{ui.ColorGreen, ui.ColorCyan}
+	page.PageFaultsChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorWhite)}
 	page.PageFaultsChart.NumStyles = []ui.Style{ui.NewStyle(ui.ColorBlack)}
 
 	// Initialize Bar Chart for Memory Stats Chart
 	page.MemStatsChart.Data = []float64{0, 0, 0, 0}
 	page.MemStatsChart.Labels = []string{"RSS", "Data", "Stack", "Swap"}
 	page.MemStatsChart.Title = " Mem Stats (mb) "
-	page.MemStatsChart.BorderStyle.Fg = ui.ColorWhite
-	page.MemStatsChart.TitleStyle.Fg = ui.ColorCyan
+	page.MemStatsChart.BorderStyle.Fg = ui.ColorCyan
+	page.MemStatsChart.TitleStyle.Fg = ui.ColorWhite
 	page.MemStatsChart.BarWidth = 10
-	page.MemStatsChart.BarColors = []ui.Color{ui.ColorRed, ui.ColorGreen, ui.ColorYellow, ui.ColorCyan}
-	page.MemStatsChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorBlue)}
+	page.MemStatsChart.BarColors = []ui.Color{ui.ColorGreen, ui.ColorMagenta, ui.ColorYellow, ui.ColorCyan}
+	page.MemStatsChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorWhite)}
 	page.MemStatsChart.NumStyles = []ui.Style{ui.NewStyle(ui.ColorBlack)}
 
 	// Initialize Grid layout
 	page.Grid.Set(
 		ui.NewCol(0.5,
-			ui.NewRow(0.1, page.CPUChart),
-			ui.NewRow(0.1, page.MemChart),
-			ui.NewRow(0.4, page.PIDTable),
+			ui.NewRow(0.125, page.CPUChart),
+			ui.NewRow(0.125, page.MemChart),
+			ui.NewRow(0.35, page.PIDTable),
 			ui.NewRow(0.4, page.ChildProcsList),
 		),
 		ui.NewCol(0.5,
@@ -250,8 +251,6 @@ func ProcVisuals(endChannel chan os.Signal, dataChannel chan *process.Process, w
 					[]string{"Child process count", strconv.Itoa(len(data.Children))},
 				}
 				myPage.PIDTable.Title = " PID: " + strconv.Itoa(int(data.Proc.Pid)) + " "
-				myPage.PIDTable.BorderStyle.Fg = ui.ColorWhite
-				myPage.PIDTable.TitleStyle.Fg = ui.ColorCyan
 
 				//update memory stats
 				memData := []float64{getInMB(data.MemoryInfo.RSS, 1),

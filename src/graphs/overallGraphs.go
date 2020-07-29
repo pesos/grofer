@@ -42,9 +42,10 @@ func (page *mainPage) init(numCores int) {
 	page.MemoryChart.Labels = []string{"Total", "Available", "Used", "Free"}
 	page.MemoryChart.BarWidth = 8
 	page.MemoryChart.BarGap = 9
-	page.MemoryChart.BarColors = []ui.Color{ui.ColorRed, ui.ColorGreen}
-	page.MemoryChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorBlue)}
-	page.MemoryChart.NumStyles = []ui.Style{ui.NewStyle(ui.ColorYellow)}
+	page.MemoryChart.BarColors = []ui.Color{ui.ColorCyan, ui.ColorGreen}
+	page.MemoryChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorWhite)}
+	page.MemoryChart.NumStyles = []ui.Style{ui.NewStyle(ui.ColorWhite)}
+	page.MemoryChart.BorderStyle.Fg = ui.ColorCyan
 
 	// Initialize Table for Disk Chart
 	page.DiskChart.Title = " Disk "
@@ -52,19 +53,22 @@ func (page *mainPage) init(numCores int) {
 	page.DiskChart.TextAlignment = ui.AlignLeft
 	page.DiskChart.RowSeparator = false
 	page.DiskChart.ColumnWidths = []int{9, 9, 9, 9, 9, 11}
+	page.DiskChart.BorderStyle.Fg = ui.ColorCyan
 
 	// Initialize Plot for Network Chart
 	page.NetworkChart.Title = " Network data(in mB) "
 	page.NetworkChart.HorizontalScale = 1
-	page.NetworkChart.AxesColor = ui.ColorWhite
-	page.NetworkChart.LineColors[0] = ui.ColorCyan
-	page.NetworkChart.LineColors[1] = ui.ColorRed
+	page.NetworkChart.AxesColor = ui.ColorCyan
+	page.NetworkChart.LineColors[0] = ui.ColorRed
+	page.NetworkChart.LineColors[1] = ui.ColorGreen
 	page.NetworkChart.DrawDirection = widgets.DrawLeft
+	page.NetworkChart.BorderStyle.Fg = ui.ColorCyan
 	page.NetworkChart.DataLabels = []string{"ip kB", "op kB"} //refer issue #214 for details
 
 	//Initialize paragraph for NetPara
 	page.NetPara.Text = "[Received(kB)](fg:cyan)\n\n[Sent(kB)](fg:red)"
 	page.NetPara.Border = true
+	page.NetPara.BorderStyle.Fg = ui.ColorCyan
 	page.NetPara.Title = " RX/TX "
 
 	// Initialize Gauges for each CPU Core usage
@@ -72,9 +76,9 @@ func (page *mainPage) init(numCores int) {
 		tempGauge := widgets.NewGauge()
 		tempGauge.Title = " CPU " + strconv.Itoa(i) + " "
 		tempGauge.Percent = 0
-		tempGauge.BarColor = ui.ColorRed
-		tempGauge.BorderStyle.Fg = ui.ColorWhite
-		tempGauge.TitleStyle.Fg = ui.ColorCyan
+		tempGauge.BarColor = ui.ColorBlue
+		tempGauge.BorderStyle.Fg = ui.ColorCyan
+		tempGauge.TitleStyle.Fg = ui.ColorWhite
 		page.CPUCharts = append(page.CPUCharts, tempGauge)
 	}
 
@@ -219,9 +223,9 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 
 				for i := 0; i < 2; i++ {
 					if i == 0 {
-						titles[i] = fmt.Sprintf("[Total RX](fg:cyan): %5.1f %s\n\n", totalBytesRecv/1024, "mB")
+						titles[i] = fmt.Sprintf("[Total RX](fg:red): %5.1f %s\n\n", totalBytesRecv/1024, "mB")
 					} else {
-						titles[i] = fmt.Sprintf("[Total TX](fg:red): %5.1f %s", totalBytesSent/1024, "mB")
+						titles[i] = fmt.Sprintf("[Total TX](fg:green): %5.1f %s", totalBytesSent/1024, "mB")
 					}
 
 				}
@@ -239,9 +243,6 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 				for index, rate := range cpu_data {
 					myPage.CPUCharts[index].Title = " CPU " + strconv.Itoa(index) + " "
 					myPage.CPUCharts[index].Percent = int(rate)
-					myPage.CPUCharts[index].BarColor = ui.ColorRed
-					myPage.CPUCharts[index].BorderStyle.Fg = ui.ColorWhite
-					myPage.CPUCharts[index].TitleStyle.Fg = ui.ColorCyan
 				}
 			}
 
