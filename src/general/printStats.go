@@ -30,8 +30,7 @@ func PrintDiskRates(partitions []disk.PartitionStat, dataChannel chan [][]string
 	rows := [][]string{[]string{"Mount", "Total", "Used %", "Used", "Free", "FS Type"}}
 	for _, value := range partitions {
 		usageVals, _ := disk.Usage(value.Mountpoint)
-		// stats := strings.Split(usageVals.String(), ",")[1]
-		// fmt.Println(stats)
+
 		if strings.HasPrefix(value.Device, "/dev/loop") {
 			continue
 		} else if strings.HasPrefix(value.Mountpoint, "/var/lib/docker") {
@@ -59,5 +58,4 @@ func PrintNetRates(netStats []net.IOCountersStat, dataChannel chan map[string][]
 		IO[IOStat.Name] = nic
 	}
 	dataChannel <- IO
-	// time.Sleep(1 * time.Second)
 }

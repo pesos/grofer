@@ -42,13 +42,10 @@ func GlobalStats(endChannel chan os.Signal, memChannel chan []float64, cpuChanne
 				log.Fatal(err)
 			}
 
-			// fmt.Println(len(partitions))
 			go PrintCPURates(cpuUsageRates, cpuChannel)
 			go PrintMemRates(memoryStat, memChannel)
 			go PrintDiskRates(partitions, diskChannel)
-			// time.Sleep(5 * time.Second)
 			PrintNetRates(netIO, netChannel)
 		}
-		// time.Sleep(1 * time.Second)
 	}
 }

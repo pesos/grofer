@@ -125,19 +125,6 @@ func AllProcVisuals(dataChannel chan map[int32]*process.Process, endChannel chan
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
 
-	// headerTable := widgets.NewTable()
-	// headerTable.TextStyle = ui.NewStyle(ui.ColorWhite)
-	// headerTable.Rows = [][]string{[]string{"PID", "Command"}}
-	// headerTable.ColumnWidths = []int{20, 137}
-	// headerTable.SetRect(0, 0, 158, 3)
-	// headerTable.RowSeparator = false
-	// ui.Render(headerTable)
-
-	// procTable := widgets.NewList()
-	// procTable.TextStyle = ui.NewStyle(ui.ColorWhite)
-	// procTable.TitleStyle.Fg = ui.ColorCyan
-	// procTable.SetRect(0, 3, 158, 38)
-
 	myPage := newProcsPage()
 
 	pause := func() {
