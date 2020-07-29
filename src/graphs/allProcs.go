@@ -67,7 +67,7 @@ func getData(procs map[int32]*process.Process) []string {
 			if len(command) > 40 {
 				command = command[:40]
 			} else {
-				temp = temp + "[" + command + "](fg:green,bg:black)"
+				temp = temp + "[" + command + "](fg:green)"
 				for i := 0; i < 41-len(command); i++ {
 					temp = temp + " "
 				}

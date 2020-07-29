@@ -144,7 +144,7 @@ func getChildProcs(proc *process.Process) []string {
 			for i := 0; i < 22-len(strconv.Itoa(int(proc.Pid))); i++ {
 				temp = temp + " "
 			}
-			temp = temp + "[" + exe + "](fg:green,bg:black)"
+			temp = temp + "[" + exe + "](fg:green)"
 			childProcs = append(childProcs, temp)
 		} else {
 			childProcs = append(childProcs, strconv.Itoa(int(proc.Pid))+"            "+"NA")
