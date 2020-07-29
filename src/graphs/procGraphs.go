@@ -13,6 +13,54 @@ import (
 	"github.com/pesos/grofer/src/process"
 )
 
+var (
+	K = math.Pow(10, 3)
+	M = math.Pow(10, 6)
+	G = math.Pow(10, 9)
+	T = math.Pow(10, 12)
+)
+
+func roundOff(num float64, divisor float64) float64 {
+	x := num / divisor
+	return math.Round(x*10) / 10
+}
+
+func roundValues(num1, num2 float64) ([]float64, string) {
+	nums := []float64{}
+	var units string
+	var n float64
+	if num1 > num2 {
+		n = num1
+	} else {
+		n = num2
+	}
+
+	switch {
+	case n < K:
+		nums = append(nums, num1)
+		nums = append(nums, num2)
+		units = " "
+
+	case n < M:
+		nums = append(nums, roundOff(num1, K))
+		nums = append(nums, roundOff(num2, K))
+		units = " per thousand "
+
+	case n < G:
+		nums = append(nums, roundOff(num1, M))
+		nums = append(nums, roundOff(num2, M))
+		units = " per million "
+
+	case n < T:
+		nums = append(nums, roundOff(num1, G))
+		nums = append(nums, roundOff(num2, G))
+		units = " per trillion "
+	}
+
+	return nums, units
+
+}
+
 type proccessPage struct {
 	Grid             *ui.Grid
 	CPUChart         *widgets.Gauge
@@ -183,7 +231,7 @@ func ProcVisuals(endChannel chan os.Signal, dataChannel chan *process.Process, w
 	}
 
 	uiEvents := ui.PollEvents()
-	tick := time.Tick(100 * time.Millisecond)
+	tick := time.Tick(1 * time.Second)
 
 	previousKey := ""
 	for {
@@ -228,8 +276,10 @@ func ProcVisuals(endChannel chan os.Signal, dataChannel chan *process.Process, w
 		case data := <-dataChannel:
 			if runProc {
 				// update ctx switches
-				switches := []float64{float64(data.NumCtxSwitches.Voluntary), float64(data.NumCtxSwitches.Involuntary)}
+				switches, units := roundValues(float64(data.NumCtxSwitches.Voluntary), float64(data.NumCtxSwitches.Involuntary))
+
 				myPage.CTXSwitchesChart.Data = switches
+				myPage.CTXSwitchesChart.Title = " CTX Switches" + units
 
 				// update cpu %
 				myPage.CPUChart.Percent = int(data.CPUPercent)
@@ -261,10 +311,10 @@ func ProcVisuals(endChannel chan os.Signal, dataChannel chan *process.Process, w
 				myPage.MemStatsChart.Data = memData
 
 				//update page faults
-				faults := []float64{float64(data.PageFault.MinorFaults),
-					float64(data.PageFault.MajorFaults),
-				}
+				faults, units := roundValues(float64(data.PageFault.MinorFaults), float64(data.PageFault.MajorFaults))
+
 				myPage.PageFaultsChart.Data = faults
+				myPage.PageFaultsChart.Title = " Page Faults" + units
 				myPage.ChildProcsList.Rows = getChildProcs(data)
 			}
 
