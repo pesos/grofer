@@ -135,6 +135,8 @@ func AllProcVisuals(dataChannel chan map[int32]*process.Process, endChannel chan
 	tick := time.Tick(100 * time.Millisecond)
 
 	previousKey := ""
+	selectedStyle := ui.NewStyle(ui.ColorYellow)
+
 	for {
 		select {
 		case e := <-uiEvents:
@@ -175,10 +177,11 @@ func AllProcVisuals(dataChannel chan map[int32]*process.Process, endChannel chan
 			}
 
 		case data := <-dataChannel:
+			myPage.BodyList.SelectedRowStyle = selectedStyle
 			if runAllProc {
+
 				myPage.BodyList.Rows = getData(data)
 			}
-
 		case <-tick: // Update page with new values
 			w, h := ui.TerminalDimensions()
 
