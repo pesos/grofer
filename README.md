@@ -1,7 +1,7 @@
 Grofer
 ======
 
-A clean and good looking System Monitor and profiler written in Go!
+A clean system monitor and profiler written purely in golang using [termui](https://github.com/gizak/termui) and [gopsutil](https://github.com/shirou/gopsutil)!
 
 Installation
 ------------
@@ -53,6 +53,12 @@ This gives overall utilization stats
 
 ![grofer](images/grofer.png)
 
+Information provided:
+- CPU utilization per core
+- Memory (RAM) usage 
+- Network usage
+- Disk storage 
+
 ---
 
 ### `grofer proc`
@@ -68,3 +74,10 @@ This lists all running processes and relevant information
 This gives information specific to a process, specified by PID
 
 ![grofer-proc-pid](images/grofer-proc-pid.png)
+
+Information provided:
+- CPU utilization %
+- Memory utilization %
+- Child processes
+- Number of voluntary and involuntary context switches
+- Memory usage (RSS, Data, Stack, Swap)
