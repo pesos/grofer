@@ -30,13 +30,17 @@ import (
 // procCmd represents the proc command
 var procCmd = &cobra.Command{
 	Use:   "proc",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "proc command is used to get per-process information",
+	Long: `proc command is used to get information about each running process in the system.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+Syntax:
+  grofer proc
+
+To get information about a particular process whose PID is known the -p or --pid flag can be used.
+
+Syntax:
+  grofer proc -p [PID]`,
+	Aliases: []string{"process", "processess"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) > 0 {
 			return fmt.Errorf("the proc command should have no arguments, see grofer proc --help for further info")
