@@ -49,7 +49,7 @@ Examples
 
 ### `grofer`
 
-This gives overall utilization stats
+This gives overall utilization stats.
 
 ![grofer](images/grofer.png)
 
@@ -63,15 +63,15 @@ Information provided:
 
 ### `grofer proc`
 
-This lists all running processes and relevant information
+This lists all running processes and relevant information.
 
 ![grofer-proc](images/grofer-proc.png)
 
 ---
 
-### `grofer proc -p PID`
+### `grofer proc -p [PID]`
 
-This gives information specific to a process, specified by PID
+This gives information specific to a process, specified by a valid PID.
 
 ![grofer-proc-pid](images/grofer-proc-pid.png)
 
