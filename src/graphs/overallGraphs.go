@@ -44,7 +44,7 @@ func (page *mainPage) init(numCores int) {
 	page.MemoryChart.BarGap = 9
 	page.MemoryChart.BarColors = []ui.Color{ui.ColorCyan, ui.ColorGreen}
 	page.MemoryChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorWhite)}
-	page.MemoryChart.NumStyles = []ui.Style{ui.NewStyle(ui.ColorWhite)}
+	page.MemoryChart.NumStyles = []ui.Style{ui.NewStyle(ui.ColorBlack)}
 	page.MemoryChart.BorderStyle.Fg = ui.ColorCyan
 
 	// Initialize Table for Disk Chart

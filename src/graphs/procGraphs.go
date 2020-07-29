@@ -147,7 +147,7 @@ func getChildProcs(proc *process.Process) []string {
 			temp = temp + "[" + exe + "](fg:green)"
 			childProcs = append(childProcs, temp)
 		} else {
-			childProcs = append(childProcs, strconv.Itoa(int(proc.Pid))+"            "+"NA")
+			childProcs = append(childProcs, "["+strconv.Itoa(int(proc.Pid))+"](fg:yellow)"+"            "+"NA")
 		}
 	}
 
@@ -239,16 +239,16 @@ func ProcVisuals(endChannel chan os.Signal, dataChannel chan *process.Process, w
 
 				// update proc info
 				myPage.PIDTable.Rows = [][]string{
-					[]string{"Name", data.Name},
-					[]string{"Command", data.Exe},
-					[]string{"Status", statusMap[data.Status] + " (" + data.Status + ")"},
-					[]string{"Background", strconv.FormatBool(data.Background)},
-					[]string{"Foreground", strconv.FormatBool(data.Foreground)},
-					[]string{"Running", strconv.FormatBool(data.IsRunning)},
-					[]string{"Creation Time", getDateFromUnix(data.CreateTime)},
-					[]string{"Nice value", strconv.Itoa(int(data.Nice))},
-					[]string{"Thread count", strconv.Itoa(int(data.NumThreads))},
-					[]string{"Child process count", strconv.Itoa(len(data.Children))},
+					[]string{"[Name](fg:yellow)", data.Name},
+					[]string{"[Command](fg:yellow)", data.Exe},
+					[]string{"[Status](fg:yellow)", statusMap[data.Status] + " (" + data.Status + ")"},
+					[]string{"[Background](fg:yellow)", strconv.FormatBool(data.Background)},
+					[]string{"[Foreground](fg:yellow)", strconv.FormatBool(data.Foreground)},
+					[]string{"[Running](fg:yellow)", strconv.FormatBool(data.IsRunning)},
+					[]string{"[Creation Time](fg:yellow)", getDateFromUnix(data.CreateTime)},
+					[]string{"[Nice value](fg:yellow)", strconv.Itoa(int(data.Nice))},
+					[]string{"[Thread count](fg:yellow)", strconv.Itoa(int(data.NumThreads))},
+					[]string{"[Child process count](fg:yellow)", strconv.Itoa(len(data.Children))},
 				}
 				myPage.PIDTable.Title = " PID: " + strconv.Itoa(int(data.Proc.Pid)) + " "
 
