@@ -135,7 +135,7 @@ func AllProcVisuals(dataChannel chan map[int32]*process.Process, endChannel chan
 	tick := time.Tick(100 * time.Millisecond)
 
 	previousKey := ""
-	selectedStyle := ui.NewStyle(ui.ColorYellow)
+	selectedStyle := ui.NewStyle(ui.ColorYellow, ui.ColorClear, ui.ModifierBold)
 
 	for {
 		select {
