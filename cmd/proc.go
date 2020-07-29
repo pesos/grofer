@@ -55,17 +55,13 @@ Syntax:
 
 			wg.Add(2)
 
-			procs, err := process.InitAllProcs()
+			proc, err := process.NewProcess(pid)
 			if err != nil {
-				return err
-			}
-
-			if _, exists := procs[pid]; !exists {
 				utils.ErrorMsg()
 				return fmt.Errorf("invalid pid")
 			}
 
-			go process.Serve(procs, pid, dataChannel, endChannel, &wg)
+			go process.Serve(proc, dataChannel, endChannel, &wg)
 			go graphs.ProcVisuals(endChannel, dataChannel, &wg)
 			wg.Wait()
 		} else {

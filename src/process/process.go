@@ -41,3 +41,12 @@ func InitAllProcs() (map[int32]*Process, error) {
 	}
 	return processes, nil
 }
+
+func NewProcess(pid int32) (*Process, error) {
+	process, err := proc.NewProcess(pid)
+	if err != nil {
+		return nil, err
+	}
+	newProcess := &Process{Proc: process}
+	return newProcess, nil
+}

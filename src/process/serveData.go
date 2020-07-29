@@ -9,7 +9,7 @@ import (
 var mut sync.Mutex
 
 // Serve serves data on a per process basis
-func Serve(processes map[int32]*Process, pid int32, dataChannel chan *Process, endChannel chan os.Signal, wg *sync.WaitGroup) {
+func Serve(process *Process, dataChannel chan *Process, endChannel chan os.Signal, wg *sync.WaitGroup) {
 	for {
 		select {
 		case <-endChannel:
@@ -17,8 +17,8 @@ func Serve(processes map[int32]*Process, pid int32, dataChannel chan *Process, e
 			return
 
 		default:
-			processes[pid].UpdateProcInfo()
-			dataChannel <- processes[pid]
+			process.UpdateProcInfo()
+			dataChannel <- process
 		}
 	}
 
