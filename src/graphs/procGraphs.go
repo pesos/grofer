@@ -320,7 +320,7 @@ func ProcVisuals(endChannel chan os.Signal, dataChannel chan *process.Process, w
 
 		case <-tick:
 			w, h := ui.TerminalDimensions()
-
+			ui.Clear()
 			myPage.Grid.SetRect(0, 0, w, h)
 			ui.Render(myPage.Grid)
 		}

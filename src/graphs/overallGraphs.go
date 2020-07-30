@@ -248,7 +248,7 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 
 		case <-tick: // Update page with new values
 			w, h := ui.TerminalDimensions()
-
+			ui.Clear()
 			myPage.Grid.SetRect(0, 0, w, h)
 			ui.Render(myPage.Grid)
 
