@@ -53,7 +53,11 @@ This gives overall utilization stats.
 
 ![grofer](images/grofer.png)
 
-Information provided: - CPU utilization per core - Memory (RAM) usage - Network usage - Disk storage
+Information provided:  
+- CPU utilization per core  
+- Memory (RAM) usage  
+- Network usage  
+- Disk storage
 
 ---
 
@@ -71,4 +75,9 @@ This gives information specific to a process, specified by a valid PID.
 
 ![grofer-proc-pid](images/grofer-proc-pid.png)
 
-Information provided: - CPU utilization % - Memory utilization % - Child processes - Number of voluntary and involuntary context switches - Memory usage (RSS, Data, Stack, Swap)
+Information provided:  
+ - CPU utilization %  
+ - Memory utilization %  
+ - Child processes  
+ - Number of voluntary and involuntary context switches  
+ - Memory usage (RSS, Data, Stack, Swap)
