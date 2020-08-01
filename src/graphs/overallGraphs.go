@@ -29,6 +29,12 @@ import (
 	"github.com/gizak/termui/v3/widgets"
 )
 
+var on sync.Once
+
+var isCPUSet = false
+
+var run = true
+
 type mainPage struct {
 	Grid         *ui.Grid
 	MemoryChart  *widgets.BarChart
@@ -36,6 +42,7 @@ type mainPage struct {
 	NetworkChart *widgets.Plot
 	CPUCharts    []*widgets.Gauge
 	NetPara      *widgets.Paragraph
+	EmptyPara    *widgets.Paragraph
 }
 
 func newPage(numCores int) *mainPage {
@@ -46,6 +53,7 @@ func newPage(numCores int) *mainPage {
 		NetworkChart: widgets.NewPlot(),
 		CPUCharts:    make([]*widgets.Gauge, 0),
 		NetPara:      widgets.NewParagraph(),
+		EmptyPara:    widgets.NewParagraph(),
 	}
 	page.init(numCores)
 	return page
@@ -81,11 +89,14 @@ func (page *mainPage) init(numCores int) {
 	page.NetworkChart.BorderStyle.Fg = ui.ColorCyan
 	page.NetworkChart.DataLabels = []string{"ip kB", "op kB"} //refer issue #214 for details
 
-	//Initialize paragraph for NetPara
+	// Initialize paragraph for NetPara
 	page.NetPara.Text = "[Received(kB)](fg:cyan)\n\n[Sent(kB)](fg:red)"
 	page.NetPara.Border = true
 	page.NetPara.BorderStyle.Fg = ui.ColorCyan
 	page.NetPara.Title = " RX/TX "
+
+	// Initialize paragraph for EmptyPara
+	page.EmptyPara.Border = false
 
 	// Initialize Gauges for each CPU Core usage
 	for i := 0; i < numCores; i++ {
@@ -101,17 +112,16 @@ func (page *mainPage) init(numCores int) {
 	// Initialize Grid layout
 	if numCores == 8 {
 		page.Grid.Set(
-			ui.NewCol(0.54,
-				ui.NewRow(0.125, page.CPUCharts[0]),
-				ui.NewRow(0.125, page.CPUCharts[1]),
-				ui.NewRow(0.125, page.CPUCharts[2]),
-				ui.NewRow(0.125, page.CPUCharts[3]),
-				ui.NewRow(0.125, page.CPUCharts[4]),
-				ui.NewRow(0.125, page.CPUCharts[5]),
-				ui.NewRow(0.125, page.CPUCharts[6]),
-				ui.NewRow(0.125, page.CPUCharts[7]),
-			),
-			ui.NewCol(0.46,
+			// ui.NewCol(0.54, page.EmptyPara), // ui.NewRow(0.125, page.CPUCharts[0]),
+			// ui.NewRow(0.125, page.CPUCharts[1]),
+			// ui.NewRow(0.125, page.CPUCharts[2]),
+			// ui.NewRow(0.125, page.CPUCharts[3]),
+			// ui.NewRow(0.125, page.CPUCharts[4]),
+			// ui.NewRow(0.125, page.CPUCharts[5]),
+			// ui.NewRow(0.125, page.CPUCharts[6]),
+			// ui.NewRow(0.125, page.CPUCharts[7]),
+
+			ui.NewCol(1,
 				ui.NewRow(0.34, page.MemoryChart),
 				ui.NewRow(0.34,
 					ui.NewCol(0.25, page.NetPara),
@@ -140,10 +150,8 @@ func (page *mainPage) init(numCores int) {
 	}
 
 	w, h := ui.TerminalDimensions()
-	page.Grid.SetRect(0, 0, w, h)
+	page.Grid.SetRect(0, 0, w/2, h)
 }
-
-var run = true
 
 // RenderCharts handles plotting graphs and charts for system stats in general.
 func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChannel chan []float64, diskChannel chan [][]string, netChannel chan map[string][]float64, wg *sync.WaitGroup) {
@@ -158,6 +166,10 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 
 	// Get number of cores in machine
 	numCores := runtime.NumCPU()
+
+	on.Do(func() {
+		isCPUSet = true
+	})
 
 	if numCores != 4 && numCores != 8 { // Commit die!
 		endChannel <- os.Kill
@@ -265,7 +277,17 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 		case <-tick: // Update page with new values
 			w, h := ui.TerminalDimensions()
 			ui.Clear()
-			myPage.Grid.SetRect(0, 0, w, h)
+			myPage.Grid.SetRect(0, 0, w/2, h)
+
+			height := int(h / (numCores - 1))
+
+			if isCPUSet {
+				for i := 0; i < numCores; i++ {
+					myPage.CPUCharts[i].SetRect(w/2, i*height, w, (i+1)*height)
+					ui.Render(myPage.CPUCharts[i])
+				}
+			}
+
 			ui.Render(myPage.Grid)
 
 		}
