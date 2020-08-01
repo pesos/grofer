@@ -51,7 +51,7 @@ Examples
 
 This gives overall utilization stats.
 
-![grofer](images/grofer.png)
+![grofer](images/README/grofer.png)
 
 Information provided:  
 - CPU utilization per core  
@@ -65,7 +65,7 @@ Information provided:
 
 This lists all running processes and relevant information.
 
-![grofer-proc](images/grofer-proc.png)
+![grofer-proc](images/README/grofer-proc.png)
 
 ---
 
@@ -73,7 +73,7 @@ This lists all running processes and relevant information.
 
 This gives information specific to a process, specified by a valid PID.
 
-![grofer-proc-pid](images/grofer-proc-pid.png)
+![grofer-proc-pid](images/README/grofer-proc-pid.png)
 
 Information provided:  
  - CPU utilization %  
