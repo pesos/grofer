@@ -21,8 +21,6 @@ import (
 	"time"
 )
 
-var mut sync.Mutex
-
 // Serve serves data on a per process basis
 func Serve(process *Process, dataChannel chan *Process, endChannel chan os.Signal, wg *sync.WaitGroup) {
 	for {
