@@ -69,7 +69,7 @@ This lists all running processes and relevant information.
 
 ---
 
-### `grofer proc -p [PID]`
+### `grofer proc [-p PID]`
 
 This gives information specific to a process, specified by a valid PID.
 
