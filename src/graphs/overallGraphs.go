@@ -86,7 +86,7 @@ func (page *mainPage) init(numCores int) {
 	page.NetworkChart.DataLabels = []string{"ip kB", "op kB"} //refer issue #214 for details
 
 	// Initialize paragraph for NetPara
-	page.NetPara.Text = "[Received(kB)](fg:cyan)\n\n[Sent(kB)](fg:red)"
+	page.NetPara.Text = "[Total RX](fg:red): 0\n\n[Total TX](fg:green): 0"
 	page.NetPara.Border = true
 	page.NetPara.BorderStyle.Fg = ui.ColorCyan
 	page.NetPara.Title = " RX/TX "
@@ -113,7 +113,7 @@ func (page *mainPage) init(numCores int) {
 	)
 
 	w, h := ui.TerminalDimensions()
-	page.Grid.SetRect(0, 0, w/2, h)
+	page.Grid.SetRect(w/2, 0, w, h)
 }
 
 // RenderCharts handles plotting graphs and charts for system stats in general.
@@ -205,9 +205,9 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 
 				for i := 0; i < 2; i++ {
 					if i == 0 {
-						titles[i] = fmt.Sprintf("[Total RX](fg:red): %5.1f %s\n\n", totalBytesRecv/1024, "mB")
+						titles[i] = fmt.Sprintf("[Total RX](fg:red): %5.1f %s\n", totalBytesRecv/1024, "mB")
 					} else {
-						titles[i] = fmt.Sprintf("[Total TX](fg:green): %5.1f %s", totalBytesSent/1024, "mB")
+						titles[i] = fmt.Sprintf("\n[Total TX](fg:green): %5.1f %s", totalBytesSent/1024, "mB")
 					}
 
 				}
@@ -231,7 +231,7 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 		case <-tick: // Update page with new values
 			w, h := ui.TerminalDimensions()
 			ui.Clear()
-			myPage.Grid.SetRect(0, 0, w/2, h)
+			myPage.Grid.SetRect(w/2, 0, w, h)
 
 			height := int(h / (numCores - 1))
 
@@ -239,7 +239,7 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 
 			if isCPUSet {
 				for i := 0; i < numCores; i++ {
-					myPage.CPUCharts[i].SetRect(w/2, i*height, w, (i+1)*height)
+					myPage.CPUCharts[i].SetRect(0, i*height, w/2, (i+1)*height)
 					ui.Render(myPage.CPUCharts[i])
 				}
 			}
