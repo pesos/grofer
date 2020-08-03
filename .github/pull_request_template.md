@@ -15,8 +15,9 @@ Please delete options that are not relevant.
 
 # Checklist:
 
-- [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
+- [ ] I have performed a self-review of my own code (if applicable)
+- [ ] I have commented my code, particularly in hard-to-understand areas (if applicable)
+- [ ] I have run `go fmt` on my code ([reference](https://blog.golang.org/gofmt))
 - [ ] I have made corresponding changes to the documentation (if applicable)
-- [ ] My changes generate no new warnings
+- [ ] My changes generate no new warnings 
 - [ ] Any dependent and pending changes have been merged and published
