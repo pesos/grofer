@@ -1,5 +1,4 @@
 addReviewers: true
-addAssignees: false
 addAssignees: author
 
 reviewers:
