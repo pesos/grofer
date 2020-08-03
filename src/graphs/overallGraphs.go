@@ -29,6 +29,10 @@ import (
 	"github.com/gizak/termui/v3/widgets"
 )
 
+var isCPUSet = false
+
+var run = true
+
 type mainPage struct {
 	Grid         *ui.Grid
 	MemoryChart  *widgets.BarChart
@@ -81,8 +85,8 @@ func (page *mainPage) init(numCores int) {
 	page.NetworkChart.BorderStyle.Fg = ui.ColorCyan
 	page.NetworkChart.DataLabels = []string{"ip kB", "op kB"} //refer issue #214 for details
 
-	//Initialize paragraph for NetPara
-	page.NetPara.Text = "[Received(kB)](fg:cyan)\n\n[Sent(kB)](fg:red)"
+	// Initialize paragraph for NetPara
+	page.NetPara.Text = "[Total RX](fg:red): 0\n\n[Total TX](fg:green): 0"
 	page.NetPara.Border = true
 	page.NetPara.BorderStyle.Fg = ui.ColorCyan
 	page.NetPara.Title = " RX/TX "
@@ -99,51 +103,18 @@ func (page *mainPage) init(numCores int) {
 	}
 
 	// Initialize Grid layout
-	if numCores == 8 {
-		page.Grid.Set(
-			ui.NewCol(0.54,
-				ui.NewRow(0.125, page.CPUCharts[0]),
-				ui.NewRow(0.125, page.CPUCharts[1]),
-				ui.NewRow(0.125, page.CPUCharts[2]),
-				ui.NewRow(0.125, page.CPUCharts[3]),
-				ui.NewRow(0.125, page.CPUCharts[4]),
-				ui.NewRow(0.125, page.CPUCharts[5]),
-				ui.NewRow(0.125, page.CPUCharts[6]),
-				ui.NewRow(0.125, page.CPUCharts[7]),
-			),
-			ui.NewCol(0.46,
-				ui.NewRow(0.34, page.MemoryChart),
-				ui.NewRow(0.34,
-					ui.NewCol(0.25, page.NetPara),
-					ui.NewCol(0.75, page.NetworkChart),
-				),
-				ui.NewRow(0.34, page.DiskChart),
-			),
-		)
-	} else if numCores == 4 {
-		page.Grid.Set(
-			ui.NewCol(0.54,
-				ui.NewRow(0.25, page.CPUCharts[0]),
-				ui.NewRow(0.25, page.CPUCharts[1]),
-				ui.NewRow(0.25, page.CPUCharts[2]),
-				ui.NewRow(0.25, page.CPUCharts[3]),
-			),
-			ui.NewCol(0.46,
-				ui.NewRow(0.34, page.MemoryChart),
-				ui.NewRow(0.34,
-					ui.NewCol(0.25, page.NetPara),
-					ui.NewCol(0.75, page.NetworkChart),
-				),
-				ui.NewRow(0.34, page.DiskChart),
-			),
-		)
-	}
+	page.Grid.Set(
+		ui.NewRow(0.34, page.MemoryChart),
+		ui.NewRow(0.34,
+			ui.NewCol(0.25, page.NetPara),
+			ui.NewCol(0.75, page.NetworkChart),
+		),
+		ui.NewRow(0.34, page.DiskChart),
+	)
 
 	w, h := ui.TerminalDimensions()
-	page.Grid.SetRect(0, 0, w, h)
+	page.Grid.SetRect(w/2, 0, w, h)
 }
-
-var run = true
 
 // RenderCharts handles plotting graphs and charts for system stats in general.
 func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChannel chan []float64, diskChannel chan [][]string, netChannel chan map[string][]float64, wg *sync.WaitGroup) {
@@ -158,12 +129,7 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 
 	// Get number of cores in machine
 	numCores := runtime.NumCPU()
-
-	if numCores != 4 && numCores != 8 { // Commit die!
-		endChannel <- os.Kill
-		wg.Done()
-		return
-	}
+	isCPUSet = true
 
 	// Create new page
 	myPage := newPage(numCores)
@@ -239,9 +205,9 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 
 				for i := 0; i < 2; i++ {
 					if i == 0 {
-						titles[i] = fmt.Sprintf("[Total RX](fg:red): %5.1f %s\n\n", totalBytesRecv/1024, "mB")
+						titles[i] = fmt.Sprintf("[Total RX](fg:red): %5.1f %s\n", totalBytesRecv/1024, "mB")
 					} else {
-						titles[i] = fmt.Sprintf("[Total TX](fg:green): %5.1f %s", totalBytesSent/1024, "mB")
+						titles[i] = fmt.Sprintf("\n[Total TX](fg:green): %5.1f %s", totalBytesSent/1024, "mB")
 					}
 
 				}
@@ -265,7 +231,19 @@ func RenderCharts(endChannel chan os.Signal, memChannel chan []float64, cpuChann
 		case <-tick: // Update page with new values
 			w, h := ui.TerminalDimensions()
 			ui.Clear()
-			myPage.Grid.SetRect(0, 0, w, h)
+			myPage.Grid.SetRect(w/2, 0, w, h)
+
+			height := int(h / (numCores - 1))
+
+			// heightOffset := h - (height*numCores - 1) // There's some extra empty space left
+
+			if isCPUSet {
+				for i := 0; i < numCores; i++ {
+					myPage.CPUCharts[i].SetRect(0, i*height, w/2, (i+1)*height)
+					ui.Render(myPage.CPUCharts[i])
+				}
+			}
+
 			ui.Render(myPage.Grid)
 
 		}
