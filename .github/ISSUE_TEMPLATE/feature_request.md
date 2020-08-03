@@ -3,7 +3,6 @@ name: Feature request
 about: Suggest an idea or improvement to this project
 title: "[FEATURE REQ]"
 labels: enhancement
-assignees: Gituser143, MadhavJivrajani, metonymic-smokey
 
 ---
 
