@@ -47,12 +47,8 @@ func ServeProcs(dataChannel chan []*proc.Process, endChannel chan os.Signal, wg 
 			return
 
 		default:
-			// procs, err := InitAllProcs()
 			procs, err := proc.Processes()
 			if err == nil {
-				// for _, info := range procs {
-				// 	info.UpdateProcForVisual()
-				// }
 				dataChannel <- procs
 				time.Sleep(1000 * time.Millisecond)
 			}
