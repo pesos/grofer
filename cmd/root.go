@@ -25,8 +25,8 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 
+	overallGraph "github.com/pesos/grofer/src/display/general"
 	"github.com/pesos/grofer/src/general"
-	overallGraph "github.com/pesos/grofer/src/graphs/general"
 )
 
 var cfgFile string
