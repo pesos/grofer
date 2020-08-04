@@ -22,7 +22,7 @@ import (
 
 	"github.com/pesos/grofer/src/utils"
 
-	procGraph "github.com/pesos/grofer/src/graphs/process"
+	procGraph "github.com/pesos/grofer/src/display/process"
 	"github.com/pesos/grofer/src/process"
 	proc "github.com/shirou/gopsutil/process"
 	"github.com/spf13/cobra"
