@@ -1,7 +1,8 @@
 #!/bin/bash
 
-if [ -n "$(gofmt -l .)" ]; then
-  echo "Go code is not formatted:"
-  gofmt -d .
+go build grofer.go
+
+if [[ $? -ne 0 ]]; then
+  echo "Build failed"
   exit 1
 fi
