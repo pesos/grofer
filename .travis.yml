@@ -13,4 +13,5 @@ go:
   - tip
 
 script:
-  - bash ./scripts/gofmt.sh
+  - bash ./scripts/fmt.sh
+  - bash ./scripts/tests.sh
