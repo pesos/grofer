@@ -28,6 +28,11 @@ import (
 	"github.com/shirou/gopsutil/net"
 )
 
+func roundOff(num uint64) float64 {
+	x := float64(num) / (1024 * 1024 * 1024)
+	return math.Round(x*10) / 10
+}
+
 // PrintCPURates print the cpu rates
 func PrintCPURates(cpuChannel chan []float64) {
 	cpuRates, err := cpu.Percent(time.Second, true)
@@ -35,11 +40,6 @@ func PrintCPURates(cpuChannel chan []float64) {
 		log.Fatal(err)
 	}
 	cpuChannel <- cpuRates
-}
-
-func roundOff(num uint64) float64 {
-	x := float64(num) / (1024 * 1024 * 1024)
-	return math.Round(x*10) / 10
 }
 
 // PrintMemRates prints stats about the memory
