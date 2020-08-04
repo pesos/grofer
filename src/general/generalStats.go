@@ -41,7 +41,7 @@ func GlobalStats(endChannel chan os.Signal,
 			go PrintMemRates(memChannel)
 			go PrintDiskRates(diskChannel)
 			PrintNetRates(netChannel)
-			time.Sleep(100 * time.Microsecond)
+			time.Sleep(1000 * time.Millisecond)
 		}
 	}
 }
