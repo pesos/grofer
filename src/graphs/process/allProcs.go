@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package graphs
+package process
 
 import (
 	"fmt"
@@ -26,44 +26,9 @@ import (
 	"time"
 
 	ui "github.com/gizak/termui/v3"
-	"github.com/gizak/termui/v3/widgets"
 	"github.com/pesos/grofer/src/process"
+	"github.com/pesos/grofer/src/utils"
 )
-
-type allProcPage struct {
-	Grid         *ui.Grid
-	HeadingTable *widgets.Table
-	BodyList     *widgets.List
-}
-
-func newProcsPage() *allProcPage {
-	page := &allProcPage{
-		Grid:         ui.NewGrid(),
-		HeadingTable: widgets.NewTable(),
-		BodyList:     widgets.NewList(),
-	}
-	page.init()
-	return page
-}
-
-func (page *allProcPage) init() {
-	page.HeadingTable.TextStyle = ui.NewStyle(ui.ColorWhite)
-	page.HeadingTable.Rows = [][]string{[]string{" PID", " Command", " CPU", " Memory", " Status", " Foreground", " Creation Time", " Thread Count"}}
-	page.HeadingTable.ColumnWidths = []int{10, 40, 10, 10, 8, 12, 23, 15}
-	page.HeadingTable.TextAlignment = ui.AlignLeft
-	page.HeadingTable.RowSeparator = false
-
-	page.BodyList.TextStyle = ui.NewStyle(ui.ColorWhite)
-	page.BodyList.TitleStyle.Fg = ui.ColorCyan
-
-	page.Grid.Set(
-		ui.NewRow(0.12, page.HeadingTable),
-		ui.NewRow(0.88, page.BodyList),
-	)
-
-	w, h := ui.TerminalDimensions()
-	page.Grid.SetRect(0, 0, w, h)
-}
 
 var runAllProc = true
 
@@ -120,7 +85,7 @@ func getData(procs map[int32]*process.Process) []string {
 			}
 
 			ctime := info.CreateTime
-			createTime := getDateFromUnix(ctime)
+			createTime := utils.GetDateFromUnix(ctime)
 			temp = temp + createTime
 			for i := 0; i < 24-len(createTime); i++ {
 				temp = temp + " "
@@ -136,12 +101,15 @@ func getData(procs map[int32]*process.Process) []string {
 	return data
 }
 
-func AllProcVisuals(dataChannel chan map[int32]*process.Process, endChannel chan os.Signal, wg *sync.WaitGroup) {
+func AllProcVisuals(dataChannel chan map[int32]*process.Process,
+	endChannel chan os.Signal,
+	wg *sync.WaitGroup) {
+
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
 
-	myPage := newProcsPage()
+	myPage := NewAllProcsPage()
 
 	pause := func() {
 		runAllProc = !runAllProc

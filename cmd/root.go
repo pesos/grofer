@@ -26,7 +26,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/pesos/grofer/src/general"
-	"github.com/pesos/grofer/src/graphs"
+	overallGraph "github.com/pesos/grofer/src/graphs/general"
 )
 
 var cfgFile string
@@ -46,7 +46,7 @@ var rootCmd = &cobra.Command{
 		wg.Add(2)
 
 		go general.GlobalStats(endChannel, memChannel, cpuChannel, diskChannel, netChannel, &wg)
-		go graphs.RenderCharts(endChannel, memChannel, cpuChannel, diskChannel, netChannel, &wg)
+		go overallGraph.RenderCharts(endChannel, memChannel, cpuChannel, diskChannel, netChannel, &wg)
 
 		wg.Wait()
 	},
