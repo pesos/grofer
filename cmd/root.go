@@ -45,7 +45,7 @@ var rootCmd = &cobra.Command{
 
 		wg.Add(2)
 
-		go general.GlobalStats(endChannel, memChannel, cpuChannel, diskChannel, netChannel, &wg)
+		go general.GlobalStats(endChannel, cpuChannel, memChannel, diskChannel, netChannel, &wg)
 		go overallGraph.RenderCharts(endChannel, memChannel, cpuChannel, diskChannel, netChannel, &wg)
 
 		wg.Wait()
