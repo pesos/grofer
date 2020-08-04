@@ -14,4 +14,4 @@ go:
 
 script:
   - bash ./scripts/fmt.sh
-  - bash ./scripts/tests.sh
+  - bash ./scripts/build.sh
