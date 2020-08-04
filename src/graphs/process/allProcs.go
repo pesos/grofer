@@ -26,23 +26,24 @@ import (
 	"time"
 
 	ui "github.com/gizak/termui/v3"
-	"github.com/pesos/grofer/src/process"
 	"github.com/pesos/grofer/src/utils"
+	proc "github.com/shirou/gopsutil/process"
 )
 
 var runAllProc = true
 
-func getData(procs map[int32]*process.Process) []string {
+func getData(procs []*proc.Process) []string {
 	var data []string
-	for pid, info := range procs {
-		if info.Exe != "NA" {
-			temp := strconv.Itoa(int(pid))
+	for _, info := range procs {
+		exe, err := info.Exe()
+		if err == nil {
+			temp := strconv.Itoa(int(info.Pid))
 
-			for i := 0; i < 12-len(strconv.Itoa(int(pid))); i++ {
+			for i := 0; i < 12-len(strconv.Itoa(int(info.Pid))); i++ {
 				temp = temp + " "
 			}
 
-			commands := strings.Split(info.Exe, "/")
+			commands := strings.Split(exe, "/")
 			command := commands[len(commands)-1]
 
 			if len(command) > 40 {
@@ -54,46 +55,66 @@ func getData(procs map[int32]*process.Process) []string {
 				}
 			}
 
-			cpuPercent := fmt.Sprintf("%.2f%s", info.CPUPercent, "%")
-			temp = temp + cpuPercent
+			tempCPU, err := info.CPUPercent()
+			cpuPercent := ""
+			if err == nil {
+				cpuPercent = fmt.Sprintf("%.2f%s", tempCPU, "%")
+				temp = temp + cpuPercent
+			}
 			for i := 0; i < 11-len(cpuPercent); i++ {
 				temp = temp + " "
 			}
 
-			memPercent := fmt.Sprintf("%.2f%s", info.MemoryPercent, "%")
-			temp = temp + memPercent
+			tempMem, err := info.MemoryPercent()
+			memPercent := ""
+			if err == nil {
+				memPercent = fmt.Sprintf("%.2f%s", tempMem, "%")
+				temp = temp + memPercent
+			}
 			for i := 0; i < 11-len(memPercent); i++ {
 				temp = temp + " "
 			}
 
-			status := info.Status
-			temp = temp + status
+			status, err := info.Status()
+			if err == nil {
+				temp = temp + status
+			}
+
 			for i := 0; i < 9-len(status); i++ {
 				temp = temp + " "
 			}
 
-			if info.Foreground {
-				temp = temp + "True"
-				for i := 0; i < 9; i++ {
-					temp = temp + " "
+			fg, err := info.Foreground()
+			if err == nil {
+				if fg {
+					temp = temp + "True"
+					for i := 0; i < 9; i++ {
+						temp = temp + " "
+					}
+				} else {
+					temp = temp + "False"
+					for i := 0; i < 8; i++ {
+						temp = temp + " "
+					}
 				}
-			} else {
-				temp = temp + "False"
-				for i := 0; i < 8; i++ {
-					temp = temp + " "
-				}
+
 			}
 
-			ctime := info.CreateTime
-			createTime := utils.GetDateFromUnix(ctime)
-			temp = temp + createTime
+			ctime, err := info.CreateTime()
+			createTime := ""
+			if err == nil {
+				createTime := utils.GetDateFromUnix(ctime)
+				temp = temp + createTime
+			}
 			for i := 0; i < 24-len(createTime); i++ {
 				temp = temp + " "
 			}
 
-			threads := info.NumThreads
-			threadCount := strconv.FormatInt(int64(threads), 10)
-			temp = temp + threadCount
+			threads, err := info.NumThreads()
+			if err == nil {
+				threadCount := strconv.FormatInt(int64(threads), 10)
+				temp = temp + threadCount
+			}
 
 			data = append(data, temp)
 		}
@@ -101,7 +122,7 @@ func getData(procs map[int32]*process.Process) []string {
 	return data
 }
 
-func AllProcVisuals(dataChannel chan map[int32]*process.Process,
+func AllProcVisuals(dataChannel chan []*proc.Process,
 	endChannel chan os.Signal,
 	wg *sync.WaitGroup) {
 

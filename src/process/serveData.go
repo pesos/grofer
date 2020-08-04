@@ -19,6 +19,8 @@ import (
 	"os"
 	"sync"
 	"time"
+
+	proc "github.com/shirou/gopsutil/process"
 )
 
 // Serve serves data on a per process basis
@@ -37,7 +39,7 @@ func Serve(process *Process, dataChannel chan *Process, endChannel chan os.Signa
 
 }
 
-func ServeProcs(dataChannel chan map[int32]*Process, endChannel chan os.Signal, wg *sync.WaitGroup) {
+func ServeProcs(dataChannel chan []*proc.Process, endChannel chan os.Signal, wg *sync.WaitGroup) {
 	for {
 		select {
 		case <-endChannel:
@@ -45,11 +47,12 @@ func ServeProcs(dataChannel chan map[int32]*Process, endChannel chan os.Signal, 
 			return
 
 		default:
-			procs, err := InitAllProcs()
+			// procs, err := InitAllProcs()
+			procs, err := proc.Processes()
 			if err == nil {
-				for _, info := range procs {
-					info.UpdateProcForVisual()
-				}
+				// for _, info := range procs {
+				// 	info.UpdateProcForVisual()
+				// }
 				dataChannel <- procs
 				time.Sleep(1 * time.Second)
 			}

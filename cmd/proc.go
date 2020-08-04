@@ -24,6 +24,7 @@ import (
 
 	procGraph "github.com/pesos/grofer/src/graphs/process"
 	"github.com/pesos/grofer/src/process"
+	proc "github.com/shirou/gopsutil/process"
 	"github.com/spf13/cobra"
 )
 
@@ -65,7 +66,7 @@ Syntax:
 			go procGraph.ProcVisuals(endChannel, dataChannel, &wg)
 			wg.Wait()
 		} else {
-			dataChannel := make(chan map[int32]*process.Process, 1)
+			dataChannel := make(chan []*proc.Process, 1)
 			endChannel := make(chan os.Signal, 1)
 
 			wg.Add(2)
