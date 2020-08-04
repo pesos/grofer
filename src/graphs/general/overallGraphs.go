@@ -65,7 +65,7 @@ func RenderCharts(endChannel chan os.Signal,
 	}
 
 	uiEvents := ui.PollEvents()
-	tick := time.Tick(100 * time.Millisecond)
+	tick := time.Tick(1000 * time.Millisecond)
 	for {
 		select {
 		case e := <-uiEvents: // For keyboard events
