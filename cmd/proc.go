@@ -22,7 +22,7 @@ import (
 
 	"github.com/pesos/grofer/src/utils"
 
-	"github.com/pesos/grofer/src/graphs"
+	procGraph "github.com/pesos/grofer/src/graphs/process"
 	"github.com/pesos/grofer/src/process"
 	"github.com/spf13/cobra"
 )
@@ -62,7 +62,7 @@ Syntax:
 			}
 
 			go process.Serve(proc, dataChannel, endChannel, &wg)
-			go graphs.ProcVisuals(endChannel, dataChannel, &wg)
+			go procGraph.ProcVisuals(endChannel, dataChannel, &wg)
 			wg.Wait()
 		} else {
 			dataChannel := make(chan map[int32]*process.Process, 1)
@@ -71,7 +71,7 @@ Syntax:
 			wg.Add(2)
 
 			go process.ServeProcs(dataChannel, endChannel, &wg)
-			go graphs.AllProcVisuals(dataChannel, endChannel, &wg)
+			go procGraph.AllProcVisuals(dataChannel, endChannel, &wg)
 			wg.Wait()
 		}
 

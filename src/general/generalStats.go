@@ -28,7 +28,13 @@ import (
 )
 
 // GlobalStats gets stats about the mem and the CPUs and prints it.
-func GlobalStats(endChannel chan os.Signal, memChannel chan []float64, cpuChannel chan []float64, diskChannel chan [][]string, netChannel chan map[string][]float64, wg *sync.WaitGroup) {
+func GlobalStats(endChannel chan os.Signal,
+	memChannel chan []float64,
+	cpuChannel chan []float64,
+	diskChannel chan [][]string,
+	netChannel chan map[string][]float64,
+	wg *sync.WaitGroup) {
+
 	for {
 		select {
 		case <-endChannel: // Stop execution if end signal received
