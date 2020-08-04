@@ -154,7 +154,7 @@ func RenderCharts(endChannel chan os.Signal,
 			ui.Clear()
 			myPage.Grid.SetRect(w/2, 0, w, h)
 
-			height := int(h / (numCores - 1))
+			height := int(h / numCores)
 
 			// heightOffset := h - (height*numCores - 1) // There's some extra empty space left
 
