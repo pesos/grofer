@@ -18,6 +18,7 @@ package general
 import (
 	"os"
 	"sync"
+	"time"
 )
 
 // GlobalStats gets stats about the mem and the CPUs and prints it.
@@ -40,6 +41,7 @@ func GlobalStats(endChannel chan os.Signal,
 			go PrintMemRates(memChannel)
 			go PrintDiskRates(diskChannel)
 			PrintNetRates(netChannel)
+			time.Sleep(100 * time.Microsecond)
 		}
 	}
 }
