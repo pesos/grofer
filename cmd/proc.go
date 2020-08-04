@@ -31,7 +31,7 @@ import (
 // procCmd represents the proc command
 var procCmd = &cobra.Command{
 	Use:   "proc",
-	Short: "proc command is used to get per-process information",
+	Short: "proc command is used to get per-process information.",
 	Long: `proc command is used to get information about each running process in the system.
 
 Syntax:
