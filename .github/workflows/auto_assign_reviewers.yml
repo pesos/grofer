@@ -1,0 +1,15 @@
+#auto-assign reviewers for created PR
+name: Auto-Assign-Reviewers
+
+on: pull_request
+
+jobs:
+  add-reviewers:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Auto Assign Action
+      uses: kentaro-m/auto-assign-action@v1.1.0
+      with:
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+        configuration-path: ".github/auto_assign.yml"
