@@ -65,7 +65,7 @@ func RenderCharts(endChannel chan os.Signal,
 	}
 
 	uiEvents := ui.PollEvents()
-	tick := time.Tick(100 * time.Millisecond)
+	tick := time.Tick(1000 * time.Millisecond)
 	for {
 		select {
 		case e := <-uiEvents: // For keyboard events
@@ -152,11 +152,10 @@ func RenderCharts(endChannel chan os.Signal,
 		case <-tick: // Update page with new values
 			w, h := ui.TerminalDimensions()
 			ui.Clear()
-			myPage.Grid.SetRect(w/2, 0, w, h)
 
-			height := int(h / (numCores - 1))
-
-			// heightOffset := h - (height*numCores - 1) // There's some extra empty space left
+			height := int(h / numCores)
+			heightOffset := h - (height * numCores) // There's some extra empty space left
+			myPage.Grid.SetRect(w/2, 0, w, h-heightOffset)
 
 			if isCPUSet {
 				for i := 0; i < numCores; i++ {

@@ -25,8 +25,8 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 
+	overallGraph "github.com/pesos/grofer/src/display/general"
 	"github.com/pesos/grofer/src/general"
-	overallGraph "github.com/pesos/grofer/src/graphs/general"
 )
 
 var cfgFile string
@@ -45,7 +45,7 @@ var rootCmd = &cobra.Command{
 
 		wg.Add(2)
 
-		go general.GlobalStats(endChannel, memChannel, cpuChannel, diskChannel, netChannel, &wg)
+		go general.GlobalStats(endChannel, cpuChannel, memChannel, diskChannel, netChannel, &wg)
 		go overallGraph.RenderCharts(endChannel, memChannel, cpuChannel, diskChannel, netChannel, &wg)
 
 		wg.Wait()
