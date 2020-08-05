@@ -3,6 +3,7 @@ package process
 import (
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
+	"github.com/pesos/grofer/src/utils"
 )
 
 // PerProcPage holds the ui elements rendered by the command grofer proc -p PID
@@ -12,9 +13,9 @@ type PerProcPage struct {
 	MemChart         *widgets.Gauge
 	PIDTable         *widgets.Table
 	ChildProcsList   *widgets.List
-	CTXSwitchesChart *widgets.BarChart
-	PageFaultsChart  *widgets.BarChart
-	MemStatsChart    *widgets.BarChart
+	CTXSwitchesChart *utils.BarChart
+	PageFaultsChart  *utils.BarChart
+	MemStatsChart    *utils.BarChart
 }
 
 // NewProcPage initializes a new page from the PerProcPage struct and returns it
@@ -25,9 +26,9 @@ func NewPerProcPage() *PerProcPage {
 		MemChart:         widgets.NewGauge(),
 		PIDTable:         widgets.NewTable(),
 		ChildProcsList:   widgets.NewList(),
-		CTXSwitchesChart: widgets.NewBarChart(),
-		PageFaultsChart:  widgets.NewBarChart(),
-		MemStatsChart:    widgets.NewBarChart(),
+		CTXSwitchesChart: utils.NewBarChart(),
+		PageFaultsChart:  utils.NewBarChart(),
+		MemStatsChart:    utils.NewBarChart(),
 	}
 	page.InitPerProc()
 	return page
