@@ -15,7 +15,6 @@ git commit
 ```
 
     - Make your commit descriptive. The above command will open your text editor. Write the commit message on the first line and a short description about your change. Save and quit the editor to commit your change.
-    - We prefer that you do one commit if it is just a simple singular change. In case you have had to make multiple commits locally, we recommend you [squash](https://thoughtbot.com/blog/git-interactive-rebase-squash-amend-rewriting-history#squash-commits-together) your commits if you can.
 
 - Before pushing your changes, make sure that the changes from upstream are included (use `--rebase` to make sure that your changes stay on top of the latest changes in the upstream repository)
 ```
@@ -35,8 +34,8 @@ git push origin master      # if you are working on a feature branch, use that b
 ```
 # make your change
 git add <files that you changed>
-git commit --amend
-git push --force origin master      # if you are working on a feature branch, use that branch name instead of master
+git commit
+git push origin master      # if you are working on a feature branch, use that branch name instead of master
 ```
 - The changes are immediately reflected in the pull request. Once the maintainers are satisfied, they will merge your contribution :)
 
