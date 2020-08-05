@@ -18,7 +18,7 @@ git commit
 
 - Before pushing your changes, make sure that the changes from upstream are included (use `--rebase` to make sure that your changes stay on top of the latest changes in the upstream repository)
 ```
-git pull --rebase upstream
+git pull --rebase upstream master     # if you are working on a feature branch, use that branch name instead of master
 ```
 
     - In the *extremely* small chance that you run into a conflict, just open the files having the conflict and remove the markers and edit the file to the one you want to push. After editing, run `git rebase --continue` and repeat till no conflict remains
