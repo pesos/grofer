@@ -1,8 +1,25 @@
+/*
+Copyright © 2020 The PES Open Source Team pesos@pes.edu
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package process
 
 import (
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
+	"github.com/pesos/grofer/src/utils"
 )
 
 // PerProcPage holds the ui elements rendered by the command grofer proc -p PID
@@ -12,9 +29,9 @@ type PerProcPage struct {
 	MemChart         *widgets.Gauge
 	PIDTable         *widgets.Table
 	ChildProcsList   *widgets.List
-	CTXSwitchesChart *widgets.BarChart
-	PageFaultsChart  *widgets.BarChart
-	MemStatsChart    *widgets.BarChart
+	CTXSwitchesChart *utils.BarChart
+	PageFaultsChart  *utils.BarChart
+	MemStatsChart    *utils.BarChart
 }
 
 // NewProcPage initializes a new page from the PerProcPage struct and returns it
@@ -25,9 +42,9 @@ func NewPerProcPage() *PerProcPage {
 		MemChart:         widgets.NewGauge(),
 		PIDTable:         widgets.NewTable(),
 		ChildProcsList:   widgets.NewList(),
-		CTXSwitchesChart: widgets.NewBarChart(),
-		PageFaultsChart:  widgets.NewBarChart(),
-		MemStatsChart:    widgets.NewBarChart(),
+		CTXSwitchesChart: utils.NewBarChart(),
+		PageFaultsChart:  utils.NewBarChart(),
+		MemStatsChart:    utils.NewBarChart(),
 	}
 	page.InitPerProc()
 	return page
