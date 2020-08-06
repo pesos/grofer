@@ -20,12 +20,16 @@ import (
 	"os"
 	"sync"
 
-	"github.com/pesos/grofer/src/utils"
+	proc "github.com/shirou/gopsutil/process"
+	"github.com/spf13/cobra"
 
 	procGraph "github.com/pesos/grofer/src/display/process"
 	"github.com/pesos/grofer/src/process"
-	proc "github.com/shirou/gopsutil/process"
-	"github.com/spf13/cobra"
+	"github.com/pesos/grofer/src/utils"
+)
+
+const (
+	DefaultProcRefreshRate = 1000
 )
 
 // procCmd represents the proc command
@@ -48,6 +52,12 @@ Syntax:
 		}
 
 		pid, _ := cmd.Flags().GetInt32("pid")
+		procRefreshRate, _ := cmd.Flags().GetInt32("refresh")
+
+		if procRefreshRate < 1000 {
+			return fmt.Errorf("invalid refresh rate: minimum refresh rate is 1000(ms)")
+		}
+
 		var wg sync.WaitGroup
 
 		if pid != -1 {
@@ -71,8 +81,8 @@ Syntax:
 
 			wg.Add(2)
 
-			go process.ServeProcs(dataChannel, endChannel, &wg)
-			go procGraph.AllProcVisuals(dataChannel, endChannel, &wg)
+			go process.ServeProcs(dataChannel, endChannel, procRefreshRate, &wg)
+			go procGraph.AllProcVisuals(dataChannel, endChannel, procRefreshRate, &wg)
 			wg.Wait()
 		}
 
@@ -92,5 +102,6 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// procCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	procCmd.Flags().Int32P("refresh", "r", DefaultProcRefreshRate, "Process information UI refreshes rate in milliseconds greater than 1000")
 	procCmd.Flags().Int32P("pid", "p", -1, "specify pid of process")
 }

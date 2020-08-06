@@ -27,6 +27,7 @@ func GlobalStats(endChannel chan os.Signal,
 	memChannel chan []float64,
 	diskChannel chan [][]string,
 	netChannel chan map[string][]float64,
+	refreshRate int32,
 	wg *sync.WaitGroup) {
 
 	for {
@@ -41,7 +42,7 @@ func GlobalStats(endChannel chan os.Signal,
 			go PrintMemRates(memChannel)
 			go PrintDiskRates(diskChannel)
 			PrintNetRates(netChannel)
-			time.Sleep(1000 * time.Millisecond)
+			time.Sleep(time.Duration(refreshRate) * time.Millisecond)
 		}
 	}
 }

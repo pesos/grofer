@@ -20,13 +20,16 @@ import (
 	"os"
 	"sync"
 
-	"github.com/spf13/cobra"
-
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	overallGraph "github.com/pesos/grofer/src/display/general"
 	"github.com/pesos/grofer/src/general"
+)
+
+const (
+	DefaultOverallRefreshRate = 1000
 )
 
 var cfgFile string
@@ -35,7 +38,13 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "grofer",
 	Short: "grofer is a system profiler written in golang",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
+
+		overallRefreshRate, _ := cmd.Flags().GetInt32("refresh")
+		if overallRefreshRate < 1000 {
+			return fmt.Errorf("invalid refresh rate: minimum refresh rate is 1000(ms)")
+		}
+
 		var wg sync.WaitGroup
 		endChannel := make(chan os.Signal, 1)
 		memChannel := make(chan []float64, 1)
@@ -45,10 +54,12 @@ var rootCmd = &cobra.Command{
 
 		wg.Add(2)
 
-		go general.GlobalStats(endChannel, cpuChannel, memChannel, diskChannel, netChannel, &wg)
-		go overallGraph.RenderCharts(endChannel, memChannel, cpuChannel, diskChannel, netChannel, &wg)
+		go general.GlobalStats(endChannel, cpuChannel, memChannel, diskChannel, netChannel, overallRefreshRate, &wg)
+		go overallGraph.RenderCharts(endChannel, memChannel, cpuChannel, diskChannel, netChannel, overallRefreshRate, &wg)
 
 		wg.Wait()
+
+		return nil
 	},
 }
 
@@ -62,6 +73,8 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.grofer.yaml)")
+
+	rootCmd.Flags().Int32P("refresh", "r", DefaultOverallRefreshRate, "Overall stats UI refreshes rate in milliseconds greater than 1000")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
