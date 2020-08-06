@@ -16,3 +16,4 @@ script:
   - bash ./scripts/fmt.sh
   - bash ./scripts/build.sh
   - python3 ./scripts/license_check.py
+  - go test -v -race $(go list ./src/utils | grep -v vendor)
