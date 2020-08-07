@@ -67,7 +67,7 @@ Information provided:
 
 If the `-r` flag is specified then the UI will refresh and display new information every `refreshRate` milliseconds. The minimum and default value for `refreshRate` is `1000 ms`.  
 
-### `grofer proc [-r refreshRate]`
+### `grofer proc`
 
 This lists all running processes and relevant information.
 
@@ -75,7 +75,7 @@ This lists all running processes and relevant information.
 
 ---
 
-### `grofer proc -p PID [-r refreshRate]`
+### `grofer proc -p PID`
 
 This gives information specific to a process, specified by a valid PID.
 
