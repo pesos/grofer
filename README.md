@@ -49,9 +49,9 @@ Use "grofer [command] --help" for more information about a command.
 Examples
 --------
 
-### `grofer`
+## `grofer [-r refreshRate]`
 
-This gives overall utilization stats.
+This gives overall utilization stats refreshed every `refreshRate` milliseconds. Default and minimum value of the refresh rate is `1000 ms`.
 
 ![grofer](images/README/grofer.png)
 
@@ -62,8 +62,11 @@ Information provided:
 - Disk storage
 
 ---
+## `grofer proc [-p PID] [-r refreshRate]`
 
-### `grofer proc`
+If the `-r` flag is specified then the UI will refresh at display new information every `refreshRate` milliseconds. The minimum and default value for `refreshRate` is 1000 ms.  
+
+### `grofer proc [-r refreshRate]`
 
 This lists all running processes and relevant information.
 
@@ -71,7 +74,7 @@ This lists all running processes and relevant information.
 
 ---
 
-### `grofer proc [-p PID]`
+### `grofer proc -p PID [-r refreshRate]`
 
 This gives information specific to a process, specified by a valid PID.
 
