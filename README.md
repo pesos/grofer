@@ -14,6 +14,13 @@ Using go get:
 go get -u github.com/pesos/grofer
 ```
 
+As an executable:
+```
+curl -sSL https://github.com/pesos/grofer/releases/download/<version tag>/grofer --output grofer
+chmod +x grofer
+```
+For system wide usage, install `grofer` to a location on `$PATH`, e.g. `/usr/local/bin`
+
 Building from source:
 
 ```
