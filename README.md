@@ -65,7 +65,7 @@ Information provided:
 ---
 ## `grofer proc [-p PID] [-r refreshRate]`
 
-If the `-r` flag is specified then the UI will refresh at display new information every `refreshRate` milliseconds. The minimum and default value for `refreshRate` is `1000 ms`.  
+If the `-r` flag is specified then the UI will refresh and display new information every `refreshRate` milliseconds. The minimum and default value for `refreshRate` is `1000 ms`.  
 
 ### `grofer proc [-r refreshRate]`
 
