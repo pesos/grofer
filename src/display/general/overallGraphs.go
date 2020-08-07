@@ -38,6 +38,7 @@ func RenderCharts(endChannel chan os.Signal,
 	cpuChannel chan []float64,
 	diskChannel chan [][]string,
 	netChannel chan map[string][]float64,
+	refreshRate int32,
 	wg *sync.WaitGroup) {
 
 	if err := ui.Init(); err != nil {
@@ -65,7 +66,7 @@ func RenderCharts(endChannel chan os.Signal,
 	}
 
 	uiEvents := ui.PollEvents()
-	tick := time.Tick(1000 * time.Millisecond)
+	tick := time.Tick(time.Duration(refreshRate) * time.Millisecond)
 	for {
 		select {
 		case e := <-uiEvents: // For keyboard events
