@@ -40,6 +40,7 @@ Available Commands:
 Flags:
       --config string   config file (default is $HOME/.grofer.yaml)
   -h, --help            help for grofer
+  -r, --refresh int32   Overall stats UI refreshes rate in milliseconds greater than 1000 (default 1000)
   -t, --toggle          Help message for toggle
 
 Use "grofer [command] --help" for more information about a command.
