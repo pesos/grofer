@@ -15,6 +15,7 @@ Please delete options that are not relevant.
 
 # Checklist:
 
+- [ ] I have read the [contribution guidelines](https://github.com/pesos/grofer/blob/master/CONTRIBUTING.md) and followed it as far as possible. 
 - [ ] I have performed a self-review of my own code (if applicable)
 - [ ] I have commented my code, particularly in hard-to-understand areas (if applicable)
 - [ ] I have run `go fmt` on my code ([reference](https://blog.golang.org/gofmt))
