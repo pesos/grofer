@@ -26,6 +26,7 @@ import (
 
 	overallGraph "github.com/pesos/grofer/src/display/general"
 	"github.com/pesos/grofer/src/general"
+	"github.com/pesos/grofer/src/utils"
 )
 
 const (
@@ -47,15 +48,12 @@ var rootCmd = &cobra.Command{
 
 		var wg sync.WaitGroup
 		endChannel := make(chan os.Signal, 1)
-		memChannel := make(chan []float64, 1)
-		cpuChannel := make(chan []float64, 1)
-		diskChannel := make(chan [][]string, 1)
-		netChannel := make(chan map[string][]float64, 1)
+		dataChannel := make(chan utils.DataStats, 1)
 
 		wg.Add(2)
 
-		go general.GlobalStats(endChannel, cpuChannel, memChannel, diskChannel, netChannel, overallRefreshRate, &wg)
-		go overallGraph.RenderCharts(endChannel, memChannel, cpuChannel, diskChannel, netChannel, overallRefreshRate, &wg)
+		go general.GlobalStats(endChannel, dataChannel, overallRefreshRate, &wg)
+		go overallGraph.RenderCharts(endChannel, dataChannel, overallRefreshRate, &wg)
 
 		wg.Wait()
 

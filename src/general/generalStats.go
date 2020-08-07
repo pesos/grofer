@@ -19,15 +19,13 @@ import (
 	"os"
 	"sync"
 	"time"
+
+	"github.com/pesos/grofer/src/utils"
 )
 
 // GlobalStats gets stats about the mem and the CPUs and prints it.
 func GlobalStats(endChannel chan os.Signal,
-	cpuChannel chan []float64,
-	memChannel chan []float64,
-	diskChannel chan [][]string,
-	netChannel chan map[string][]float64,
-	refreshRate int32,
+	dataChannel chan utils.DataStats, refreshRate int32,
 	wg *sync.WaitGroup) {
 
 	for {
@@ -38,10 +36,10 @@ func GlobalStats(endChannel chan os.Signal,
 
 		default: // Get Memory and CPU rates per core periodically
 
-			go PrintCPURates(cpuChannel)
-			go PrintMemRates(memChannel)
-			go PrintDiskRates(diskChannel)
-			PrintNetRates(netChannel)
+			go PrintCPURates(dataChannel)
+			go PrintMemRates(dataChannel)
+			go PrintDiskRates(dataChannel)
+			PrintNetRates(dataChannel)
 			time.Sleep(time.Duration(refreshRate) * time.Millisecond)
 		}
 	}

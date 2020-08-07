@@ -26,6 +26,7 @@ import (
 	"time"
 
 	ui "github.com/gizak/termui/v3"
+	"github.com/pesos/grofer/src/utils"
 )
 
 var isCPUSet = false
@@ -34,10 +35,7 @@ var run = true
 
 // RenderCharts handles plotting graphs and charts for system stats in general.
 func RenderCharts(endChannel chan os.Signal,
-	memChannel chan []float64,
-	cpuChannel chan []float64,
-	diskChannel chan [][]string,
-	netChannel chan map[string][]float64,
+	dataChannel chan utils.DataStats,
 	refreshRate int32,
 	wg *sync.WaitGroup) {
 
@@ -80,73 +78,71 @@ func RenderCharts(endChannel chan os.Signal,
 				pause()
 			}
 
-		case data := <-memChannel: // Update memory values
+		case data := <-dataChannel:
 			if run {
-				myPage.MemoryChart.Data = data
-			}
+				switch data.FieldSet {
 
-		case data := <-diskChannel: // Update disk values
-			if run {
-				myPage.DiskChart.Rows = data
-			}
-
-		case data := <-netChannel: // Update network stats & render braille plots
-			if run {
-
-				var curBytesRecv, curBytesSent float64
-
-				for _, netInterface := range data {
-					curBytesRecv += netInterface[1]
-					curBytesSent += netInterface[0]
-				}
-
-				var recentBytesRecv, recentBytesSent float64
-
-				if totalBytesRecv != 0 {
-					recentBytesRecv = curBytesRecv - totalBytesRecv
-					recentBytesSent = curBytesSent - totalBytesSent
-
-					if int(recentBytesRecv) < 0 {
-						recentBytesRecv = 0
-					}
-					if int(recentBytesSent) < 0 {
-						recentBytesSent = 0
+				case "CPU": // Update CPU stats
+					for index, rate := range data.CpuStats {
+						myPage.CPUCharts[index].Title = " CPU " + strconv.Itoa(index) + " "
+						myPage.CPUCharts[index].Percent = int(rate)
 					}
 
-					ipData = ipData[1:]
-					opData = opData[1:]
+				case "MEM": // Update Memory stats
+					myPage.MemoryChart.Data = data.MemStats
 
-					ipData = append(ipData, recentBytesRecv)
-					opData = append(opData, recentBytesSent)
-				}
+				case "DISK": // Update Disk stats
+					myPage.DiskChart.Rows = data.DiskStats
 
-				totalBytesRecv = curBytesRecv
-				totalBytesSent = curBytesSent
+				case "NET": // Update Network stats
+					var curBytesRecv, curBytesSent float64
 
-				titles := make([]string, 2)
-
-				for i := 0; i < 2; i++ {
-					if i == 0 {
-						titles[i] = fmt.Sprintf("[Total RX](fg:red): %5.1f %s\n", totalBytesRecv/1024, "mB")
-					} else {
-						titles[i] = fmt.Sprintf("\n[Total TX](fg:green): %5.1f %s", totalBytesSent/1024, "mB")
+					for _, netInterface := range data.NetStats {
+						curBytesRecv += netInterface[1]
+						curBytesSent += netInterface[0]
 					}
 
-				}
+					var recentBytesRecv, recentBytesSent float64
 
-				myPage.NetPara.Text = titles[0] + titles[1]
+					if totalBytesRecv != 0 {
+						recentBytesRecv = curBytesRecv - totalBytesRecv
+						recentBytesSent = curBytesSent - totalBytesSent
 
-				temp := [][]float64{}
-				temp = append(temp, ipData)
-				temp = append(temp, opData)
-				myPage.NetworkChart.Data = temp
-			}
+						if int(recentBytesRecv) < 0 {
+							recentBytesRecv = 0
+						}
+						if int(recentBytesSent) < 0 {
+							recentBytesSent = 0
+						}
 
-		case cpu_data := <-cpuChannel: // Update Gauge map with newer values
-			if run {
-				for index, rate := range cpu_data {
-					myPage.CPUCharts[index].Title = " CPU " + strconv.Itoa(index) + " "
-					myPage.CPUCharts[index].Percent = int(rate)
+						ipData = ipData[1:]
+						opData = opData[1:]
+
+						ipData = append(ipData, recentBytesRecv)
+						opData = append(opData, recentBytesSent)
+					}
+
+					totalBytesRecv = curBytesRecv
+					totalBytesSent = curBytesSent
+
+					titles := make([]string, 2)
+
+					for i := 0; i < 2; i++ {
+						if i == 0 {
+							titles[i] = fmt.Sprintf("[Total RX](fg:red): %5.1f %s\n", totalBytesRecv/1024, "mB")
+						} else {
+							titles[i] = fmt.Sprintf("\n[Total TX](fg:green): %5.1f %s", totalBytesSent/1024, "mB")
+						}
+
+					}
+
+					myPage.NetPara.Text = titles[0] + titles[1]
+
+					temp := [][]float64{}
+					temp = append(temp, ipData)
+					temp = append(temp, opData)
+					myPage.NetworkChart.Data = temp
+
 				}
 			}
 
