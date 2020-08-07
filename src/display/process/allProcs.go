@@ -124,6 +124,7 @@ func getData(procs []*proc.Process) []string {
 
 func AllProcVisuals(dataChannel chan []*proc.Process,
 	endChannel chan os.Signal,
+	refreshRate int32,
 	wg *sync.WaitGroup) {
 
 	if err := ui.Init(); err != nil {
@@ -137,7 +138,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 	}
 
 	uiEvents := ui.PollEvents()
-	tick := time.Tick(100 * time.Millisecond)
+	tick := time.Tick(time.Duration(refreshRate) * time.Millisecond)
 
 	previousKey := ""
 	selectedStyle := ui.NewStyle(ui.ColorYellow, ui.ColorClear, ui.ModifierBold)

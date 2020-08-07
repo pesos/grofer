@@ -39,7 +39,7 @@ func Serve(process *Process, dataChannel chan *Process, endChannel chan os.Signa
 
 }
 
-func ServeProcs(dataChannel chan []*proc.Process, endChannel chan os.Signal, wg *sync.WaitGroup) {
+func ServeProcs(dataChannel chan []*proc.Process, endChannel chan os.Signal, refreshRate int32, wg *sync.WaitGroup) {
 	for {
 		select {
 		case <-endChannel:
@@ -50,7 +50,7 @@ func ServeProcs(dataChannel chan []*proc.Process, endChannel chan os.Signal, wg 
 			procs, err := proc.Processes()
 			if err == nil {
 				dataChannel <- procs
-				time.Sleep(1000 * time.Millisecond)
+				time.Sleep(time.Duration(refreshRate) * time.Millisecond)
 			}
 		}
 	}
