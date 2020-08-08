@@ -22,6 +22,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pesos/grofer/src/utils"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/mem"
@@ -34,26 +35,36 @@ func roundOff(num uint64) float64 {
 }
 
 // PrintCPURates print the cpu rates
-func PrintCPURates(cpuChannel chan []float64) {
+func PrintCPURates(cpuChannel chan utils.DataStats) {
 	cpuRates, err := cpu.Percent(time.Second, true)
 	if err != nil {
 		log.Fatal(err)
 	}
-	cpuChannel <- cpuRates
+	data := utils.DataStats{
+		CpuStats: cpuRates,
+		FieldSet: "CPU",
+	}
+	cpuChannel <- data
 }
 
 // PrintMemRates prints stats about the memory
-func PrintMemRates(dataChannel chan []float64) {
+func PrintMemRates(dataChannel chan utils.DataStats) {
 	memory, err := mem.VirtualMemory()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	data := []float64{roundOff(memory.Total), roundOff(memory.Available), roundOff(memory.Used), roundOff(memory.Free)}
+	memRates := []float64{roundOff(memory.Total), roundOff(memory.Available), roundOff(memory.Used), roundOff(memory.Free)}
+
+	data := utils.DataStats{
+		MemStats: memRates,
+		FieldSet: "MEM",
+	}
+
 	dataChannel <- data
 }
 
-func PrintDiskRates(dataChannel chan [][]string) {
+func PrintDiskRates(dataChannel chan utils.DataStats) {
 
 	var partitions []disk.PartitionStat
 	var err error
@@ -83,10 +94,16 @@ func PrintDiskRates(dataChannel chan [][]string) {
 
 		}
 	}
-	dataChannel <- rows
+
+	data := utils.DataStats{
+		DiskStats: rows,
+		FieldSet:  "DISK",
+	}
+
+	dataChannel <- data
 }
 
-func PrintNetRates(dataChannel chan map[string][]float64) {
+func PrintNetRates(dataChannel chan utils.DataStats) {
 	netStats, err := net.IOCounters(false)
 	if err != nil {
 		log.Fatal(err)
@@ -96,5 +113,11 @@ func PrintNetRates(dataChannel chan map[string][]float64) {
 		nic := []float64{float64(IOStat.BytesSent) / (1024), float64(IOStat.BytesRecv) / (1024)}
 		IO[IOStat.Name] = nic
 	}
-	dataChannel <- IO
+
+	data := utils.DataStats{
+		NetStats: IO,
+		FieldSet: "NET",
+	}
+
+	dataChannel <- data
 }

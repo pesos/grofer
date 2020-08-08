@@ -104,6 +104,7 @@ func (page *MainPage) InitGeneral(numCores int) {
 		ui.NewRow(0.34, page.DiskChart),
 	)
 
+	// Get Terminal Dimensions
 	w, h := ui.TerminalDimensions()
 	page.Grid.SetRect(w/2, 0, w, h)
 }
