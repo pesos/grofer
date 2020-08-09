@@ -73,7 +73,8 @@ func roundDownFloat(num float64) int {
 	return int(num + math.Copysign(0.5, num))
 }
 
-func trim(num float64, precision int) float64 {
+// Trim trims a float to the specified number of precision decimal digits.
+func Trim(num float64, precision int) float64 {
 	output := math.Pow(10, float64(precision))
 	return float64(roundDownFloat(num*output)) / output
 }
@@ -81,7 +82,7 @@ func trim(num float64, precision int) float64 {
 // GetInMB converts bytes to MB
 func GetInMB(bytes uint64, precision int) float64 {
 	temp := float64(bytes) / 1000000
-	return trim(temp, precision)
+	return Trim(temp, precision)
 }
 
 // GetDateFromUnix gets a date and time in RFC822 format from a unix epoch
