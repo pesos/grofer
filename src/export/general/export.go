@@ -75,7 +75,12 @@ func (data *OverallStats) updateData() error {
 	}
 
 	memory, err := mem.VirtualMemory()
-	memRates := memStats{roundOff(memory.Total), roundOff(memory.Available), roundOff(memory.Used), roundOff(memory.Free)}
+	memRates := memStats{roundOff(memory.Total),
+		roundOff(memory.Available),
+		roundOff(memory.Used),
+		roundOff(memory.Free),
+	}
+
 	if err == nil {
 		data.MemStats = memRates
 	} else {
@@ -142,7 +147,7 @@ func getJSONData(iter int64, interval uint64) ([]OverallStats, error) {
 // ExportJSON exports data to a JSON file for a specified number of iterations
 // and a specified refreshed rate.
 func ExportJSON(fileName string, iter int64, interval uint64) error {
-	toWrite, _ := os.OpenFile(fileName, os.O_RDWR, os.ModePerm)
+	toWrite, _ := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE, os.ModePerm)
 	defer toWrite.Close()
 	encoder := json.NewEncoder(toWrite)
 	data, err := getJSONData(iter, interval)
