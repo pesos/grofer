@@ -170,4 +170,3 @@ func ProcVisuals(endChannel chan os.Signal,
 		}
 	}
 }
-
