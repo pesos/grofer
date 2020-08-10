@@ -63,6 +63,28 @@ func RenderCharts(endChannel chan os.Signal,
 		run = !run
 	}
 
+	w, h := ui.TerminalDimensions()
+	ui.Clear()
+
+	height := int(h / numCores)
+	heightOffset := h - (height * numCores)
+
+	// Adjust Grid dimensions
+	myPage.Grid.SetRect(w/2, 0, w, h-heightOffset)
+
+	// Adjust Memory Bar graph values
+	myPage.MemoryChart.BarGap = ((w / 2) - (4 * myPage.MemoryChart.BarWidth)) / 4
+
+	// Adjust CPU Gauge dimensions
+	if isCPUSet {
+		for i := 0; i < numCores; i++ {
+			myPage.CPUCharts[i].SetRect(0, i*height, w/2, (i+1)*height)
+			ui.Render(myPage.CPUCharts[i])
+		}
+	}
+
+	ui.Render(myPage.Grid)
+
 	uiEvents := ui.PollEvents()
 	tick := time.Tick(time.Duration(refreshRate) * time.Millisecond)
 	for {

@@ -133,6 +133,11 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 
 	myPage := NewAllProcsPage()
 
+	w, h := ui.TerminalDimensions()
+	ui.Clear()
+	myPage.Grid.SetRect(0, 0, w, h)
+	ui.Render(myPage.Grid)
+
 	pause := func() {
 		runAllProc = !runAllProc
 	}
@@ -175,7 +180,10 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 			case "G", "<End>":
 				myPage.BodyList.ScrollBottom()
 			}
-
+			w, h := ui.TerminalDimensions()
+			ui.Clear()
+			myPage.Grid.SetRect(0, 0, w, h)
+			ui.Render(myPage.Grid)
 			if previousKey == "g" {
 				previousKey = ""
 			} else {
