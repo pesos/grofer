@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	DefaultProcRefreshRate = 1000
+	DefaultProcRefreshRate = 3000
 )
 
 // procCmd represents the proc command
@@ -81,7 +81,7 @@ Syntax:
 
 			wg.Add(2)
 
-			go process.ServeProcs(dataChannel, endChannel, procRefreshRate, &wg)
+			go process.ServeProcs(dataChannel, endChannel, int32(2*procRefreshRate/5), &wg)
 			go procGraph.AllProcVisuals(dataChannel, endChannel, procRefreshRate, &wg)
 			wg.Wait()
 		}
