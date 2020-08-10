@@ -162,7 +162,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 				wg.Done()
 				return
 			case "<Resize>":
-				updateUI()  // updateUI in resize event
+				updateUI()  // updateUI only during resize event
 			case "s": //s to pause
 				pause()
 			case "j", "<Down>":
@@ -186,6 +186,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 			case "G", "<End>":
 				myPage.BodyList.ScrollBottom()
 			}
+			
 			ui.Render(myPage.Grid)
 
             if previousKey == "g" {

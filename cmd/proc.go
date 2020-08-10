@@ -81,7 +81,7 @@ Syntax:
 
 			wg.Add(2)
 
-			go process.ServeProcs(dataChannel, endChannel, int32(2*procRefreshRate/5), &wg)
+			go process.ServeProcs(dataChannel, endChannel, int32(4*procRefreshRate/5), &wg)
 			go procGraph.AllProcVisuals(dataChannel, endChannel, procRefreshRate, &wg)
 			wg.Wait()
 		}
