@@ -87,11 +87,6 @@ func ProcVisuals(endChannel chan os.Signal,
 				ui.Close()
 				wg.Done()
 				return
-			case  "<Resize>":
-				w, h := ui.TerminalDimensions()
-				ui.Clear()
-				myPage.Grid.SetRect(-1, 0, w, h)
-			    ui.Render(myPage.Grid)
 			case "s": //s to pause
 				pause()
 			case "j", "<Down>":
@@ -168,6 +163,9 @@ func ProcVisuals(endChannel chan os.Signal,
 			}
 
 		case <-tick:
+			w, h := ui.TerminalDimensions()
+			ui.Clear()
+			myPage.Grid.SetRect(-1, 0, w, h)
 			ui.Render(myPage.Grid)
 		}
 	}
