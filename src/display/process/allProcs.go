@@ -161,6 +161,8 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 				ui.Close()
 				wg.Done()
 				return
+			case "<Resize>":
+				updateUI()  // updateUI in resize event
 			case "s": //s to pause
 				pause()
 			case "j", "<Down>":
@@ -184,17 +186,17 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 			case "G", "<End>":
 				myPage.BodyList.ScrollBottom()
 			}
+			ui.Render(myPage.Grid)
 
 			updateUI() // Update UI to show scroll
 
 		case data := <-dataChannel:
 			myPage.BodyList.SelectedRowStyle = selectedStyle
 			if runAllProc {
-
 				myPage.BodyList.Rows = getData(data)
 			}
 		case <-tick: // Update page with new values
-			updateUI()
+			ui.Render(myPage.Grid)
 		}
 	}
 }
