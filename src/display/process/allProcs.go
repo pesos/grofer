@@ -188,8 +188,11 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 			}
 			ui.Render(myPage.Grid)
 
-			updateUI() // Update UI to show scroll
-
+            if previousKey == "g" {
+				previousKey = ""
+			} else {
+				previousKey = e.ID
+			}
 		case data := <-dataChannel:
 			myPage.BodyList.SelectedRowStyle = selectedStyle
 			if runAllProc {
