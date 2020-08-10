@@ -165,8 +165,9 @@ func ProcVisuals(endChannel chan os.Signal,
 		case <-tick:
 			w, h := ui.TerminalDimensions()
 			ui.Clear()
-			myPage.Grid.SetRect(-1, 0, w, h)
+			myPage.Grid.SetRect(0, 0, w, h)
 			ui.Render(myPage.Grid)
 		}
 	}
 }
+
