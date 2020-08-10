@@ -133,10 +133,14 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 
 	myPage := NewAllProcsPage()
 
-	w, h := ui.TerminalDimensions()
-	ui.Clear()
-	myPage.Grid.SetRect(0, 0, w, h)
-	ui.Render(myPage.Grid)
+	updateUI := func() {
+		w, h := ui.TerminalDimensions()
+		ui.Clear()
+		myPage.Grid.SetRect(0, 0, w, h)
+		ui.Render(myPage.Grid)
+	}
+
+	updateUI() // Render empty UI
 
 	pause := func() {
 		runAllProc = !runAllProc
@@ -180,15 +184,8 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 			case "G", "<End>":
 				myPage.BodyList.ScrollBottom()
 			}
-			w, h := ui.TerminalDimensions()
-			ui.Clear()
-			myPage.Grid.SetRect(0, 0, w, h)
-			ui.Render(myPage.Grid)
-			if previousKey == "g" {
-				previousKey = ""
-			} else {
-				previousKey = e.ID
-			}
+
+			updateUI() // Update UI to show scroll
 
 		case data := <-dataChannel:
 			myPage.BodyList.SelectedRowStyle = selectedStyle
@@ -197,10 +194,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 				myPage.BodyList.Rows = getData(data)
 			}
 		case <-tick: // Update page with new values
-			w, h := ui.TerminalDimensions()
-			ui.Clear()
-			myPage.Grid.SetRect(0, 0, w, h)
-			ui.Render(myPage.Grid)
+			updateUI()
 		}
 	}
 }
