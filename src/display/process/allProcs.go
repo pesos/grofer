@@ -189,7 +189,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 			
 			ui.Render(myPage.Grid)
 
-            if previousKey == "g" {
+			if previousKey == "g" {
 				previousKey = ""
 			} else {
 				previousKey = e.ID
