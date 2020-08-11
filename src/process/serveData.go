@@ -24,7 +24,7 @@ import (
 )
 
 // Serve serves data on a per process basis
-func Serve(process *Process, dataChannel chan *Process, endChannel chan os.Signal, wg *sync.WaitGroup) {
+func Serve(process *Process, dataChannel chan *Process, endChannel chan os.Signal, refreshRate int32, wg *sync.WaitGroup) {
 	for {
 		select {
 		case <-endChannel:
@@ -34,6 +34,7 @@ func Serve(process *Process, dataChannel chan *Process, endChannel chan os.Signa
 		default:
 			process.UpdateProcInfo()
 			dataChannel <- process
+			time.Sleep(time.Duration(refreshRate) * time.Millisecond)
 		}
 	}
 

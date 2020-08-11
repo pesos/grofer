@@ -72,8 +72,8 @@ Syntax:
 				return fmt.Errorf("invalid pid")
 			}
 
-			go process.Serve(proc, dataChannel, endChannel, &wg)
-			go procGraph.ProcVisuals(endChannel, dataChannel, &wg)
+			go process.Serve(proc, dataChannel, endChannel, int32(4*procRefreshRate/5), &wg)
+			go procGraph.ProcVisuals(endChannel, dataChannel, procRefreshRate, &wg)
 			wg.Wait()
 		} else {
 			dataChannel := make(chan []*proc.Process, 1)

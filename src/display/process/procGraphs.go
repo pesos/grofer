@@ -28,6 +28,7 @@ import (
 )
 
 var runProc = true
+var on sync.Once
 
 func getChildProcs(proc *process.Process) []string {
 	childProcs := []string{"PID                   Command"}
@@ -51,6 +52,7 @@ func getChildProcs(proc *process.Process) []string {
 // ProcVisuals renders graphs and charts for per-process stats.
 func ProcVisuals(endChannel chan os.Signal,
 	dataChannel chan *process.Process,
+	refreshRate int32,
 	wg *sync.WaitGroup) {
 
 	if err := ui.Init(); err != nil {
@@ -74,8 +76,15 @@ func ProcVisuals(endChannel chan os.Signal,
 		runProc = !runProc
 	}
 
+	updateUI := func() {
+		w, h := ui.TerminalDimensions()
+		ui.Clear()
+		myPage.Grid.SetRect(0, 0, w, h)
+		ui.Render(myPage.Grid)
+	}
+
 	uiEvents := ui.PollEvents()
-	tick := time.Tick(1 * time.Second)
+	tick := time.Tick(time.Duration(refreshRate) * time.Millisecond)
 
 	previousKey := ""
 	for {
@@ -89,6 +98,9 @@ func ProcVisuals(endChannel chan os.Signal,
 				return
 			case "s": //s to pause
 				pause()
+			case "<Resize>":
+				updateUI()
+
 			case "j", "<Down>":
 				myPage.ChildProcsList.ScrollDown()
 			case "k", "<Up>":
@@ -160,13 +172,17 @@ func ProcVisuals(endChannel chan os.Signal,
 				myPage.PageFaultsChart.Data = faults
 				myPage.PageFaultsChart.Title = " Page Faults" + units
 				myPage.ChildProcsList.Rows = getChildProcs(data)
+
+				on.Do(func() {
+					w, h := ui.TerminalDimensions()
+					ui.Clear()
+					myPage.Grid.SetRect(0, 0, w, h)
+					ui.Render(myPage.Grid)
+				})
 			}
 
 		case <-tick:
-			w, h := ui.TerminalDimensions()
-			ui.Clear()
-			myPage.Grid.SetRect(0, 0, w, h)
-			ui.Render(myPage.Grid)
+			updateUI()
 		}
 	}
 }
