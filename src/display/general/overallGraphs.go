@@ -100,6 +100,9 @@ func RenderCharts(endChannel chan os.Signal,
 				wg.Done()
 				return
 
+			case "<Resize>":
+				updateUI()
+
 			case "s": // s to stop
 				pause()
 			}
