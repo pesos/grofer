@@ -83,7 +83,7 @@ func (page *PerProcPage) InitPerProc() {
 	page.CTXSwitchesChart.Title = " Ctx switches "
 	page.CTXSwitchesChart.BorderStyle.Fg = ui.ColorCyan
 	page.CTXSwitchesChart.TitleStyle.Fg = ui.ColorWhite
-	page.CTXSwitchesChart.BarWidth = 10
+	page.CTXSwitchesChart.BarWidth = 9
 	page.CTXSwitchesChart.BarColors = []ui.Color{ui.ColorGreen, ui.ColorCyan}
 	page.CTXSwitchesChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorWhite)}
 	page.CTXSwitchesChart.NumStyles = []ui.Style{ui.NewStyle(ui.ColorBlack)}
@@ -94,7 +94,7 @@ func (page *PerProcPage) InitPerProc() {
 	page.PageFaultsChart.Title = " Page Faults "
 	page.PageFaultsChart.BorderStyle.Fg = ui.ColorCyan
 	page.PageFaultsChart.TitleStyle.Fg = ui.ColorWhite
-	page.PageFaultsChart.BarWidth = 10
+	page.PageFaultsChart.BarWidth = 9
 	page.PageFaultsChart.BarColors = []ui.Color{ui.ColorGreen, ui.ColorCyan}
 	page.PageFaultsChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorWhite)}
 	page.PageFaultsChart.NumStyles = []ui.Style{ui.NewStyle(ui.ColorBlack)}
@@ -105,7 +105,7 @@ func (page *PerProcPage) InitPerProc() {
 	page.MemStatsChart.Title = " Mem Stats (mb) "
 	page.MemStatsChart.BorderStyle.Fg = ui.ColorCyan
 	page.MemStatsChart.TitleStyle.Fg = ui.ColorWhite
-	page.MemStatsChart.BarWidth = 10
+	page.MemStatsChart.BarWidth = 9
 	page.MemStatsChart.BarColors = []ui.Color{ui.ColorGreen, ui.ColorMagenta, ui.ColorYellow, ui.ColorCyan}
 	page.MemStatsChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorWhite)}
 	page.MemStatsChart.NumStyles = []ui.Style{ui.NewStyle(ui.ColorBlack)}

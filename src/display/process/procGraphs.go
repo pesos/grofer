@@ -79,6 +79,10 @@ func ProcVisuals(endChannel chan os.Signal,
 	updateUI := func() {
 		w, h := ui.TerminalDimensions()
 		ui.Clear()
+
+		// Adjust Memory Stats Bar graph values
+		myPage.MemStatsChart.BarGap = ((w / 2) - (4 * myPage.MemStatsChart.BarWidth)) / 4
+
 		myPage.Grid.SetRect(0, 0, w, h)
 		ui.Render(myPage.Grid)
 	}
