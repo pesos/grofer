@@ -31,6 +31,7 @@ import (
 )
 
 var runAllProc = true
+var on1 sync.Once
 
 func getData(procs []*proc.Process) []string {
 	var data []string
@@ -198,6 +199,13 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 			myPage.BodyList.SelectedRowStyle = selectedStyle
 			if runAllProc {
 				myPage.BodyList.Rows = getData(data)
+
+				on1.Do(func() {
+					w, h := ui.TerminalDimensions()
+					ui.Clear()
+					myPage.Grid.SetRect(0, 0, w, h)
+					ui.Render(myPage.Grid)
+				})
 			}
 		case <-tick: // Update page with new values
 			ui.Render(myPage.Grid)
