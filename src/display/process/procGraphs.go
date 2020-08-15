@@ -187,8 +187,20 @@ func ProcVisuals(endChannel chan os.Signal,
 				myPage.ChildProcsList.Rows = getChildProcs(data)
 
 				on.Do(func() {
+					// Get Terminal Dimensions adn clear the UI
 					w, h := ui.TerminalDimensions()
 					ui.Clear()
+
+					// Adjust Memory Stats Bar graph values
+					myPage.MemStatsChart.BarGap = ((w / 2) - (4 * myPage.MemStatsChart.BarWidth)) / 4
+
+					// Adjust Page Faults Bar graph values
+					myPage.PageFaultsChart.BarGap = ((w / 4) - (2 * myPage.PageFaultsChart.BarWidth)) / 2
+
+					// Adjust Context Switches Bar graph values
+					myPage.CTXSwitchesChart.BarGap = ((w / 4) - (2 * myPage.CTXSwitchesChart.BarWidth)) / 2
+
+					// Adjust Grid dimensions
 					myPage.Grid.SetRect(0, 0, w, h)
 					ui.Render(myPage.Grid)
 				})
