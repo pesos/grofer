@@ -63,6 +63,35 @@ func RenderCharts(endChannel chan os.Signal,
 		run = !run
 	}
 
+	updateUI := func() {
+
+		// Get Terminal Dimensions adn clear the UI
+		w, h := ui.TerminalDimensions()
+		ui.Clear()
+
+		// Calculate Heigth offset
+		height := int(h / numCores)
+		heightOffset := h - (height * numCores)
+
+		// Adjust Memory Bar graph values
+		myPage.MemoryChart.BarGap = ((w / 2) - (4 * myPage.MemoryChart.BarWidth)) / 4
+
+		// Adjust CPU Gauge dimensions
+		if isCPUSet {
+			for i := 0; i < numCores; i++ {
+				myPage.CPUCharts[i].SetRect(0, i*height, w/2, (i+1)*height)
+				ui.Render(myPage.CPUCharts[i])
+			}
+		}
+
+		// Adjust Grid dimensions
+		myPage.Grid.SetRect(w/2, 0, w, h-heightOffset)
+
+		ui.Render(myPage.Grid)
+	}
+
+	updateUI() // Initialize empty UI
+
 	uiEvents := ui.PollEvents()
 	tick := time.Tick(time.Duration(refreshRate) * time.Millisecond)
 	for {
@@ -73,6 +102,9 @@ func RenderCharts(endChannel chan os.Signal,
 				endChannel <- os.Kill
 				wg.Done()
 				return
+
+			case "<Resize>":
+				updateUI()
 
 			case "s": // s to stop
 				pause()
@@ -147,28 +179,7 @@ func RenderCharts(endChannel chan os.Signal,
 			}
 
 		case <-tick: // Update page with new values
-			w, h := ui.TerminalDimensions()
-			ui.Clear()
-
-			height := int(h / numCores)
-			heightOffset := h - (height * numCores)
-
-			// Adjust Grid dimensions
-			myPage.Grid.SetRect(w/2, 0, w, h-heightOffset)
-
-			// Adjust Memory Bar graph values
-			myPage.MemoryChart.BarGap = ((w / 2) - (4 * myPage.MemoryChart.BarWidth)) / 4
-
-			// Adjust CPU Gauge dimensions
-			if isCPUSet {
-				for i := 0; i < numCores; i++ {
-					myPage.CPUCharts[i].SetRect(0, i*height, w/2, (i+1)*height)
-					ui.Render(myPage.CPUCharts[i])
-				}
-			}
-
-			ui.Render(myPage.Grid)
-
+			updateUI()
 		}
 	}
 }

@@ -31,6 +31,7 @@ import (
 )
 
 var runAllProc = true
+var on1 sync.Once
 
 func getData(procs []*proc.Process) []string {
 	var data []string
@@ -133,6 +134,15 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 
 	myPage := NewAllProcsPage()
 
+	updateUI := func() {
+		w, h := ui.TerminalDimensions()
+		ui.Clear()
+		myPage.Grid.SetRect(0, 0, w, h)
+		ui.Render(myPage.Grid)
+	}
+
+	updateUI() // Render empty UI
+
 	pause := func() {
 		runAllProc = !runAllProc
 	}
@@ -152,6 +162,8 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 				ui.Close()
 				wg.Done()
 				return
+			case "<Resize>":
+				updateUI() // updateUI only during resize event
 			case "s": //s to pause
 				pause()
 			case "j", "<Down>":
@@ -176,6 +188,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 				myPage.BodyList.ScrollBottom()
 			}
 
+			ui.Render(myPage.Grid)
 			if previousKey == "g" {
 				previousKey = ""
 			} else {
@@ -185,13 +198,16 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 		case data := <-dataChannel:
 			myPage.BodyList.SelectedRowStyle = selectedStyle
 			if runAllProc {
-
 				myPage.BodyList.Rows = getData(data)
+
+				on1.Do(func() {
+					w, h := ui.TerminalDimensions()
+					ui.Clear()
+					myPage.Grid.SetRect(0, 0, w, h)
+					ui.Render(myPage.Grid)
+				})
 			}
 		case <-tick: // Update page with new values
-			w, h := ui.TerminalDimensions()
-			ui.Clear()
-			myPage.Grid.SetRect(0, 0, w, h)
 			ui.Render(myPage.Grid)
 		}
 	}

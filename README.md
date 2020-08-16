@@ -15,11 +15,17 @@ go get -u github.com/pesos/grofer
 ```
 
 As an executable:
+
 ```
 curl -sSL https://github.com/pesos/grofer/releases/download/<version tag>/grofer --output grofer
 chmod +x grofer
 ```
+
 For system wide usage, install `grofer` to a location on `$PATH`, e.g. `/usr/local/bin`
+
+```
+mv grofer /usr/local/bin
+```
 
 Building from source:
 
@@ -57,7 +63,8 @@ Use "grofer [command] --help" for more information about a command.
 Examples
 --------
 
-## `grofer [-r refreshRate]`
+`grofer [-r refreshRate]`
+-------------------------
 
 This gives overall utilization stats refreshed every `refreshRate` milliseconds. Default and minimum value of the refresh rate is `1000 ms`.
 
@@ -70,9 +77,11 @@ Information provided:
 - Disk storage
 
 ---
-## `grofer proc [-p PID] [-r refreshRate]`
 
-If the `-r` flag is specified then the UI will refresh and display new information every `refreshRate` milliseconds. The minimum and default value for `refreshRate` is `1000 ms`.  
+`grofer proc [-p PID] [-r refreshRate]`
+---------------------------------------
+
+If the `-r` flag is specified then the UI will refresh and display new information every `refreshRate` milliseconds. The minimum and default value for `refreshRate` is `1000 ms`.
 
 ### `grofer proc`
 

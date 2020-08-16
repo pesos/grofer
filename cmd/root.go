@@ -52,7 +52,7 @@ var rootCmd = &cobra.Command{
 
 		wg.Add(2)
 
-		go general.GlobalStats(endChannel, dataChannel, overallRefreshRate, &wg)
+		go general.GlobalStats(endChannel, dataChannel, int32(4*overallRefreshRate/5), &wg)
 		go overallGraph.RenderCharts(endChannel, dataChannel, overallRefreshRate, &wg)
 
 		wg.Wait()
