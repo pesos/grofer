@@ -26,6 +26,7 @@ import (
 
 	overallGraph "github.com/pesos/grofer/src/display/general"
 	"github.com/pesos/grofer/src/general"
+	info "github.com/pesos/grofer/src/general"
 	"github.com/pesos/grofer/src/utils"
 )
 
@@ -40,10 +41,17 @@ var rootCmd = &cobra.Command{
 	Use:   "grofer",
 	Short: "grofer is a system profiler written in golang",
 	RunE: func(cmd *cobra.Command, args []string) error {
-
 		overallRefreshRate, _ := cmd.Flags().GetInt32("refresh")
 		if overallRefreshRate < 1000 {
 			return fmt.Errorf("invalid refresh rate: minimum refresh rate is 1000(ms)")
+		}
+
+		cpuLoadFlag, _ := cmd.Flags().GetBool("cpuinfo")
+		if cpuLoadFlag {
+			cpuLoad := info.NewCPULoad()
+			dataChannel := make(chan *info.CPULoad, 1)
+			endChannel := make(chan os.Signal, 1)
+			return info.GetCPULoad(cpuLoad, dataChannel, endChannel, overallRefreshRate)
 		}
 
 		var wg sync.WaitGroup
@@ -73,6 +81,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.grofer.yaml)")
 
 	rootCmd.Flags().Int32P("refresh", "r", DefaultOverallRefreshRate, "Overall stats UI refreshes rate in milliseconds greater than 1000")
+	rootCmd.Flags().BoolP("cpuinfo", "c", false, "Info about the CPU Load over all CPUs")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
