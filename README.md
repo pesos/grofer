@@ -52,6 +52,7 @@ Available Commands:
 
 Flags:
       --config string   config file (default is $HOME/.grofer.yaml)
+  -c, --cpuinfo         Info about the CPU Load over all CPUs
   -h, --help            help for grofer
   -r, --refresh int32   Overall stats UI refreshes rate in milliseconds greater than 1000 (default 1000)
   -t, --toggle          Help message for toggle
@@ -63,10 +64,10 @@ Use "grofer [command] --help" for more information about a command.
 Examples
 --------
 
-`grofer [-r refreshRate]`
+`grofer [-r refreshRate][--cpuinfo]`
 -------------------------
 
-This gives overall utilization stats refreshed every `refreshRate` milliseconds. Default and minimum value of the refresh rate is `1000 ms`.
+This gives overall utilization stats refreshed every `refreshRate` milliseconds. Default and minimum value of the refresh rate is `1000 ms`. 
 
 ![grofer](images/README/grofer.png)
 
@@ -76,6 +77,19 @@ Information provided:
 - Network usage  
 - Disk storage
 
+The `--cpuinfo` flag displayes finer details about the CPU load such as percentage of the time spent servicing software interrupts, hardware interrupts, etc.
+
+![grofer-cpu](images/README/cpuload.png)
+
+Information provided:
+- Usr   : % of time spent executing user level applications.
+- Sys   : % of time spent executing kernel level processes.
+- Irq   : % of time spent servicing hardware interrupts.
+- Idle  : % of time CPU was idle.
+- Nice  : % of time spent by CPU executing user level processes with a nice priority.
+- Iowait: % of time spent by CPU waiting for an outstanding disk I/O.
+- Soft  : % of time spent by the CPU servicing software interrupts.
+- Steal : % of time spent in involuntary waiting by logical CPUs.
 ---
 
 `grofer proc [-p PID] [-r refreshRate]`
