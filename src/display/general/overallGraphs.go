@@ -45,6 +45,7 @@ func RenderCharts(endChannel chan os.Signal,
 	}
 	defer ui.Close()
 
+	var on sync.Once
 	var totalBytesRecv float64
 	var totalBytesSent float64
 
@@ -177,6 +178,32 @@ func RenderCharts(endChannel chan os.Signal,
 					myPage.NetworkChart.Data = temp
 
 				}
+
+				on.Do(func() {
+					// Get Terminal Dimensions adn clear the UI
+					w, h := ui.TerminalDimensions()
+					ui.Clear()
+
+					// Calculate Heigth offset
+					height := int(h / numCores)
+					heightOffset := h - (height * numCores)
+
+					// Adjust Memory Bar graph values
+					myPage.MemoryChart.BarGap = ((w / 2) - (4 * myPage.MemoryChart.BarWidth)) / 4
+
+					// Adjust CPU Gauge dimensions
+					if isCPUSet {
+						for i := 0; i < numCores; i++ {
+							myPage.CPUCharts[i].SetRect(0, i*height, w/2, (i+1)*height)
+							ui.Render(myPage.CPUCharts[i])
+						}
+					}
+
+					// Adjust Grid dimensions
+					myPage.Grid.SetRect(w/2, 0, w, h-heightOffset)
+
+					ui.Render(myPage.Grid)
+				})
 			}
 
 		case <-tick: // Update page with new values
@@ -189,6 +216,8 @@ func RenderCPUinfo(endChannel chan os.Signal,
 	dataChannel chan *info.CPULoad,
 	refreshRate int32,
 	wg *sync.WaitGroup) {
+
+	var on sync.Once
 
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
@@ -243,6 +272,13 @@ func RenderCPUinfo(endChannel chan os.Signal,
 				myPage.IdleChart.Percent = data.Idle
 
 				myPage.CPUChart.Rows = data.CPURates
+
+				on.Do(func() {
+					w, h := ui.TerminalDimensions()
+					ui.Clear()
+					myPage.Grid.SetRect(0, 0, w, h)
+					ui.Render(myPage.Grid)
+				})
 			}
 
 		case <-tick:
