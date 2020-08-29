@@ -26,6 +26,7 @@ import (
 
 	overallGraph "github.com/pesos/grofer/src/display/general"
 	"github.com/pesos/grofer/src/general"
+	info "github.com/pesos/grofer/src/general"
 	"github.com/pesos/grofer/src/utils"
 )
 
@@ -40,22 +41,38 @@ var rootCmd = &cobra.Command{
 	Use:   "grofer",
 	Short: "grofer is a system profiler written in golang",
 	RunE: func(cmd *cobra.Command, args []string) error {
-
 		overallRefreshRate, _ := cmd.Flags().GetInt32("refresh")
 		if overallRefreshRate < 1000 {
 			return fmt.Errorf("invalid refresh rate: minimum refresh rate is 1000(ms)")
 		}
 
 		var wg sync.WaitGroup
-		endChannel := make(chan os.Signal, 1)
-		dataChannel := make(chan utils.DataStats, 1)
 
-		wg.Add(2)
+		cpuLoadFlag, _ := cmd.Flags().GetBool("cpuinfo")
+		if cpuLoadFlag {
+			cpuLoad := info.NewCPULoad()
+			dataChannel := make(chan *info.CPULoad, 1)
+			endChannel := make(chan os.Signal, 1)
 
-		go general.GlobalStats(endChannel, dataChannel, int32(4*overallRefreshRate/5), &wg)
-		go overallGraph.RenderCharts(endChannel, dataChannel, overallRefreshRate, &wg)
+			wg.Add(2)
 
-		wg.Wait()
+			go info.GetCPULoad(cpuLoad, dataChannel, endChannel, int32(4*overallRefreshRate/5), &wg)
+
+			go overallGraph.RenderCPUinfo(endChannel, dataChannel, overallRefreshRate, &wg)
+
+			wg.Wait()
+
+		} else {
+			endChannel := make(chan os.Signal, 1)
+			dataChannel := make(chan utils.DataStats, 1)
+
+			wg.Add(2)
+
+			go general.GlobalStats(endChannel, dataChannel, int32(4*overallRefreshRate/5), &wg)
+			go overallGraph.RenderCharts(endChannel, dataChannel, overallRefreshRate, &wg)
+
+			wg.Wait()
+		}
 
 		return nil
 	},
@@ -73,6 +90,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.grofer.yaml)")
 
 	rootCmd.Flags().Int32P("refresh", "r", DefaultOverallRefreshRate, "Overall stats UI refreshes rate in milliseconds greater than 1000")
+	rootCmd.Flags().BoolP("cpuinfo", "c", false, "Info about the CPU Load over all CPUs")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
