@@ -107,7 +107,7 @@ func getData(procs []*proc.Process) []string {
 				createTime := utils.GetDateFromUnix(ctime)
 				temp = temp + createTime
 			}
-			for i := 0; i < 24-len(createTime); i++ {
+			for i := 0; i < 9-len(createTime); i++ {
 				temp = temp + " "
 			}
 

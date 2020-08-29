@@ -46,24 +46,33 @@ var rootCmd = &cobra.Command{
 			return fmt.Errorf("invalid refresh rate: minimum refresh rate is 1000(ms)")
 		}
 
+		var wg sync.WaitGroup
+
 		cpuLoadFlag, _ := cmd.Flags().GetBool("cpuinfo")
 		if cpuLoadFlag {
 			cpuLoad := info.NewCPULoad()
 			dataChannel := make(chan *info.CPULoad, 1)
 			endChannel := make(chan os.Signal, 1)
-			return info.GetCPULoad(cpuLoad, dataChannel, endChannel, overallRefreshRate)
+
+			wg.Add(2)
+
+			go info.GetCPULoad(cpuLoad, dataChannel, endChannel, int32(4*overallRefreshRate/5), &wg)
+
+			go overallGraph.RenderCPUinfo(endChannel, dataChannel, overallRefreshRate, &wg)
+
+			wg.Wait()
+
+		} else {
+			endChannel := make(chan os.Signal, 1)
+			dataChannel := make(chan utils.DataStats, 1)
+
+			wg.Add(2)
+
+			go general.GlobalStats(endChannel, dataChannel, int32(4*overallRefreshRate/5), &wg)
+			go overallGraph.RenderCharts(endChannel, dataChannel, overallRefreshRate, &wg)
+
+			wg.Wait()
 		}
-
-		var wg sync.WaitGroup
-		endChannel := make(chan os.Signal, 1)
-		dataChannel := make(chan utils.DataStats, 1)
-
-		wg.Add(2)
-
-		go general.GlobalStats(endChannel, dataChannel, int32(4*overallRefreshRate/5), &wg)
-		go overallGraph.RenderCharts(endChannel, dataChannel, overallRefreshRate, &wg)
-
-		wg.Wait()
 
 		return nil
 	},

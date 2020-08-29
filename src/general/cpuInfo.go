@@ -17,8 +17,11 @@ limitations under the License.
 package general
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
+	"sync"
 	"time"
 
 	gjson "github.com/tidwall/gjson"
@@ -27,17 +30,17 @@ import (
 // CPULoad type contains info about load on CPU from various sources
 // as well as general stats about the CPU.
 type CPULoad struct {
-	Usr      int64     `json:"usr"`
-	Nice     int64     `json:"nice"`
-	Sys      int64     `json:"sys"`
-	Iowait   int64     `json:"iowait"`
-	Irq      int64     `json:"irq"`
-	Soft     int64     `json:"soft"`
-	Steal    int64     `json:"steal"`
-	Guest    int64     `json:"guest"`
-	Gnice    int64     `json:"gnice"`
-	Idle     int64     `json:"idle"`
-	CPURates []float64 `json:"-"`
+	Usr      int        `json:"usr"`
+	Nice     int        `json:"nice"`
+	Sys      int        `json:"sys"`
+	Iowait   int        `json:"iowait"`
+	Irq      int        `json:"irq"`
+	Soft     int        `json:"soft"`
+	Steal    int        `json:"steal"`
+	Guest    int        `json:"guest"`
+	Gnice    int        `json:"gnice"`
+	Idle     int        `json:"idle"`
+	CPURates [][]string `json:"-"`
 }
 
 func NewCPULoad() *CPULoad {
@@ -56,22 +59,32 @@ func (c *CPULoad) updateCPULoad() error {
 
 	statsExtract := gjson.Get(string(stdout), "sysstat.hosts.0.statistics.0.cpu-load.0")
 	stats := statsExtract.Map()
-	c.Usr = stats["usr"].Int()
-	c.Nice = stats["nice"].Int()
-	c.Sys = stats["sys"].Int()
-	c.Iowait = stats["iowait"].Int()
-	c.Irq = stats["irq"].Int()
-	c.Soft = stats["soft"].Int()
-	c.Steal = stats["steal"].Int()
-	c.Guest = stats["guest"].Int()
-	c.Gnice = stats["gnice"].Int()
-	c.Idle = stats["idle"].Int()
+	c.Usr = int(stats["usr"].Int())
+	c.Nice = int(stats["nice"].Int())
+	c.Sys = int(stats["sys"].Int())
+	c.Iowait = int(stats["iowait"].Int())
+	c.Irq = int(stats["irq"].Int())
+	c.Soft = int(stats["soft"].Int())
+	c.Steal = int(stats["steal"].Int())
+	c.Guest = int(stats["guest"].Int())
+	c.Gnice = int(stats["gnice"].Int())
+	c.Idle = int(stats["idle"].Int())
 
 	cpuRates, err := GetCPURates()
 	if err != nil {
 		return err
 	}
-	c.CPURates = cpuRates
+
+	// rates := [][]string{}
+	rate := []string{}
+	cpus := []string{}
+	for i, cpuRate := range cpuRates {
+		cpus = append(cpus, "CPU "+strconv.Itoa(i))
+		rate = append(rate, fmt.Sprintf("%.2f", cpuRate))
+	}
+	rates := [][]string{cpus, rate}
+
+	c.CPURates = rates
 
 	return nil
 }
@@ -80,10 +93,12 @@ func (c *CPULoad) updateCPULoad() error {
 func GetCPULoad(cpuLoad *CPULoad,
 	dataChannel chan *CPULoad,
 	endChannel chan os.Signal,
-	refreshRate int32) error {
+	refreshRate int32,
+	wg *sync.WaitGroup) error {
 	for {
 		select {
 		case <-endChannel: // Stop execution if end signal received
+			wg.Done()
 			return nil
 
 		default: // Get Memory and CPU rates per core periodically
