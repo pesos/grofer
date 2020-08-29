@@ -24,17 +24,20 @@ import (
 	gjson "github.com/tidwall/gjson"
 )
 
+// CPULoad type contains info about load on CPU from various sources
+// as well as general stats about the CPU.
 type CPULoad struct {
-	Usr    int64 `json:"usr"`
-	Nice   int64 `json:"nice"`
-	Sys    int64 `json:"sys"`
-	Iowait int64 `json:"iowait"`
-	Irq    int64 `json:"irq"`
-	Soft   int64 `json:"soft"`
-	Steal  int64 `json:"steal"`
-	Guest  int64 `json:"guest"`
-	Gnice  int64 `json:"gnice"`
-	Idle   int64 `json:"idle"`
+	Usr      int64     `json:"usr"`
+	Nice     int64     `json:"nice"`
+	Sys      int64     `json:"sys"`
+	Iowait   int64     `json:"iowait"`
+	Irq      int64     `json:"irq"`
+	Soft     int64     `json:"soft"`
+	Steal    int64     `json:"steal"`
+	Guest    int64     `json:"guest"`
+	Gnice    int64     `json:"gnice"`
+	Idle     int64     `json:"idle"`
+	CPURates []float64 `json:"-"`
 }
 
 func NewCPULoad() *CPULoad {
@@ -63,6 +66,12 @@ func (c *CPULoad) updateCPULoad() error {
 	c.Guest = stats["guest"].Int()
 	c.Gnice = stats["gnice"].Int()
 	c.Idle = stats["idle"].Int()
+
+	cpuRates, err := GetCPURates()
+	if err != nil {
+		return err
+	}
+	c.CPURates = cpuRates
 
 	return nil
 }

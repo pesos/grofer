@@ -34,6 +34,14 @@ func roundOff(num uint64) float64 {
 	return math.Round(x*10) / 10
 }
 
+func GetCPURates() ([]float64, error) {
+	cpuRates, err := cpu.Percent(time.Second, true)
+	if err != nil {
+		return nil, err
+	}
+	return cpuRates, nil
+}
+
 // PrintCPURates print the cpu rates
 func PrintCPURates(cpuChannel chan utils.DataStats) {
 	cpuRates, err := cpu.Percent(time.Second, true)
