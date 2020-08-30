@@ -231,9 +231,8 @@ func RenderCPUinfo(endChannel chan os.Signal,
 		run = !run
 	}
 
+	// Re render UI
 	updateUI := func() {
-
-		// Get Terminal Dimensions adn clear the UI
 		w, h := ui.TerminalDimensions()
 		ui.Clear()
 		myPage.Grid.SetRect(0, 0, w, h)
@@ -260,7 +259,7 @@ func RenderCPUinfo(endChannel chan os.Signal,
 				pause()
 			}
 
-		case data := <-dataChannel:
+		case data := <-dataChannel: // Update chart values
 			if run {
 				myPage.UsrChart.Percent = data.Usr
 				myPage.NiceChart.Percent = data.Nice

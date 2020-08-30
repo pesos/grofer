@@ -40,7 +40,7 @@ type CPULoad struct {
 	Guest    int        `json:"guest"`
 	Gnice    int        `json:"gnice"`
 	Idle     int        `json:"idle"`
-	CPURates [][]string `json:"-"`
+	CPURates [][]string `json:"-"` // Has first row with CPU names and second row with CPU usage rates, might not be ideal format for export
 }
 
 func NewCPULoad() *CPULoad {
