@@ -75,7 +75,6 @@ func (c *CPULoad) updateCPULoad() error {
 		return err
 	}
 
-	// rates := [][]string{}
 	rate := []string{}
 	cpus := []string{}
 	for i, cpuRate := range cpuRates {
