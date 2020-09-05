@@ -36,10 +36,10 @@ func GlobalStats(endChannel chan os.Signal,
 
 		default: // Get Memory and CPU rates per core periodically
 
-			go PrintCPURates(dataChannel)
-			go PrintMemRates(dataChannel)
-			go PrintDiskRates(dataChannel)
-			PrintNetRates(dataChannel)
+			go ServeCPURates(dataChannel)
+			go ServeMemRates(dataChannel)
+			go ServeDiskRates(dataChannel)
+			ServeNetRates(dataChannel)
 			time.Sleep(time.Duration(refreshRate) * time.Millisecond)
 		}
 	}
