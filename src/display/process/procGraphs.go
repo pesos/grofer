@@ -28,7 +28,6 @@ import (
 )
 
 var runProc = true
-var on sync.Once
 
 func getChildProcs(proc *process.Process) []string {
 	childProcs := []string{"PID                   Command"}
@@ -58,6 +57,8 @@ func ProcVisuals(endChannel chan os.Signal,
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
+
+	var on sync.Once
 
 	// Create new page
 	myPage := NewPerProcPage()

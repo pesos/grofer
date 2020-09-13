@@ -34,8 +34,17 @@ func roundOff(num uint64) float64 {
 	return math.Round(x*10) / 10
 }
 
-// PrintCPURates print the cpu rates
-func PrintCPURates(cpuChannel chan utils.DataStats) {
+// GetCPURates fetches and returns the current cpu rate
+func GetCPURates() ([]float64, error) {
+	cpuRates, err := cpu.Percent(time.Second, true)
+	if err != nil {
+		return nil, err
+	}
+	return cpuRates, nil
+}
+
+// ServeCPURates serves the cpu rates to the cpu channel
+func ServeCPURates(cpuChannel chan utils.DataStats) {
 	cpuRates, err := cpu.Percent(time.Second, true)
 	if err != nil {
 		log.Fatal(err)
@@ -47,8 +56,8 @@ func PrintCPURates(cpuChannel chan utils.DataStats) {
 	cpuChannel <- data
 }
 
-// PrintMemRates prints stats about the memory
-func PrintMemRates(dataChannel chan utils.DataStats) {
+// ServeMemRates serves stats about the memory to the data channel
+func ServeMemRates(dataChannel chan utils.DataStats) {
 	memory, err := mem.VirtualMemory()
 	if err != nil {
 		log.Fatal(err)
@@ -64,7 +73,8 @@ func PrintMemRates(dataChannel chan utils.DataStats) {
 	dataChannel <- data
 }
 
-func PrintDiskRates(dataChannel chan utils.DataStats) {
+// ServeDiskRates serves the disk rate data to the data channel
+func ServeDiskRates(dataChannel chan utils.DataStats) {
 
 	var partitions []disk.PartitionStat
 	var err error
@@ -103,7 +113,8 @@ func PrintDiskRates(dataChannel chan utils.DataStats) {
 	dataChannel <- data
 }
 
-func PrintNetRates(dataChannel chan utils.DataStats) {
+// ServeNetRates serves info about the network to the data channel
+func ServeNetRates(dataChannel chan utils.DataStats) {
 	netStats, err := net.IOCounters(false)
 	if err != nil {
 		log.Fatal(err)

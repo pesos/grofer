@@ -31,7 +31,6 @@ import (
 )
 
 var runAllProc = true
-var on1 sync.Once
 
 func getData(procs []*proc.Process) []string {
 	var data []string
@@ -107,7 +106,7 @@ func getData(procs []*proc.Process) []string {
 				createTime := utils.GetDateFromUnix(ctime)
 				temp = temp + createTime
 			}
-			for i := 0; i < 24-len(createTime); i++ {
+			for i := 0; i < 9-len(createTime); i++ {
 				temp = temp + " "
 			}
 
@@ -131,6 +130,8 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
+
+	var on sync.Once
 
 	myPage := NewAllProcsPage()
 
@@ -200,7 +201,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 			if runAllProc {
 				myPage.BodyList.Rows = getData(data)
 
-				on1.Do(func() {
+				on.Do(func() {
 					w, h := ui.TerminalDimensions()
 					ui.Clear()
 					myPage.Grid.SetRect(0, 0, w, h)
