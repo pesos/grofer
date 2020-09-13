@@ -5,6 +5,8 @@ Grofer
 
 A clean system monitor and profiler written purely in golang using [termui](https://github.com/gizak/termui) and [gopsutil](https://github.com/shirou/gopsutil)!
 
+Currently compatible with Linux only.
+
 Installation
 ------------
 
