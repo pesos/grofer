@@ -61,7 +61,6 @@ var rootCmd = &cobra.Command{
 			go overallGraph.RenderCPUinfo(endChannel, dataChannel, overallRefreshRate, &wg)
 
 			wg.Wait()
-
 		} else {
 			endChannel := make(chan os.Signal, 1)
 			dataChannel := make(chan utils.DataStats, 1)
@@ -80,7 +79,6 @@ var rootCmd = &cobra.Command{
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
 		os.Exit(1)
 	}
 }
