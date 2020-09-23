@@ -16,6 +16,7 @@ limitations under the License.
 package general
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"strings"
@@ -43,7 +44,7 @@ func GetCPURates() ([]float64, error) {
 }
 
 // ServeCPURates serves the cpu rates to the cpu channel
-func ServeCPURates(cpuChannel chan utils.DataStats) error {
+func ServeCPURates(ctx context.Context, cpuChannel chan utils.DataStats) error {
 	cpuRates, err := cpu.Percent(time.Second, true)
 	if err != nil {
 		return err
@@ -52,13 +53,17 @@ func ServeCPURates(cpuChannel chan utils.DataStats) error {
 		CpuStats: cpuRates,
 		FieldSet: "CPU",
 	}
-	cpuChannel <- data
 
-	return nil
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case cpuChannel <- data:
+		return nil
+	}
 }
 
 // ServeMemRates serves stats about the memory to the data channel
-func ServeMemRates(dataChannel chan utils.DataStats) error {
+func ServeMemRates(ctx context.Context, dataChannel chan utils.DataStats) error {
 	memory, err := mem.VirtualMemory()
 	if err != nil {
 		return err
@@ -71,13 +76,16 @@ func ServeMemRates(dataChannel chan utils.DataStats) error {
 		FieldSet: "MEM",
 	}
 
-	dataChannel <- data
-
-	return nil
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case dataChannel <- data:
+		return nil
+	}
 }
 
 // ServeDiskRates serves the disk rate data to the data channel
-func ServeDiskRates(dataChannel chan utils.DataStats) error {
+func ServeDiskRates(ctx context.Context, dataChannel chan utils.DataStats) error {
 
 	var partitions []disk.PartitionStat
 	var err error
@@ -113,13 +121,16 @@ func ServeDiskRates(dataChannel chan utils.DataStats) error {
 		FieldSet:  "DISK",
 	}
 
-	dataChannel <- data
-
-	return nil
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case dataChannel <- data:
+		return nil
+	}
 }
 
 // ServeNetRates serves info about the network to the data channel
-func ServeNetRates(dataChannel chan utils.DataStats) error {
+func ServeNetRates(ctx context.Context, dataChannel chan utils.DataStats) error {
 	netStats, err := net.IOCounters(false)
 	if err != nil {
 		return err
@@ -135,7 +146,10 @@ func ServeNetRates(dataChannel chan utils.DataStats) error {
 		FieldSet: "NET",
 	}
 
-	dataChannel <- data
-
-	return nil
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case dataChannel <- data:
+		return nil
+	}
 }

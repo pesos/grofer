@@ -23,7 +23,7 @@ import (
 	"github.com/pesos/grofer/src/utils"
 )
 
-type serveFunc func(chan utils.DataStats) error
+type serveFunc func(context.Context, chan utils.DataStats) error
 
 // GlobalStats gets stats about the mem and the CPUs and prints it.
 func GlobalStats(ctx context.Context,
@@ -51,7 +51,7 @@ func GlobalStats(ctx context.Context,
 				wg.Add(1)
 				go func(sf serveFunc, dc chan utils.DataStats) {
 					defer wg.Done()
-					errCh <- sf(dc)
+					errCh <- sf(ctx, dc)
 				}(sf, dataChannel)
 			}
 
