@@ -16,9 +16,9 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
-	"sync"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -28,6 +28,7 @@ import (
 	"github.com/pesos/grofer/src/general"
 	info "github.com/pesos/grofer/src/general"
 	"github.com/pesos/grofer/src/utils"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -46,31 +47,44 @@ var rootCmd = &cobra.Command{
 			return fmt.Errorf("invalid refresh rate: minimum refresh rate is 1000(ms)")
 		}
 
-		var wg sync.WaitGroup
-
 		cpuLoadFlag, _ := cmd.Flags().GetBool("cpuinfo")
 		if cpuLoadFlag {
 			cpuLoad := info.NewCPULoad()
 			dataChannel := make(chan *info.CPULoad, 1)
-			endChannel := make(chan os.Signal, 1)
 
-			wg.Add(2)
+			eg, ctx := errgroup.WithContext(context.Background())
 
-			go info.GetCPULoad(cpuLoad, dataChannel, endChannel, int32(4*overallRefreshRate/5), &wg)
+			eg.Go(func() error {
+				return info.GetCPULoad(ctx, cpuLoad, dataChannel, int32(4*overallRefreshRate/5))
+			})
 
-			go overallGraph.RenderCPUinfo(endChannel, dataChannel, overallRefreshRate, &wg)
+			eg.Go(func() error {
+				return overallGraph.RenderCPUinfo(ctx, dataChannel, overallRefreshRate)
+			})
 
-			wg.Wait()
+			if err := eg.Wait(); err != nil {
+				if err != general.ErrCanceledByUser {
+					fmt.Printf("Error: %v\n", err)
+				}
+			}
+
 		} else {
-			endChannel := make(chan os.Signal, 1)
 			dataChannel := make(chan utils.DataStats, 1)
 
-			wg.Add(2)
+			eg, ctx := errgroup.WithContext(context.Background())
 
-			go general.GlobalStats(endChannel, dataChannel, int32(4*overallRefreshRate/5), &wg)
-			go overallGraph.RenderCharts(endChannel, dataChannel, overallRefreshRate, &wg)
+			eg.Go(func() error {
+				return general.GlobalStats(ctx, dataChannel, int32(4*overallRefreshRate/5))
+			})
+			eg.Go(func() error {
+				return overallGraph.RenderCharts(ctx, dataChannel, overallRefreshRate)
+			})
 
-			wg.Wait()
+			if err := eg.Wait(); err != nil {
+				if err != general.ErrCanceledByUser {
+					fmt.Printf("Error: %v\n", err)
+				}
+			}
 		}
 
 		return nil

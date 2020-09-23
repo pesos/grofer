@@ -16,30 +16,54 @@ limitations under the License.
 package general
 
 import (
-	"os"
+	"context"
 	"sync"
 	"time"
 
 	"github.com/pesos/grofer/src/utils"
 )
 
+type serveFunc func(context.Context, chan utils.DataStats) error
+
 // GlobalStats gets stats about the mem and the CPUs and prints it.
-func GlobalStats(endChannel chan os.Signal,
-	dataChannel chan utils.DataStats, refreshRate int32,
-	wg *sync.WaitGroup) {
+func GlobalStats(ctx context.Context,
+	dataChannel chan utils.DataStats,
+	refreshRate int32) error {
+
+	serveFuncs := []serveFunc{
+		ServeCPURates,
+		ServeMemRates,
+		ServeDiskRates,
+		ServeNetRates,
+	}
 
 	for {
 		select {
-		case <-endChannel: // Stop execution if end signal received
-			wg.Done()
-			return
+		case <-ctx.Done():
+			return ctx.Err()
 
 		default: // Get Memory and CPU rates per core periodically
+			var wg sync.WaitGroup
 
-			go ServeCPURates(dataChannel)
-			go ServeMemRates(dataChannel)
-			go ServeDiskRates(dataChannel)
-			ServeNetRates(dataChannel)
+			errCh := make(chan error, len(serveFuncs))
+
+			for _, sf := range serveFuncs {
+				wg.Add(1)
+				go func(sf serveFunc, dc chan utils.DataStats) {
+					defer wg.Done()
+					errCh <- sf(ctx, dc)
+				}(sf, dataChannel)
+			}
+
+			wg.Wait()
+			close(errCh)
+
+			for err := range errCh {
+				if err != nil {
+					return err
+				}
+			}
+
 			time.Sleep(time.Duration(refreshRate) * time.Millisecond)
 		}
 	}

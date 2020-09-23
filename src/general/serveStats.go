@@ -16,8 +16,8 @@ limitations under the License.
 package general
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"math"
 	"strings"
 	"time"
@@ -44,23 +44,29 @@ func GetCPURates() ([]float64, error) {
 }
 
 // ServeCPURates serves the cpu rates to the cpu channel
-func ServeCPURates(cpuChannel chan utils.DataStats) {
+func ServeCPURates(ctx context.Context, cpuChannel chan utils.DataStats) error {
 	cpuRates, err := cpu.Percent(time.Second, true)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	data := utils.DataStats{
 		CpuStats: cpuRates,
 		FieldSet: "CPU",
 	}
-	cpuChannel <- data
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case cpuChannel <- data:
+		return nil
+	}
 }
 
 // ServeMemRates serves stats about the memory to the data channel
-func ServeMemRates(dataChannel chan utils.DataStats) {
+func ServeMemRates(ctx context.Context, dataChannel chan utils.DataStats) error {
 	memory, err := mem.VirtualMemory()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	memRates := []float64{roundOff(memory.Total), roundOff(memory.Available), roundOff(memory.Used), roundOff(memory.Free)}
@@ -70,17 +76,22 @@ func ServeMemRates(dataChannel chan utils.DataStats) {
 		FieldSet: "MEM",
 	}
 
-	dataChannel <- data
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case dataChannel <- data:
+		return nil
+	}
 }
 
 // ServeDiskRates serves the disk rate data to the data channel
-func ServeDiskRates(dataChannel chan utils.DataStats) {
+func ServeDiskRates(ctx context.Context, dataChannel chan utils.DataStats) error {
 
 	var partitions []disk.PartitionStat
 	var err error
 	partitions, err = disk.Partitions(false)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	rows := [][]string{[]string{"Mount", "Total", "Used %", "Used", "Free", "FS Type"}}
@@ -110,14 +121,19 @@ func ServeDiskRates(dataChannel chan utils.DataStats) {
 		FieldSet:  "DISK",
 	}
 
-	dataChannel <- data
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case dataChannel <- data:
+		return nil
+	}
 }
 
 // ServeNetRates serves info about the network to the data channel
-func ServeNetRates(dataChannel chan utils.DataStats) {
+func ServeNetRates(ctx context.Context, dataChannel chan utils.DataStats) error {
 	netStats, err := net.IOCounters(false)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	IO := make(map[string][]float64)
 	for _, IOStat := range netStats {
@@ -130,5 +146,10 @@ func ServeNetRates(dataChannel chan utils.DataStats) {
 		FieldSet: "NET",
 	}
 
-	dataChannel <- data
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case dataChannel <- data:
+		return nil
+	}
 }
