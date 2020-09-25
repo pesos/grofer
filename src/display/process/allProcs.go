@@ -32,7 +32,7 @@ import (
 
 var runAllProc = true
 
-func getData(procs []*proc.Process) []string {
+func getData(procs []*proc.Process) ([]string) {
 	var data []string
 	for _, info := range procs {
 		exe, err := info.Exe()
@@ -170,6 +170,14 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 				myPage.BodyList.ScrollTop()
 			case "G", "<End>":
 				myPage.BodyList.ScrollBottom()
+			case "F", "<F9>":
+				row := myPage.BodyList.Rows[myPage.BodyList.SelectedRow]
+				// get PID from the data
+				pid64, _ := strconv.ParseInt(strings.SplitN(row, " ", 2)[0], 10, 32)
+				pid := int32(pid64)
+				// get process and kill it
+				procToKill, _ := proc.NewProcess(pid)
+				procToKill.Kill()
 			}
 
 			ui.Render(myPage.Grid)
