@@ -187,6 +187,18 @@ func RenderCharts(ctx context.Context,
 					height := int(h / numCores)
 					heightOffset := h - (height * numCores)
 
+					// Get the Bar width
+					myPage.MemoryChart.BarWidth = (w / 16)
+
+					if myPage.MemoryChart.BarWidth > 8 {
+						myPage.MemoryChart.BarWidth = 8
+					}
+
+					if myPage.MemoryChart.BarWidth < 6 {
+						myPage.MemoryChart.BarWidth = 4
+						myPage.MemoryChart.NumStyles = []ui.Style{ui.NewStyle(ui.ColorWhite)}
+						myPage.MemoryChart.BarColors = []ui.Color{ui.ColorBlack, ui.ColorBlack}
+					}
 					// Adjust Memory Bar graph values
 					myPage.MemoryChart.BarGap = ((w / 2) - (4 * myPage.MemoryChart.BarWidth)) / 4
 
