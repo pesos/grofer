@@ -79,11 +79,14 @@ func NewCPUPage(numCores int) *CPUPage {
 // InitGeneral initializes all ui elements for the ui rendered by the grofer command
 func (page *MainPage) InitGeneral(numCores int) {
 
+	// Get Terminal Dimensions
+	w, h := ui.TerminalDimensions()
+
 	// Initialize Bar Graph for Memory Chart
 	page.MemoryChart.Title = " Memory (RAM) "
 	page.MemoryChart.Labels = []string{"Total", "Available", "Used", "Free"}
-	page.MemoryChart.BarWidth = 8
-	page.MemoryChart.BarGap = 9
+	page.MemoryChart.BarWidth = w / 20
+	page.MemoryChart.BarGap = w / 20
 	page.MemoryChart.BarColors = []ui.Color{ui.ColorCyan, ui.ColorGreen}
 	page.MemoryChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorWhite)}
 	page.MemoryChart.NumStyles = []ui.Style{ui.NewStyle(ui.ColorBlack)}
@@ -134,8 +137,6 @@ func (page *MainPage) InitGeneral(numCores int) {
 		ui.NewRow(0.34, page.DiskChart),
 	)
 
-	// Get Terminal Dimensions
-	w, h := ui.TerminalDimensions()
 	page.Grid.SetRect(w/2, 0, w, h)
 }
 
