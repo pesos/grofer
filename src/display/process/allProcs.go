@@ -17,22 +17,23 @@ limitations under the License.
 package process
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	ui "github.com/gizak/termui/v3"
+	info "github.com/pesos/grofer/src/general"
 	"github.com/pesos/grofer/src/utils"
 	proc "github.com/shirou/gopsutil/process"
 )
 
 var runAllProc = true
 
-func getData(procs []*proc.Process) ([]string) {
+func getData(procs []*proc.Process) []string {
 	var data []string
 	for _, info := range procs {
 		exe, err := info.Exe()
@@ -106,13 +107,14 @@ func getData(procs []*proc.Process) ([]string) {
 }
 
 func AllProcVisuals(dataChannel chan []*proc.Process,
-	endChannel chan os.Signal,
-	refreshRate uint64,
-	wg *sync.WaitGroup) {
+	ctx context.Context,
+	refreshRate int32) error {
 
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
+
+	defer ui.Close()
 
 	var on sync.Once
 
@@ -142,10 +144,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 		case e := <-uiEvents:
 			switch e.ID {
 			case "q", "<C-c>": //q or Ctrl-C to quit
-				endChannel <- os.Kill
-				ui.Close()
-				wg.Done()
-				return
+				return info.ErrCanceledByUser
 			case "<Resize>":
 				updateUI() // updateUI only during resize event
 			case "s": //s to pause
@@ -173,10 +172,16 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 			case "F", "<F9>":
 				row := myPage.BodyList.Rows[myPage.BodyList.SelectedRow]
 				// get PID from the data
-				pid64, _ := strconv.ParseInt(strings.SplitN(row, " ", 2)[0], 10, 32)
+				pid64, err := strconv.ParseInt(strings.SplitN(row, " ", 2)[0], 10, 32)
+				if err != nil {
+					return fmt.Errorf("Failed to get PID of process: %v", err)
+				}
 				pid := int32(pid64)
 				// get process and kill it
-				procToKill, _ := proc.NewProcess(pid)
+				procToKill, err := proc.NewProcess(pid)
+				if err != nil {
+					return fmt.Errorf("Failed to kill process with PID %d: %v", pid, err)
+				}
 				procToKill.Kill()
 			}
 

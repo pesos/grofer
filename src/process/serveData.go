@@ -16,20 +16,18 @@ limitations under the License.
 package process
 
 import (
-	"os"
-	"sync"
+	"context"
 	"time"
 
 	proc "github.com/shirou/gopsutil/process"
 )
 
 // Serve serves data on a per process basis
-func Serve(process *Process, dataChannel chan *Process, endChannel chan os.Signal, refreshRate uint64, wg *sync.WaitGroup) {
+func Serve(process *Process, dataChannel chan *Process, ctx context.Context, refreshRate int32) error {
 	for {
 		select {
-		case <-endChannel:
-			wg.Done() // Stop execution if end signal received
-			return
+		case <-ctx.Done():
+			return ctx.Err() // Stop execution if end signal received
 
 		default:
 			process.UpdateProcInfo()
@@ -40,12 +38,11 @@ func Serve(process *Process, dataChannel chan *Process, endChannel chan os.Signa
 
 }
 
-func ServeProcs(dataChannel chan []*proc.Process, endChannel chan os.Signal, refreshRate uint64, wg *sync.WaitGroup) {
+func ServeProcs(dataChannel chan []*proc.Process, ctx context.Context, refreshRate int32) error {
 	for {
 		select {
-		case <-endChannel:
-			wg.Done()
-			return
+		case <-ctx.Done():
+			return ctx.Err() // Stop execution if end signal received
 
 		default:
 			procs, err := proc.Processes()

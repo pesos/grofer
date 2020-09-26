@@ -16,16 +16,17 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
 	"fmt"
-	"os"
-	"sync"
 
 	proc "github.com/shirou/gopsutil/process"
 	"github.com/spf13/cobra"
 
 	procGraph "github.com/pesos/grofer/src/display/process"
+	"github.com/pesos/grofer/src/general"
 	"github.com/pesos/grofer/src/process"
 	"github.com/pesos/grofer/src/utils"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -59,13 +60,11 @@ Syntax:
 			return fmt.Errorf("invalid refresh rate: minimum refresh rate is 1000(ms)")
 		}
 
-		var wg sync.WaitGroup
 
 		if pid != defaultProcPid {
-			endChannel := make(chan os.Signal, 1)
 			dataChannel := make(chan *process.Process, 1)
 
-			wg.Add(2)
+			eg, ctx := errgroup.WithContext(context.Background())
 
 			proc, err := process.NewProcess(pid)
 			if err != nil {
@@ -73,18 +72,35 @@ Syntax:
 				return fmt.Errorf("invalid pid")
 			}
 
-			go process.Serve(proc, dataChannel, endChannel, uint64(4*procRefreshRate/5), &wg)
-			go procGraph.ProcVisuals(endChannel, dataChannel, procRefreshRate, &wg)
-			wg.Wait()
+			eg.Go(func() error {
+				return process.Serve(proc, dataChannel, ctx, int32(4*procRefreshRate/5))
+			})
+			eg.Go(func() error {
+				return procGraph.ProcVisuals(ctx, dataChannel, procRefreshRate)
+			})
+
+			if err := eg.Wait(); err != nil {
+				if err != general.ErrCanceledByUser {
+					fmt.Printf("Error: %v\n", err)
+				}
+			}
 		} else {
 			dataChannel := make(chan []*proc.Process, 1)
-			endChannel := make(chan os.Signal, 1)
 
-			wg.Add(2)
+			eg, ctx := errgroup.WithContext(context.Background())
 
-			go process.ServeProcs(dataChannel, endChannel, uint64(4*procRefreshRate/5), &wg)
-			go procGraph.AllProcVisuals(dataChannel, endChannel, procRefreshRate, &wg)
-			wg.Wait()
+			eg.Go(func() error {
+				return process.ServeProcs(dataChannel, ctx, int32(4*procRefreshRate/5))
+			})
+			eg.Go(func() error {
+				return procGraph.AllProcVisuals(dataChannel, ctx, procRefreshRate)
+			})
+
+			if err := eg.Wait(); err != nil {
+				if err != general.ErrCanceledByUser {
+					fmt.Printf("Error: %v\n", err)
+				}
+			}
 		}
 
 		return nil
