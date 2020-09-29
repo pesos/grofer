@@ -169,7 +169,9 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 				myPage.BodyList.ScrollTop()
 			case "G", "<End>":
 				myPage.BodyList.ScrollBottom()
-			case "F", "<F9>":
+			case "K", "<F9>":
+				updateUI()
+
 				row := myPage.BodyList.Rows[myPage.BodyList.SelectedRow]
 				// get PID from the data
 				pid64, err := strconv.ParseInt(strings.SplitN(row, " ", 2)[0], 10, 32)
@@ -177,12 +179,15 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 					return fmt.Errorf("Failed to get PID of process: %v", err)
 				}
 				pid := int32(pid64)
+
 				// get process and kill it
 				procToKill, err := proc.NewProcess(pid)
-				if err != nil {
-					return fmt.Errorf("Failed to kill process with PID %d: %v", pid, err)
+				if err == nil {
+					err = procToKill.Kill()
+					if err != nil {
+						return fmt.Errorf("Failed to kill process with PID %d: %v", pid, err)
+					}
 				}
-				procToKill.Kill()
 			}
 
 			ui.Render(myPage.Grid)
