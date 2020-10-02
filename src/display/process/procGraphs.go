@@ -137,6 +137,7 @@ func ProcVisuals(endChannel chan os.Signal,
 				myPage.ChildProcsList.ScrollBottom()
 			}
 
+			ui.Render(myPage.Grid)
 			if previousKey == "g" {
 				previousKey = ""
 			} else {
