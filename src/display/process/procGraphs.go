@@ -38,11 +38,12 @@ func getChildProcs(proc *process.Process) []string {
 		processPid := strconv.Itoa(int(proc.Pid))
 		// 22 reflects position where row data for "Command" column should start (headerString has 19 spaces + length of ("PID") is 3 i.e. 22)
 		spacesForCommandRowData = strings.Repeat(" ", 22-len(processPid))
+		processData = "[" + processPid + "](fg:yellow)" + spacesForCommandRowData
 		exe, err := proc.Exe()
 		if err == nil {
-			processData = processPid + spacesForCommandRowData + "[" + exe + "](fg:green)"
+			processData += "[" + exe + "](fg:green)"
 		} else {
-			processData = "[" + processPid + "](fg:yellow)" + spacesForCommandRowData + "NA"
+			processData += "NA"
 		}
 		childProcs = append(childProcs, processData)
 	}
