@@ -59,8 +59,6 @@ func ErrorDoggo() {
 func ErrorOwl() {
 	goobes := `
 
-The council of wise owls are confused! Please provide a valid PID!
-
    /\_/\  The council of wise owls are confused!  /\_/\
   ((@v@))      Please provide a valid PID!       ((@v@))
  ():::::()                                      ():::::()
