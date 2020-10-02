@@ -19,8 +19,8 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"sync"
 	"strings"
+	"sync"
 	"time"
 
 	ui "github.com/gizak/termui/v3"
@@ -33,21 +33,18 @@ var runProc = true
 func getChildProcs(proc *process.Process) []string {
 	headerString := "PID" + strings.Repeat(" ", 19) + "Command"
 	childProcs := []string{headerString}
-	for i, proc := range proc.Children {
-			var processData, spacesForCommandRowData string
-			processPid := strconv.Itoa(int(proc.Pid))
-			if i % 2 == 0 {
-					processPid += "321"
-			}
-			// 22 reflects position where row data for "Command" column should start (headerString has 19 spaces + length of ("PID") is 3 i.e. 22)
-			spacesForCommandRowData = strings.Repeat(" ", 22-len(processPid))
-			exe, err := proc.Exe()
-			if err == nil {
-					processData = processPid + spacesForCommandRowData + "[" + exe + "](fg:green)"
-			} else {
-					processData = "["+processPid+"](fg:yellow)" + spacesForCommandRowData + "NA"
-			}
-			childProcs = append(childProcs, processData)
+	for _, proc := range proc.Children {
+		var processData, spacesForCommandRowData string
+		processPid := strconv.Itoa(int(proc.Pid))
+		// 22 reflects position where row data for "Command" column should start (headerString has 19 spaces + length of ("PID") is 3 i.e. 22)
+		spacesForCommandRowData = strings.Repeat(" ", 22-len(processPid))
+		exe, err := proc.Exe()
+		if err == nil {
+			processData = processPid + spacesForCommandRowData + "[" + exe + "](fg:green)"
+		} else {
+			processData = "[" + processPid + "](fg:yellow)" + spacesForCommandRowData + "NA"
+		}
+		childProcs = append(childProcs, processData)
 	}
 	return childProcs
 }
