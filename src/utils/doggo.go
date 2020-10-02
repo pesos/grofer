@@ -61,10 +61,13 @@ func ErrorOwl() {
 
 The council of wise owls are confused! Please provide a valid PID!
 
-   /\_/\       /\_/\        /\_/\        /\_/\
-  ((@v@))     ((@v@))      ((@v@))      ((@v@))
- ():::::()   ():::::()    ():::::()    ():::::()
-   VV-VV       VV-VV        VV-VV        VV-VV
+   /\_/\  The council of wise owls are confused!  /\_/\
+  ((@v@))      Please provide a valid PID!       ((@v@))
+ ():::::()                                      ():::::()
+   VV-VV          /\_/\         /\_/\             VV-VV
+                 ((@v@))       ((@v@))
+                ():::::()     ():::::()
+                  VV-VV         VV-VV
   `
 	fmt.Println(goobes)
 }
