@@ -49,10 +49,7 @@ func getData(procs []*proc.Process) []string {
 			if len(command) > 40 {
 				command = command[:40]
 			} else {
-				temp = temp + "[" + command + "](fg:green)"
-				for i := 0; i < 41-len(command); i++ {
-					temp = temp + " "
-				}
+				temp = temp + "[" + command + "](fg:green)" + strings.Repeat(" ", 41-len(command))
 			}
 
 			tempCPU, err := info.CPUPercent()
@@ -61,9 +58,7 @@ func getData(procs []*proc.Process) []string {
 				cpuPercent = fmt.Sprintf("%.2f%s", tempCPU, "%")
 				temp = temp + cpuPercent
 			}
-			for i := 0; i < 11-len(cpuPercent); i++ {
-				temp = temp + " "
-			}
+			temp = temp + strings.Repeat(" ", 11-len(cpuPercent))
 
 			tempMem, err := info.MemoryPercent()
 			memPercent := ""
@@ -71,33 +66,23 @@ func getData(procs []*proc.Process) []string {
 				memPercent = fmt.Sprintf("%.2f%s", tempMem, "%")
 				temp = temp + memPercent
 			}
-			for i := 0; i < 11-len(memPercent); i++ {
-				temp = temp + " "
-			}
+			temp = temp + strings.Repeat(" ", 11-len(memPercent))
 
 			status, err := info.Status()
 			if err == nil {
 				temp = temp + status
 			}
-
-			for i := 0; i < 9-len(status); i++ {
-				temp = temp + " "
-			}
+			temp = temp + strings.Repeat(" ", 9-len(status))
 
 			fg, err := info.Foreground()
 			if err == nil {
 				if fg {
 					temp = temp + "True"
-					for i := 0; i < 9; i++ {
-						temp = temp + " "
-					}
+					temp = temp + strings.Repeat(" ", 9)
 				} else {
 					temp = temp + "False"
-					for i := 0; i < 8; i++ {
-						temp = temp + " "
-					}
+					temp = temp + strings.Repeat(" ", 8)
 				}
-
 			}
 
 			ctime, err := info.CreateTime()
@@ -106,9 +91,7 @@ func getData(procs []*proc.Process) []string {
 				createTime := utils.GetDateFromUnix(ctime)
 				temp = temp + createTime
 			}
-			for i := 0; i < 9-len(createTime); i++ {
-				temp = temp + " "
-			}
+			temp = temp + strings.Repeat(" ", 9-len(createTime))
 
 			threads, err := info.NumThreads()
 			if err == nil {
