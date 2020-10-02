@@ -38,7 +38,7 @@ func getChildProcs(proc *process.Process) []string {
 		processPid := strconv.Itoa(int(proc.Pid))
 		// 22 reflects position where row data for "Command" column should start (headerString has 19 spaces + length of ("PID") is 3 i.e. 22)
 		spacesForCommandRowData = strings.Repeat(" ", 22-len(processPid))
-		processData = "[" + processPid + "](fg:yellow)" + spacesForCommandRowData
+		processData = processPid + spacesForCommandRowData
 		exe, err := proc.Exe()
 		if err == nil {
 			processData += "[" + exe + "](fg:green)"
@@ -103,6 +103,8 @@ func ProcVisuals(endChannel chan os.Signal,
 	tick := time.Tick(time.Duration(refreshRate) * time.Millisecond)
 
 	previousKey := ""
+	selectedStyle := ui.NewStyle(ui.ColorYellow, ui.ColorClear, ui.ModifierBold)
+
 	for {
 		select {
 		case e := <-uiEvents:
@@ -147,6 +149,7 @@ func ProcVisuals(endChannel chan os.Signal,
 			}
 
 		case data := <-dataChannel:
+			myPage.ChildProcsList.SelectedRowStyle = selectedStyle
 			if runProc {
 				// update ctx switches
 				switches, units := utils.RoundValues(float64(data.NumCtxSwitches.Voluntary), float64(data.NumCtxSwitches.Involuntary))
