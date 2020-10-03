@@ -93,15 +93,6 @@ Syntax:
 func init() {
 	rootCmd.AddCommand(procCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// procCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// procCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	procCmd.Flags().Int32P("refresh", "r", DefaultProcRefreshRate, "Process information UI refreshes rate in milliseconds greater than 1000")
 	procCmd.Flags().Int32P("pid", "p", -1, "specify pid of process")
 }
