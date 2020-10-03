@@ -19,6 +19,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -30,21 +31,22 @@ import (
 var runProc = true
 
 func getChildProcs(proc *process.Process) []string {
-	childProcs := []string{"PID                   Command"}
+	headerString := "PID" + strings.Repeat(" ", 19) + "Command"
+	childProcs := []string{headerString}
 	for _, proc := range proc.Children {
+		var processData, spacesForCommandRowData string
+		processPid := strconv.Itoa(int(proc.Pid))
+		// 22 reflects position where row data for "Command" column should start (headerString has 19 spaces + length of ("PID") is 3 i.e. 22)
+		spacesForCommandRowData = strings.Repeat(" ", 22-len(processPid))
+		processData = processPid + spacesForCommandRowData
 		exe, err := proc.Exe()
 		if err == nil {
-			temp := strconv.Itoa(int(proc.Pid))
-			for i := 0; i < 22-len(strconv.Itoa(int(proc.Pid))); i++ {
-				temp = temp + " "
-			}
-			temp = temp + "[" + exe + "](fg:green)"
-			childProcs = append(childProcs, temp)
+			processData += "[" + exe + "](fg:green)"
 		} else {
-			childProcs = append(childProcs, "["+strconv.Itoa(int(proc.Pid))+"](fg:yellow)"+"            "+"NA")
+			processData += "NA"
 		}
+		childProcs = append(childProcs, processData)
 	}
-
 	return childProcs
 }
 
@@ -101,6 +103,8 @@ func ProcVisuals(endChannel chan os.Signal,
 	tick := time.Tick(time.Duration(refreshRate) * time.Millisecond)
 
 	previousKey := ""
+	selectedStyle := ui.NewStyle(ui.ColorYellow, ui.ColorClear, ui.ModifierBold)
+
 	for {
 		select {
 		case e := <-uiEvents:
@@ -145,6 +149,7 @@ func ProcVisuals(endChannel chan os.Signal,
 			}
 
 		case data := <-dataChannel:
+			myPage.ChildProcsList.SelectedRowStyle = selectedStyle
 			if runProc {
 				// update ctx switches
 				switches, units := utils.RoundValues(float64(data.NumCtxSwitches.Voluntary), float64(data.NumCtxSwitches.Involuntary))
