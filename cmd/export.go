@@ -43,7 +43,7 @@ func hasValidExtension(fileName, exportType string) error {
 	fileName = strings.ToLower(fileName)
 	var hasProvidedExtension bool = false
 
-	// check if any one of the allowed export types is a suffix for the
+	// Check if any one of the allowed export types is a suffix for the
 	// file name provided.
 	for exportType, allowed := range providedExportTypes {
 		if allowed {
