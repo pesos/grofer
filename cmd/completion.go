@@ -46,7 +46,7 @@ Zsh:
 $ echo "autoload -U compinit; compinit" >> ~/.zshrc
 
 # To load completions for each session, execute once:
-$ yourprogram completion zsh > "${fpath[1]}/_grofer"
+$ grofer completion zsh > "${fpath[1]}/_grofer"
 
 # You will need to start a new shell for this setup to take effect.
 
