@@ -30,16 +30,46 @@ const (
 	DefaultExportType        = "json"
 )
 
-func validateFileName(fileName string, exportType string) error {
-	split := strings.Split(fileName, ".")
-	if split[len(split)-1] != "json" && split[len(split)-1] != "csv" {
-		return fmt.Errorf("invalid file extension")
+// Maintain a map of extensions provided by grofer.
+// If grofer were to support a config file which
+// enforces certain types to be explicitly disabled then
+// a map would prove useful.
+var providedExportTypes = map[string]bool{
+	"json": true,
+	"csv":  true,
+}
+
+func hasValidExtension(fileName, exportType string) error {
+	fileName = strings.ToLower(fileName)
+	var hasProvidedExtension bool = false
+
+	// check if any one of the allowed export types is a suffix for the
+	// file name provided.
+	for exportType, allowed := range providedExportTypes {
+		if allowed {
+			hasType := strings.HasSuffix(fileName, "."+exportType)
+			hasProvidedExtension = hasProvidedExtension || hasType
+		}
 	}
-	if split[len(split)-1] != exportType {
-		return fmt.Errorf("mismatch of export type and file extension")
+	// If en extension which is supported by grofer is provided
+	// then check if it matches with the export type specified
+	// in the command. If not then return an error
+	if hasProvidedExtension {
+		validExtension := strings.HasSuffix(fileName, exportType)
+		if validExtension {
+			return nil
+		}
+		return fmt.Errorf("invaid file extension")
 	}
 
+	// If the file extension is something that grofer does not recognise
+	// then it assumes that it is a valid type and trusts the user on the sme.
 	return nil
+}
+
+func validateFileName(fileName, exportType string) error {
+	isValid := hasValidExtension(fileName, exportType)
+	return isValid
 }
 
 // exportCmd represents the export command
@@ -58,9 +88,12 @@ var exportCmd = &cobra.Command{
 			return err
 		}
 		exportType, err := cmd.Flags().GetString("type")
-		exportType = strings.ToLower(exportType)
 		if err != nil {
 			return err
+		}
+		exportType = strings.ToLower(exportType)
+		if validExtension := providedExportTypes[exportType]; !validExtension {
+			return fmt.Errorf("export type not supported")
 		}
 
 		fileName, err := cmd.Flags().GetString("fileName")
