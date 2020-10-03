@@ -14,25 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package utils
+package general
 
 import (
-	"fmt"
+	"errors"
 )
 
-func ErrorMsg() {
-	dog := `
-	pid no exist, done doggo a sad
-		\
-		 \
-		/^-----^\
-		V  o o  V
-		 |  Y  |
-		  \ ⌓ /
-		  / - \
-		  |    \
-		  |     \     )
-		  || (___\====
-	`
-	fmt.Println(dog)
-}
+var ErrCanceledByUser = errors.New("canceled by user")

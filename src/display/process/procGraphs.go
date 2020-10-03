@@ -19,6 +19,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -30,32 +31,36 @@ import (
 var runProc = true
 
 func getChildProcs(proc *process.Process) []string {
-	childProcs := []string{"PID                   Command"}
+	headerString := "PID" + strings.Repeat(" ", 19) + "Command"
+	childProcs := []string{headerString}
 	for _, proc := range proc.Children {
+		var processData, spacesForCommandRowData string
+		processPid := strconv.Itoa(int(proc.Pid))
+		// 22 reflects position where row data for "Command" column should start (headerString has 19 spaces + length of ("PID") is 3 i.e. 22)
+		spacesForCommandRowData = strings.Repeat(" ", 22-len(processPid))
+		processData = processPid + spacesForCommandRowData
 		exe, err := proc.Exe()
 		if err == nil {
-			temp := strconv.Itoa(int(proc.Pid))
-			for i := 0; i < 22-len(strconv.Itoa(int(proc.Pid))); i++ {
-				temp = temp + " "
-			}
-			temp = temp + "[" + exe + "](fg:green)"
-			childProcs = append(childProcs, temp)
+			processData += "[" + exe + "](fg:green)"
 		} else {
-			childProcs = append(childProcs, "["+strconv.Itoa(int(proc.Pid))+"](fg:yellow)"+"            "+"NA")
+			processData += "NA"
 		}
+		childProcs = append(childProcs, processData)
 	}
-
 	return childProcs
 }
 
 // ProcVisuals renders graphs and charts for per-process stats.
 func ProcVisuals(endChannel chan os.Signal,
 	dataChannel chan *process.Process,
+	refreshRate int32,
 	wg *sync.WaitGroup) {
 
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
+
+	var on sync.Once
 
 	// Create new page
 	myPage := NewPerProcPage()
@@ -74,10 +79,32 @@ func ProcVisuals(endChannel chan os.Signal,
 		runProc = !runProc
 	}
 
+	updateUI := func() {
+
+		// Get Terminal Dimensions adn clear the UI
+		w, h := ui.TerminalDimensions()
+		ui.Clear()
+
+		// Adjust Memory Stats Bar graph values
+		myPage.MemStatsChart.BarGap = ((w / 2) - (4 * myPage.MemStatsChart.BarWidth)) / 4
+
+		// Adjust Page Faults Bar graph values
+		myPage.PageFaultsChart.BarGap = ((w / 4) - (2 * myPage.PageFaultsChart.BarWidth)) / 2
+
+		// Adjust Context Switches Bar graph values
+		myPage.CTXSwitchesChart.BarGap = ((w / 4) - (2 * myPage.CTXSwitchesChart.BarWidth)) / 2
+
+		// Adjust Grid dimensions
+		myPage.Grid.SetRect(0, 0, w, h)
+		ui.Render(myPage.Grid)
+	}
+
 	uiEvents := ui.PollEvents()
-	tick := time.Tick(1 * time.Second)
+	tick := time.Tick(time.Duration(refreshRate) * time.Millisecond)
 
 	previousKey := ""
+	selectedStyle := ui.NewStyle(ui.ColorYellow, ui.ColorClear, ui.ModifierBold)
+
 	for {
 		select {
 		case e := <-uiEvents:
@@ -89,6 +116,9 @@ func ProcVisuals(endChannel chan os.Signal,
 				return
 			case "s": //s to pause
 				pause()
+			case "<Resize>":
+				updateUI()
+
 			case "j", "<Down>":
 				myPage.ChildProcsList.ScrollDown()
 			case "k", "<Up>":
@@ -111,6 +141,7 @@ func ProcVisuals(endChannel chan os.Signal,
 				myPage.ChildProcsList.ScrollBottom()
 			}
 
+			ui.Render(myPage.Grid)
 			if previousKey == "g" {
 				previousKey = ""
 			} else {
@@ -118,6 +149,7 @@ func ProcVisuals(endChannel chan os.Signal,
 			}
 
 		case data := <-dataChannel:
+			myPage.ChildProcsList.SelectedRowStyle = selectedStyle
 			if runProc {
 				// update ctx switches
 				switches, units := utils.RoundValues(float64(data.NumCtxSwitches.Voluntary), float64(data.NumCtxSwitches.Involuntary))
@@ -160,13 +192,29 @@ func ProcVisuals(endChannel chan os.Signal,
 				myPage.PageFaultsChart.Data = faults
 				myPage.PageFaultsChart.Title = " Page Faults" + units
 				myPage.ChildProcsList.Rows = getChildProcs(data)
+
+				on.Do(func() {
+					// Get Terminal Dimensions adn clear the UI
+					w, h := ui.TerminalDimensions()
+					ui.Clear()
+
+					// Adjust Memory Stats Bar graph values
+					myPage.MemStatsChart.BarGap = ((w / 2) - (4 * myPage.MemStatsChart.BarWidth)) / 4
+
+					// Adjust Page Faults Bar graph values
+					myPage.PageFaultsChart.BarGap = ((w / 4) - (2 * myPage.PageFaultsChart.BarWidth)) / 2
+
+					// Adjust Context Switches Bar graph values
+					myPage.CTXSwitchesChart.BarGap = ((w / 4) - (2 * myPage.CTXSwitchesChart.BarWidth)) / 2
+
+					// Adjust Grid dimensions
+					myPage.Grid.SetRect(0, 0, w, h)
+					ui.Render(myPage.Grid)
+				})
 			}
 
 		case <-tick:
-			w, h := ui.TerminalDimensions()
-			ui.Clear()
-			myPage.Grid.SetRect(0, 0, w, h)
-			ui.Render(myPage.Grid)
+			updateUI()
 		}
 	}
 }

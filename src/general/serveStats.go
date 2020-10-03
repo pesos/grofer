@@ -16,8 +16,8 @@ limitations under the License.
 package general
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"math"
 	"strings"
 	"time"
@@ -34,24 +34,39 @@ func roundOff(num uint64) float64 {
 	return math.Round(x*10) / 10
 }
 
-// PrintCPURates print the cpu rates
-func PrintCPURates(cpuChannel chan utils.DataStats) {
+// GetCPURates fetches and returns the current cpu rate
+func GetCPURates() ([]float64, error) {
 	cpuRates, err := cpu.Percent(time.Second, true)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
+	}
+	return cpuRates, nil
+}
+
+// ServeCPURates serves the cpu rates to the cpu channel
+func ServeCPURates(ctx context.Context, cpuChannel chan utils.DataStats) error {
+	cpuRates, err := cpu.Percent(time.Second, true)
+	if err != nil {
+		return err
 	}
 	data := utils.DataStats{
 		CpuStats: cpuRates,
 		FieldSet: "CPU",
 	}
-	cpuChannel <- data
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case cpuChannel <- data:
+		return nil
+	}
 }
 
-// PrintMemRates prints stats about the memory
-func PrintMemRates(dataChannel chan utils.DataStats) {
+// ServeMemRates serves stats about the memory to the data channel
+func ServeMemRates(ctx context.Context, dataChannel chan utils.DataStats) error {
 	memory, err := mem.VirtualMemory()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	memRates := []float64{roundOff(memory.Total), roundOff(memory.Available), roundOff(memory.Used), roundOff(memory.Free)}
@@ -61,16 +76,22 @@ func PrintMemRates(dataChannel chan utils.DataStats) {
 		FieldSet: "MEM",
 	}
 
-	dataChannel <- data
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case dataChannel <- data:
+		return nil
+	}
 }
 
-func PrintDiskRates(dataChannel chan utils.DataStats) {
+// ServeDiskRates serves the disk rate data to the data channel
+func ServeDiskRates(ctx context.Context, dataChannel chan utils.DataStats) error {
 
 	var partitions []disk.PartitionStat
 	var err error
 	partitions, err = disk.Partitions(false)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	rows := [][]string{[]string{"Mount", "Total", "Used %", "Used", "Free", "FS Type"}}
@@ -100,13 +121,19 @@ func PrintDiskRates(dataChannel chan utils.DataStats) {
 		FieldSet:  "DISK",
 	}
 
-	dataChannel <- data
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case dataChannel <- data:
+		return nil
+	}
 }
 
-func PrintNetRates(dataChannel chan utils.DataStats) {
+// ServeNetRates serves info about the network to the data channel
+func ServeNetRates(ctx context.Context, dataChannel chan utils.DataStats) error {
 	netStats, err := net.IOCounters(false)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	IO := make(map[string][]float64)
 	for _, IOStat := range netStats {
@@ -119,5 +146,10 @@ func PrintNetRates(dataChannel chan utils.DataStats) {
 		FieldSet: "NET",
 	}
 
-	dataChannel <- data
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case dataChannel <- data:
+		return nil
+	}
 }

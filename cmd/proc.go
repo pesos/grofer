@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	DefaultProcRefreshRate = 1000
+	DefaultProcRefreshRate = 3000
 )
 
 // procCmd represents the proc command
@@ -72,8 +72,8 @@ Syntax:
 				return fmt.Errorf("invalid pid")
 			}
 
-			go process.Serve(proc, dataChannel, endChannel, &wg)
-			go procGraph.ProcVisuals(endChannel, dataChannel, &wg)
+			go process.Serve(proc, dataChannel, endChannel, int32(4*procRefreshRate/5), &wg)
+			go procGraph.ProcVisuals(endChannel, dataChannel, procRefreshRate, &wg)
 			wg.Wait()
 		} else {
 			dataChannel := make(chan []*proc.Process, 1)
@@ -81,7 +81,7 @@ Syntax:
 
 			wg.Add(2)
 
-			go process.ServeProcs(dataChannel, endChannel, procRefreshRate, &wg)
+			go process.ServeProcs(dataChannel, endChannel, int32(4*procRefreshRate/5), &wg)
 			go procGraph.AllProcVisuals(dataChannel, endChannel, procRefreshRate, &wg)
 			wg.Wait()
 		}

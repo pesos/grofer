@@ -17,15 +17,15 @@ limitations under the License.
 package general
 
 import (
+	"context"
 	"fmt"
-	"log"
-	"os"
 	"runtime"
 	"strconv"
 	"sync"
 	"time"
 
 	ui "github.com/gizak/termui/v3"
+	info "github.com/pesos/grofer/src/general"
 	"github.com/pesos/grofer/src/utils"
 )
 
@@ -34,16 +34,16 @@ var isCPUSet = false
 var run = true
 
 // RenderCharts handles plotting graphs and charts for system stats in general.
-func RenderCharts(endChannel chan os.Signal,
+func RenderCharts(ctx context.Context,
 	dataChannel chan utils.DataStats,
-	refreshRate int32,
-	wg *sync.WaitGroup) {
+	refreshRate int32) error {
 
 	if err := ui.Init(); err != nil {
-		log.Fatalf("failed to initialize termui: %v", err)
+		return fmt.Errorf("failed to initialize termui: %v", err)
 	}
 	defer ui.Close()
 
+	var on sync.Once
 	var totalBytesRecv float64
 	var totalBytesSent float64
 
@@ -63,16 +63,49 @@ func RenderCharts(endChannel chan os.Signal,
 		run = !run
 	}
 
+	updateUI := func() {
+
+		// Get Terminal Dimensions adn clear the UI
+		w, h := ui.TerminalDimensions()
+		ui.Clear()
+
+		// Calculate Heigth offset
+		height := int(h / numCores)
+		heightOffset := h - (height * numCores)
+
+		// Adjust Memory Bar graph values
+		myPage.MemoryChart.BarGap = ((w / 2) - (4 * myPage.MemoryChart.BarWidth)) / 4
+
+		// Adjust CPU Gauge dimensions
+		if isCPUSet {
+			for i := 0; i < numCores; i++ {
+				myPage.CPUCharts[i].SetRect(0, i*height, w/2, (i+1)*height)
+				ui.Render(myPage.CPUCharts[i])
+			}
+		}
+
+		// Adjust Grid dimensions
+		myPage.Grid.SetRect(w/2, 0, w, h-heightOffset)
+
+		ui.Render(myPage.Grid)
+	}
+
+	updateUI() // Initialize empty UI
+
 	uiEvents := ui.PollEvents()
 	tick := time.Tick(time.Duration(refreshRate) * time.Millisecond)
 	for {
 		select {
+		case <-ctx.Done():
+			return ctx.Err()
+
 		case e := <-uiEvents: // For keyboard events
 			switch e.ID {
 			case "q", "<C-c>": // q or Ctrl-C to quit
-				endChannel <- os.Kill
-				wg.Done()
-				return
+				return info.ErrCanceledByUser
+
+			case "<Resize>":
+				updateUI()
 
 			case "s": // s to stop
 				pause()
@@ -144,31 +177,109 @@ func RenderCharts(endChannel chan os.Signal,
 					myPage.NetworkChart.Data = temp
 
 				}
+
+				on.Do(func() {
+					// Get Terminal Dimensions adn clear the UI
+					w, h := ui.TerminalDimensions()
+					ui.Clear()
+
+					// Calculate Heigth offset
+					height := int(h / numCores)
+					heightOffset := h - (height * numCores)
+
+					// Adjust Memory Bar graph values
+					myPage.MemoryChart.BarGap = ((w / 2) - (4 * myPage.MemoryChart.BarWidth)) / 4
+
+					// Adjust CPU Gauge dimensions
+					if isCPUSet {
+						for i := 0; i < numCores; i++ {
+							myPage.CPUCharts[i].SetRect(0, i*height, w/2, (i+1)*height)
+							ui.Render(myPage.CPUCharts[i])
+						}
+					}
+
+					// Adjust Grid dimensions
+					myPage.Grid.SetRect(w/2, 0, w, h-heightOffset)
+
+					ui.Render(myPage.Grid)
+				})
 			}
 
 		case <-tick: // Update page with new values
-			w, h := ui.TerminalDimensions()
-			ui.Clear()
+			updateUI()
+		}
+	}
+}
 
-			height := int(h / numCores)
-			heightOffset := h - (height * numCores)
+func RenderCPUinfo(ctx context.Context,
+	dataChannel chan *info.CPULoad,
+	refreshRate int32) error {
 
-			// Adjust Grid dimensions
-			myPage.Grid.SetRect(w/2, 0, w, h-heightOffset)
+	var on sync.Once
 
-			// Adjust Memory Bar graph values
-			myPage.MemoryChart.BarGap = ((w / 2) - (4 * myPage.MemoryChart.BarWidth)) / 4
+	if err := ui.Init(); err != nil {
+		return fmt.Errorf("failed to initialize termui: %v", err)
+	}
+	defer ui.Close()
 
-			// Adjust CPU Gauge dimensions
-			if isCPUSet {
-				for i := 0; i < numCores; i++ {
-					myPage.CPUCharts[i].SetRect(0, i*height, w/2, (i+1)*height)
-					ui.Render(myPage.CPUCharts[i])
-				}
+	numCores := runtime.NumCPU()
+	myPage := NewCPUPage(numCores)
+
+	pause := func() {
+		run = !run
+	}
+
+	// Re render UI
+	updateUI := func() {
+		w, h := ui.TerminalDimensions()
+		ui.Clear()
+		myPage.Grid.SetRect(0, 0, w, h)
+		ui.Render(myPage.Grid)
+	}
+
+	updateUI()
+
+	uiEvents := ui.PollEvents()
+	tick := time.Tick(time.Duration(refreshRate) * time.Millisecond)
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+
+		case e := <-uiEvents: // For keyboard events
+			switch e.ID {
+			case "q", "<C-c>": // q or Ctrl-C to quit
+				return info.ErrCanceledByUser
+			case "<Resize>":
+				updateUI()
+
+			case "s": // s to stop
+				pause()
 			}
 
-			ui.Render(myPage.Grid)
+		case data := <-dataChannel: // Update chart values
+			if run {
+				myPage.UsrChart.Percent = data.Usr
+				myPage.NiceChart.Percent = data.Nice
+				myPage.SysChart.Percent = data.Sys
+				myPage.IowaitChart.Percent = data.Iowait
+				myPage.IrqChart.Percent = data.Irq
+				myPage.SoftChart.Percent = data.Soft
+				myPage.StealChart.Percent = data.Steal
+				myPage.IdleChart.Percent = data.Idle
 
+				myPage.CPUChart.Rows = data.CPURates
+
+				on.Do(func() {
+					w, h := ui.TerminalDimensions()
+					ui.Clear()
+					myPage.Grid.SetRect(0, 0, w, h)
+					ui.Render(myPage.Grid)
+				})
+			}
+
+		case <-tick:
+			updateUI()
 		}
 	}
 }
