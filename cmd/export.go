@@ -100,9 +100,6 @@ var exportCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		if fileName == DefaultExportFileName {
-			fileName = fileName + "." + exportType
-		}
 		err = validateFileName(fileName, exportType)
 		if err != nil {
 			return err
