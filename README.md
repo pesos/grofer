@@ -39,6 +39,45 @@ go build grofer.go
 
 ---
 
+Shell Completions
+-----------------
+
+`grofer` includes a subcommand to generate shell completion scripts to get autocompletion for subcommands and flags  
+
+### Bash
+To get completions for current session only,
+```sh
+source <(grofer completion bash)
+```
+
+To load completions for each session, the generated script must be moved to the completions directory. Take a look at the third question [here](https://github.com/scop/bash-completion/blob/master/README.md#faq) to find out the right place to put the script
+
+### Zsh
+
+If shell completion is not already enabled in your environment you will need to enable it. You can execute the following once:
+```sh
+echo "autoload -U compinit; compinit" >> ~/.zshrc
+```
+
+To load completions for each session, the generated script must be placed in a directory in your [fpath](http://zsh.sourceforge.net/Doc/Release/Functions.html). For a quick-and-dirty solution, run once:
+```sh
+grofer completion zsh > "${fpath[1]}/_grofer"
+```
+
+You will need to start a new shell for this setup to take effect.
+
+### Fish
+
+To get completions for current session only,
+```sh
+grofer completion fish | source
+```
+
+To load completions for each session, the generated script must be moved to the completions directory
+```sh
+grofer completion fish > ~/.config/fish/completions/grofer.fish
+```
+
 Usage
 -----
 
