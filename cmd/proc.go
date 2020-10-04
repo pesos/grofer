@@ -61,7 +61,7 @@ Syntax:
 
 		var wg sync.WaitGroup
 
-		if pid != -1 {
+		if pid != defaultProcPid {
 			endChannel := make(chan os.Signal, 1)
 			dataChannel := make(chan *process.Process, 1)
 
