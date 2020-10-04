@@ -30,7 +30,7 @@ import (
 
 const (
 	defaultProcRefreshRate = 3000
-	defaultProcPid         = 0
+	defaultProcPid         = -1
 )
 
 // procCmd represents the proc command
@@ -52,7 +52,7 @@ Syntax:
 			return fmt.Errorf("the proc command should have no arguments, see grofer proc --help for further info")
 		}
 
-		pid, _ := cmd.Flags().GetUint32("pid")
+		pid, _ := cmd.Flags().GetInt32("pid")
 		procRefreshRate, _ := cmd.Flags().GetUint64("refresh")
 
 		if procRefreshRate < 1000 {
@@ -101,7 +101,7 @@ func init() {
 		"Process information UI refreshes rate in milliseconds greater than 1000",
 	)
 
-	procCmd.Flags().Uint32P(
+	procCmd.Flags().Int32P(
 		"pid",
 		"p",
 		defaultProcPid,
