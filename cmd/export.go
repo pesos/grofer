@@ -92,7 +92,7 @@ var exportCmd = &cobra.Command{
 			return err
 		}
 		exportType = strings.ToLower(exportType)
-		if _, supported := providedExportTypes[exportType]; !supported {
+		if validExportType := providedExportTypes[exportType]; !validExportType {
 			return fmt.Errorf("export type not supported")
 		}
 
