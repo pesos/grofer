@@ -28,6 +28,7 @@ const (
 	defaultExportIterations  = 10
 	defaultExportFileName    = "grofer_profile"
 	defaultExportType        = "json"
+	defaultExportPid         = -1
 )
 
 // Maintain a map of extensions provided by grofer.
@@ -87,13 +88,20 @@ var exportCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+
 		exportType, err := cmd.Flags().GetString("type")
 		if err != nil {
 			return err
 		}
+
 		exportType = strings.ToLower(exportType)
 		if validExportType := providedExportTypes[exportType]; !validExportType {
 			return fmt.Errorf("export type not supported")
+		}
+
+		exportPid, err := cmd.Flags().GetInt32("pid")
+		if err != nil {
+			return err
 		}
 
 		fileName, err := cmd.Flags().GetString("fileName")
@@ -105,13 +113,21 @@ var exportCmd = &cobra.Command{
 			return err
 		}
 
-		switch exportType {
-		case "json":
-			return export.ExportJSON(fileName, iter, refreshRate)
-		// TODO: add csv export functionality
-		default:
-			return fmt.Errorf("invalid export type, see grofer export --help")
+		if exportPid == defaultExportPid {
+			switch exportType {
+			case "json":
+				return export.ExportJSON(fileName, iter, refreshRate)
+
+			case "csv":
+				return export.ExportCSV(fileName, iter, refreshRate)
+
+			default:
+				return fmt.Errorf("invalid export type, see grofer export --help")
+			}
+		} else {
+			return export.ExportPidJSON(exportPid, fileName, iter, refreshRate)
 		}
+
 	},
 }
 
@@ -142,5 +158,11 @@ func init() {
 		"t",
 		defaultExportType,
 		"specify the output format of the profiling result (json or csv)",
+	)
+	exportCmd.Flags().Int32P(
+		"pid",
+		"p",
+		defaultExportPid,
+		"specify pid of process to profile, ignore to profile all processes",
 	)
 }
