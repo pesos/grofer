@@ -125,7 +125,17 @@ var exportCmd = &cobra.Command{
 				return fmt.Errorf("invalid export type, see grofer export --help")
 			}
 		} else {
-			return export.ExportPidJSON(exportPid, fileName, iter, refreshRate)
+			switch exportType {
+			case "json":
+				return export.ExportPidJSON(exportPid, fileName, iter, refreshRate)
+
+			case "csv":
+				// TODO
+				return nil
+
+			default:
+				return fmt.Errorf("invalid export type, see grofer export --help")
+			}
 		}
 
 	},
