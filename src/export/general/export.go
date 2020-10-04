@@ -23,6 +23,7 @@ import (
 	"strings"
 	"time"
 
+	cpuInfo "github.com/pesos/grofer/src/general"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/mem"
@@ -57,6 +58,13 @@ type OverallStats struct {
 	MemStats  memStats            `json:"mem"`
 	DiskStats []diskStats         `json:"disk"`
 	NetStats  map[string]netStats `json:"net"`
+	CpuLoad   cpuInfo.CPULoad     `json:"cpuLoad"`
+}
+
+// NewOverallStats returns a pointer to
+// an empty OverallStats struct
+func NewOverallStats() *OverallStats {
+	return &OverallStats{}
 }
 
 func roundOff(num uint64) float64 {
@@ -124,33 +132,42 @@ func (data *OverallStats) updateData() error {
 	} else {
 		return err
 	}
+
+	cpuLoad := cpuInfo.NewCPULoad()
+	err = cpuLoad.UpdateCPULoad()
+	if err != nil {
+		return err
+	}
+	data.CpuLoad = *cpuLoad
+
 	endUpdateTime := uint64(time.Now().Unix())
 	avg := uint64((startUpdateTime + endUpdateTime) / 2)
 	data.Epoch = avg
 	return nil
 }
 
-func getJSONData(iter int64, interval uint64) ([]OverallStats, error) {
+func getJSONData(iter uint32, refreshRate uint64) ([]OverallStats, error) {
 	var data []OverallStats
-	var i int64
-	stats := &OverallStats{}
+	var i uint32
+	stats := NewOverallStats()
 	for i = 0; i < iter; i++ {
 		err := stats.updateData()
 		if err != nil {
 			return data, err
 		}
 		data = append(data, *stats)
+		time.Sleep(time.Duration(refreshRate) * time.Millisecond)
 	}
 	return data, nil
 }
 
 // ExportJSON exports data to a JSON file for a specified number of iterations
 // and a specified refreshed rate.
-func ExportJSON(fileName string, iter int64, interval uint64) error {
+func ExportJSON(fileName string, iter uint32, refreshRate uint64) error {
 	toWrite, _ := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE, os.ModePerm)
 	defer toWrite.Close()
 	encoder := json.NewEncoder(toWrite)
-	data, err := getJSONData(iter, interval)
+	data, err := getJSONData(iter, refreshRate)
 	if err != nil {
 		return err
 	}

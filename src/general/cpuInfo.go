@@ -42,11 +42,13 @@ type CPULoad struct {
 	CPURates [][]string `json:"-"` // Has first row with CPU names and second row with CPU usage rates, might not be ideal format for export
 }
 
+// NewCPULoad is a constructor for the CPULoad type.
 func NewCPULoad() *CPULoad {
 	return &CPULoad{}
 }
 
-func (c *CPULoad) updateCPULoad() error {
+// UpdateCPULoad updates fields of the type CPULoad
+func (c *CPULoad) UpdateCPULoad() error {
 	mpstat := "mpstat"
 	arg0 := "-o"
 	arg1 := "JSON"
@@ -98,7 +100,7 @@ func GetCPULoad(ctx context.Context,
 			return ctx.Err()
 
 		default: // Get Memory and CPU rates per core periodically
-			err := cpuLoad.updateCPULoad()
+			err := cpuLoad.UpdateCPULoad()
 			if err != nil {
 				return err
 			}
