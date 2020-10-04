@@ -57,8 +57,8 @@ func InitAllProcs() (map[int32]*Process, error) {
 	return processes, nil
 }
 
-func NewProcess(pid int32) (*Process, error) {
-	process, err := proc.NewProcess(pid)
+func NewProcess(pid uint32) (*Process, error) {
+	process, err := proc.NewProcess(int32(pid))
 	if err != nil {
 		return nil, err
 	}
