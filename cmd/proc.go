@@ -29,7 +29,8 @@ import (
 )
 
 const (
-	DefaultProcRefreshRate = 3000
+	defaultProcRefreshRate = 3000
+	defaultProcPid         = -1
 )
 
 // procCmd represents the proc command
@@ -102,6 +103,16 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// procCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	procCmd.Flags().Int32P("refresh", "r", DefaultProcRefreshRate, "Process information UI refreshes rate in milliseconds greater than 1000")
-	procCmd.Flags().Int32P("pid", "p", -1, "specify pid of process")
+	procCmd.Flags().Int32P(
+		"refresh",
+		"r",
+		defaultProcRefreshRate,
+		"Process information UI refreshes rate in milliseconds greater than 1000",
+	)
+
+	procCmd.Flags().Int32P(
+		"pid",
+		"p",
+		defaultProcPid,
+		"specify pid of process")
 }
