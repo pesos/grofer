@@ -102,6 +102,6 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// procCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	procCmd.Flags().Int32P("refresh", "r", DefaultProcRefreshRate, "Process information UI refreshes rate in milliseconds greater than 1000")
-	procCmd.Flags().Int32P("pid", "p", -1, "specify pid of process")
+	procCmd.Flags().Uint64P("refresh", "r", DefaultProcRefreshRate, "Process information UI refreshes rate in milliseconds greater than 1000")
+	procCmd.Flags().Uint32P("pid", "p", 0, "specify pid of process")
 }
