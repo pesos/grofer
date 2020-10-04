@@ -24,10 +24,10 @@ import (
 )
 
 const (
-	DefaultExportRefreshRate = 1000
-	DefaultExportIterations  = 10
-	DefaultExportFileName    = "grofer_profile"
-	DefaultExportType        = "json"
+	defaultExportRefreshRate = 1000
+	defaultExportIterations  = 10
+	defaultExportFileName    = "grofer_profile"
+	defaultExportType        = "json"
 )
 
 // Maintain a map of extensions provided by grofer.
@@ -122,25 +122,25 @@ func init() {
 	exportCmd.Flags().Uint32P(
 		"iter",
 		"i",
-		DefaultExportIterations,
+		defaultExportIterations,
 		"specify the number of iterations to run profiler",
 	)
 	exportCmd.Flags().StringP(
 		"fileName",
 		"f",
-		DefaultExportFileName,
+		defaultExportFileName,
 		"specify the name of the export file",
 	)
 	exportCmd.Flags().Uint64P(
 		"refresh",
 		"r",
-		DefaultExportRefreshRate,
+		defaultExportRefreshRate,
 		"specify frequency of data fetch in milliseconds",
 	)
 	exportCmd.Flags().StringP(
 		"type",
 		"t",
-		DefaultExportType,
+		defaultExportType,
 		"specify the output format of the profiling result (json or csv)",
 	)
 }
