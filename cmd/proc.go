@@ -29,7 +29,8 @@ import (
 )
 
 const (
-	DefaultProcRefreshRate = 3000
+	defaultProcRefreshRate = 3000
+	defaultProcPid         = 0
 )
 
 // procCmd represents the proc command
@@ -51,8 +52,8 @@ Syntax:
 			return fmt.Errorf("the proc command should have no arguments, see grofer proc --help for further info")
 		}
 
-		pid, _ := cmd.Flags().GetInt32("pid")
-		procRefreshRate, _ := cmd.Flags().GetInt32("refresh")
+		pid, _ := cmd.Flags().GetUint32("pid")
+		procRefreshRate, _ := cmd.Flags().GetUint64("refresh")
 
 		if procRefreshRate < 1000 {
 			return fmt.Errorf("invalid refresh rate: minimum refresh rate is 1000(ms)")
@@ -60,7 +61,7 @@ Syntax:
 
 		var wg sync.WaitGroup
 
-		if pid != -1 {
+		if pid != defaultProcPid {
 			endChannel := make(chan os.Signal, 1)
 			dataChannel := make(chan *process.Process, 1)
 
@@ -72,7 +73,7 @@ Syntax:
 				return fmt.Errorf("invalid pid")
 			}
 
-			go process.Serve(proc, dataChannel, endChannel, int32(4*procRefreshRate/5), &wg)
+			go process.Serve(proc, dataChannel, endChannel, uint64(4*procRefreshRate/5), &wg)
 			go procGraph.ProcVisuals(endChannel, dataChannel, procRefreshRate, &wg)
 			wg.Wait()
 		} else {
@@ -81,7 +82,7 @@ Syntax:
 
 			wg.Add(2)
 
-			go process.ServeProcs(dataChannel, endChannel, int32(4*procRefreshRate/5), &wg)
+			go process.ServeProcs(dataChannel, endChannel, uint64(4*procRefreshRate/5), &wg)
 			go procGraph.AllProcVisuals(dataChannel, endChannel, procRefreshRate, &wg)
 			wg.Wait()
 		}
@@ -93,15 +94,17 @@ Syntax:
 func init() {
 	rootCmd.AddCommand(procCmd)
 
-	// Here you will define your flags and configuration settings.
+	procCmd.Flags().Uint64P(
+		"refresh",
+		"r",
+		defaultProcRefreshRate,
+		"Process information UI refreshes rate in milliseconds greater than 1000",
+	)
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// procCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// procCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	procCmd.Flags().Uint64P("refresh", "r", DefaultProcRefreshRate, "Process information UI refreshes rate in milliseconds greater than 1000")
-	procCmd.Flags().Uint32P("pid", "p", 0, "specify pid of process")
+	procCmd.Flags().Uint32P(
+		"pid",
+		"p",
+		defaultProcPid,
+		"specify pid of process",
+	)
 }

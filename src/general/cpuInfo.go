@@ -91,7 +91,7 @@ func (c *CPULoad) updateCPULoad() error {
 func GetCPULoad(ctx context.Context,
 	cpuLoad *CPULoad,
 	dataChannel chan *CPULoad,
-	refreshRate int32) error {
+	refreshRate uint64) error {
 	for {
 		select {
 		case <-ctx.Done():
