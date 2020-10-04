@@ -53,7 +53,7 @@ Syntax:
 		}
 
 		pid, _ := cmd.Flags().GetUint32("pid")
-		procRefreshRate, _ := cmd.Flags().GetInt32("refresh")
+		procRefreshRate, _ := cmd.Flags().GetUint64("refresh")
 
 		if procRefreshRate < 1000 {
 			return fmt.Errorf("invalid refresh rate: minimum refresh rate is 1000(ms)")
@@ -94,7 +94,7 @@ Syntax:
 func init() {
 	rootCmd.AddCommand(procCmd)
 
-	procCmd.Flags().Int32P(
+	procCmd.Flags().Uint64P(
 		"refresh",
 		"r",
 		defaultProcRefreshRate,
