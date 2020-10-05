@@ -175,7 +175,6 @@ func getJSONData(iter uint32, refreshRate uint64, exportChan chan OverallStats, 
 		}
 		exportChan <- *stats
 		done <- exit
-		fmt.Println(len(exportChan))
 		time.Sleep(time.Duration(refreshRate) * time.Millisecond)
 	}
 	exit.finished = true
