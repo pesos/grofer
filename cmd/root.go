@@ -32,7 +32,10 @@ import (
 )
 
 const (
-	DefaultOverallRefreshRate = 1000
+	defaultOverallRefreshRate = 1000
+	defaultConfigFileLocation = ""
+	defaultCPUBehavior        = false
+	defaultHelpMessageToggle  = false
 )
 
 var cfgFile string
@@ -99,11 +102,33 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.grofer.yaml)")
+	rootCmd.PersistentFlags().StringVar(
+		&cfgFile,
+		"config",
+		defaultConfigFileLocation,
+		"config file (default is $HOME/.grofer.yaml)",
+	)
 
-	rootCmd.Flags().Int32P("refresh", "r", DefaultOverallRefreshRate, "Overall stats UI refreshes rate in milliseconds greater than 1000")
-	rootCmd.Flags().BoolP("cpuinfo", "c", false, "Info about the CPU Load over all CPUs")
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.Flags().Int32P(
+		"refresh",
+		"r",
+		defaultOverallRefreshRate,
+		"Overall stats UI refreshes rate in milliseconds greater than 1000",
+	)
+
+	rootCmd.Flags().BoolP(
+		"cpuinfo",
+		"c",
+		defaultCPUBehavior,
+		"Info about the CPU Load over all CPUs",
+	)
+
+	rootCmd.Flags().BoolP(
+		"toggle",
+		"t",
+		defaultHelpMessageToggle,
+		"Help message for toggle",
+	)
 }
 
 // initConfig reads in config file and ENV variables if set.

@@ -29,7 +29,8 @@ import (
 )
 
 const (
-	DefaultProcRefreshRate = 3000
+	defaultProcRefreshRate = 3000
+	defaultProcPid         = -1
 )
 
 // procCmd represents the proc command
@@ -60,7 +61,7 @@ Syntax:
 
 		var wg sync.WaitGroup
 
-		if pid != -1 {
+		if pid != defaultProcPid {
 			endChannel := make(chan os.Signal, 1)
 			dataChannel := make(chan *process.Process, 1)
 
@@ -93,6 +94,17 @@ Syntax:
 func init() {
 	rootCmd.AddCommand(procCmd)
 
-	procCmd.Flags().Int32P("refresh", "r", DefaultProcRefreshRate, "Process information UI refreshes rate in milliseconds greater than 1000")
-	procCmd.Flags().Int32P("pid", "p", -1, "specify pid of process")
+	procCmd.Flags().Int32P(
+		"refresh",
+		"r",
+		defaultProcRefreshRate,
+		"Process information UI refreshes rate in milliseconds greater than 1000",
+	)
+
+	procCmd.Flags().Int32P(
+		"pid",
+		"p",
+		defaultProcPid,
+		"specify pid of process",
+	)
 }
