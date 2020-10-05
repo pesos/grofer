@@ -24,10 +24,11 @@ import (
 )
 
 const (
-	defaultExportRefreshRate = 1000
-	defaultExportIterations  = 10
-	defaultExportFileName    = "grofer_profile"
-	defaultExportType        = "json"
+	defaultExportRefreshRate    = 1000
+	defaultExportIterations     = 10
+	defaultExportBufferFraction = 0.5
+	defaultExportFileName       = "grofer_profile"
+	defaultExportType           = "json"
 )
 
 // Maintain a map of extensions provided by grofer.
@@ -105,9 +106,17 @@ var exportCmd = &cobra.Command{
 			return err
 		}
 
+		bufferFraction, err := cmd.Flags().GetFloat32("bufferFraction")
+		if err != nil {
+			return err
+		}
+		if bufferFraction < 0.0 {
+			return fmt.Errorf("bufferFraction cannot be negative")
+		}
+
 		switch exportType {
 		case "json":
-			return export.ExportJSON(fileName, iter, refreshRate)
+			return export.ExportJSON(fileName, iter, refreshRate, bufferFraction)
 		// TODO: add csv export functionality
 		default:
 			return fmt.Errorf("invalid export type, see grofer export --help")
@@ -142,5 +151,11 @@ func init() {
 		"t",
 		defaultExportType,
 		"specify the output format of the profiling result (json or csv)",
+	)
+	exportCmd.Flags().Float32P(
+		"bufferFraction",
+		"b",
+		defaultExportBufferFraction,
+		"fraction of the total output to be buffered in memory before making an I/O to export file",
 	)
 }

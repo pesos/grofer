@@ -18,6 +18,7 @@ package general
 
 import (
 	"encoding/json"
+	"fmt"
 	"math"
 	"os"
 	"strings"
@@ -61,6 +62,11 @@ type OverallStats struct {
 	CpuLoad   cpuInfo.CPULoad     `json:"cpuLoad"`
 }
 
+type terminate struct {
+	finished bool
+	err      error
+}
+
 // NewOverallStats returns a pointer to
 // an empty OverallStats struct
 func NewOverallStats() *OverallStats {
@@ -70,6 +76,13 @@ func NewOverallStats() *OverallStats {
 func roundOff(num uint64) float64 {
 	x := float64(num) / (1024 * 1024 * 1024)
 	return math.Round(x*10) / 10
+}
+
+func checkFileExistence(file string) bool {
+	if _, err := os.Stat(file); err == nil {
+		return true
+	}
+	return false
 }
 
 func (data *OverallStats) updateData() error {
@@ -146,49 +159,67 @@ func (data *OverallStats) updateData() error {
 	return nil
 }
 
-func getJSONData(iter uint32, refreshRate uint64, exportChan chan OverallStats, done chan bool) {
-	//var data []OverallStats
+func getJSONData(iter uint32, refreshRate uint64, exportChan chan OverallStats, done chan terminate) {
 	var i uint32
 	stats := NewOverallStats()
+	exit := terminate{
+		finished: false,
+		err:      nil,
+	}
 	for i = 0; i < iter; i++ {
 		err := stats.updateData()
 		if err != nil {
-			panic(err)
+			exit.err = err
+			done <- exit
+			break
 		}
-		//data = append(data, *stats)
 		exportChan <- *stats
-		done <- false
+		done <- exit
+		fmt.Println(len(exportChan))
 		time.Sleep(time.Duration(refreshRate) * time.Millisecond)
 	}
-	done <- true
-	// return data, nil
+	exit.finished = true
+	done <- exit
 }
 
 // ExportJSON exports data to a JSON file for a specified number of iterations
 // and a specified refreshed rate.
-func ExportJSON(fileName string, iter uint32, refreshRate uint64) error {
+func ExportJSON(fileName string, iter uint32, refreshRate uint64, bufferFraction float32) error {
+	if exists := checkFileExistence(fileName); exists {
+		err := os.Remove(fileName)
+		if err != nil {
+			return fmt.Errorf("file %s already exists and cannot be overwritten\n", fileName)
+		}
+		fmt.Printf("WARNING: file %s already exists and will be overwritten\n", fileName)
+	}
 	toWrite, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE, os.ModePerm)
 	if err != nil {
 		return err
 	}
 	defer toWrite.Close()
-	exportChannel := make(chan OverallStats, 2)
-	doneChannel := make(chan bool)
+
+	bufferSize := int(float32(iter) * bufferFraction)
+	if bufferSize == 0 {
+		bufferSize = 1
+	}
+	exportChannel := make(chan OverallStats, bufferSize)
+	doneChannel := make(chan terminate)
 	defer close(exportChannel)
 	defer close(doneChannel)
 
 	encoder := json.NewEncoder(toWrite)
 	go getJSONData(iter, refreshRate, exportChannel, doneChannel)
-	// if err != nil {
-	// 	return err
-	// }
+
+	// buffer a user-defined fraction of total data in memory before making an IO
+	// buffering is done instead of writing on a per record basis as the number of
+	// hardware I/Os might pose a significant overhead for large values of iter.
 	for {
 		select {
-		case done := <-doneChannel:
-			if done {
-				return nil
+		case status := <-doneChannel:
+			if status.finished {
+				return status.err
 			}
-			if len(exportChannel) == 2 {
+			if len(exportChannel) == bufferSize {
 				for len(exportChannel) > 0 {
 					exportObj := <-exportChannel
 					err := encoder.Encode(exportObj)
@@ -199,5 +230,4 @@ func ExportJSON(fileName string, iter uint32, refreshRate uint64) error {
 			}
 		}
 	}
-	//return nil
 }
