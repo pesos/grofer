@@ -170,6 +170,7 @@ func getJSONData(iter uint32, refreshRate uint64, exportChan chan OverallStats, 
 		err := stats.updateData()
 		if err != nil {
 			exit.err = err
+			exit.finished = true
 			done <- exit
 			break
 		}
