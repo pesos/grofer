@@ -123,6 +123,7 @@ func getPidDataJSON(pid int32) (PidStats, error) {
 }
 
 func ExportPidJSON(pid int32, filename string, iter uint32, refreshRate uint64) error {
+	os.Remove(filename)
 	toWrite, _ := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, os.ModePerm)
 	defer toWrite.Close()
 	encoder := json.NewEncoder(toWrite)

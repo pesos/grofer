@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package proc
+package general
 
 import (
 	"encoding/json"
@@ -164,6 +164,7 @@ func getJSONData(iter uint32, refreshRate uint64) ([]OverallStats, error) {
 // ExportJSON exports data to a JSON file for a specified number of iterations
 // and a specified refreshed rate.
 func ExportJSON(fileName string, iter uint32, refreshRate uint64) error {
+	os.Remove(fileName)
 	toWrite, _ := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE, os.ModePerm)
 	defer toWrite.Close()
 	encoder := json.NewEncoder(toWrite)
