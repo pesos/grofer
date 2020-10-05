@@ -81,17 +81,19 @@ func (page *MainPage) InitGeneral(numCores int) {
 
 	// Initialize Bar Graph for Memory Chart
 	page.MemoryChart.Title = " Memory (RAM) "
+	page.MemoryChart.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.MemoryChart.Labels = []string{"Total", "Available", "Used", "Free"}
 	page.MemoryChart.BarWidth = 8
 	page.MemoryChart.BarGap = 9
 	page.MemoryChart.BarColors = []ui.Color{ui.ColorCyan, ui.ColorGreen}
-	page.MemoryChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorWhite)}
+	page.MemoryChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorClear)}
 	page.MemoryChart.NumStyles = []ui.Style{ui.NewStyle(ui.ColorBlack)}
 	page.MemoryChart.BorderStyle.Fg = ui.ColorCyan
 
 	// Initialize Table for Disk Chart
 	page.DiskChart.Title = " Disk "
-	page.DiskChart.TextStyle = ui.NewStyle(ui.ColorWhite)
+	page.DiskChart.TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.DiskChart.TextStyle = ui.NewStyle(ui.ColorClear)
 	page.DiskChart.TextAlignment = ui.AlignLeft
 	page.DiskChart.RowSeparator = false
 	page.DiskChart.ColumnWidths = []int{9, 9, 9, 9, 9, 11}
@@ -99,6 +101,7 @@ func (page *MainPage) InitGeneral(numCores int) {
 
 	// Initialize Plot for Network Chart
 	page.NetworkChart.Title = " Network data(in mB) "
+	page.NetworkChart.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.NetworkChart.HorizontalScale = 1
 	page.NetworkChart.AxesColor = ui.ColorCyan
 	page.NetworkChart.LineColors[0] = ui.ColorRed
@@ -109,9 +112,11 @@ func (page *MainPage) InitGeneral(numCores int) {
 
 	// Initialize paragraph for NetPara
 	page.NetPara.Text = "[Total RX](fg:red): 0\n\n[Total TX](fg:green): 0"
+	page.NetPara.TextStyle = ui.NewStyle(ui.ColorClear)
 	page.NetPara.Border = true
 	page.NetPara.BorderStyle.Fg = ui.ColorCyan
 	page.NetPara.Title = " RX/TX "
+	page.NetPara.TitleStyle = ui.NewStyle(ui.ColorClear)
 
 	// Initialize Gauges for each CPU Core usage
 	for i := 0; i < numCores; i++ {
@@ -120,7 +125,8 @@ func (page *MainPage) InitGeneral(numCores int) {
 		tempGauge.Percent = 0
 		tempGauge.BarColor = ui.ColorBlue
 		tempGauge.BorderStyle.Fg = ui.ColorCyan
-		tempGauge.TitleStyle.Fg = ui.ColorWhite
+		tempGauge.TitleStyle.Fg = ui.ColorClear
+		tempGauge.LabelStyle.Fg = ui.ColorClear
 		page.CPUCharts = append(page.CPUCharts, tempGauge)
 	}
 
@@ -144,52 +150,62 @@ func (page *CPUPage) InitCPU(numCores int) {
 	page.UsrChart.Percent = 0
 	page.UsrChart.BarColor = ui.ColorBlue
 	page.UsrChart.BorderStyle.Fg = ui.ColorCyan
-	page.UsrChart.TitleStyle.Fg = ui.ColorWhite
+	page.UsrChart.TitleStyle.Fg = ui.ColorClear
+	page.UsrChart.LabelStyle.Fg = ui.ColorClear
 
 	page.NiceChart.Title = " Nice "
 	page.NiceChart.Percent = 0
 	page.NiceChart.BarColor = ui.ColorBlue
 	page.NiceChart.BorderStyle.Fg = ui.ColorCyan
-	page.NiceChart.TitleStyle.Fg = ui.ColorWhite
+	page.NiceChart.TitleStyle.Fg = ui.ColorClear
+	page.NiceChart.LabelStyle.Fg = ui.ColorClear
 
 	page.SysChart.Title = " Sys "
 	page.SysChart.Percent = 0
 	page.SysChart.BarColor = ui.ColorBlue
 	page.SysChart.BorderStyle.Fg = ui.ColorCyan
-	page.SysChart.TitleStyle.Fg = ui.ColorWhite
+	page.SysChart.TitleStyle.Fg = ui.ColorClear
+	page.SysChart.LabelStyle.Fg = ui.ColorClear
 
 	page.IowaitChart.Title = " Iowait "
 	page.IowaitChart.Percent = 0
 	page.IowaitChart.BarColor = ui.ColorBlue
 	page.IowaitChart.BorderStyle.Fg = ui.ColorCyan
-	page.IowaitChart.TitleStyle.Fg = ui.ColorWhite
+	page.IowaitChart.TitleStyle.Fg = ui.ColorClear
+	page.IowaitChart.LabelStyle.Fg = ui.ColorClear
 
 	page.IrqChart.Title = " Irq "
 	page.IrqChart.Percent = 0
 	page.IrqChart.BarColor = ui.ColorBlue
 	page.IrqChart.BorderStyle.Fg = ui.ColorCyan
-	page.IrqChart.TitleStyle.Fg = ui.ColorWhite
+	page.IrqChart.TitleStyle.Fg = ui.ColorClear
+	page.IrqChart.LabelStyle.Fg = ui.ColorClear
 
 	page.SoftChart.Title = " Soft "
 	page.SoftChart.Percent = 0
 	page.SoftChart.BarColor = ui.ColorBlue
 	page.SoftChart.BorderStyle.Fg = ui.ColorCyan
-	page.SoftChart.TitleStyle.Fg = ui.ColorWhite
+	page.SoftChart.TitleStyle.Fg = ui.ColorClear
+	page.SoftChart.LabelStyle.Fg = ui.ColorClear
 
 	page.IdleChart.Title = " Idle "
 	page.IdleChart.Percent = 0
 	page.IdleChart.BarColor = ui.ColorBlue
 	page.IdleChart.BorderStyle.Fg = ui.ColorCyan
-	page.IdleChart.TitleStyle.Fg = ui.ColorWhite
+	page.IdleChart.TitleStyle.Fg = ui.ColorClear
+	page.IdleChart.LabelStyle.Fg = ui.ColorClear
 
 	page.StealChart.Title = " Steal "
 	page.StealChart.Percent = 0
 	page.StealChart.BarColor = ui.ColorBlue
 	page.StealChart.BorderStyle.Fg = ui.ColorCyan
-	page.StealChart.TitleStyle.Fg = ui.ColorWhite
+	page.StealChart.TitleStyle.Fg = ui.ColorClear
+	page.StealChart.LabelStyle.Fg = ui.ColorClear
 
 	page.CPUChart.Title = " CPU "
-	page.CPUChart.TextStyle = ui.NewStyle(ui.ColorWhite)
+	page.CPUChart.TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.CPUChart.BorderStyle = ui.NewStyle(ui.ColorCyan)
+	page.CPUChart.TextStyle = ui.NewStyle(ui.ColorClear)
 	page.CPUChart.TextAlignment = ui.AlignCenter
 	page.CPUChart.RowSeparator = true
 

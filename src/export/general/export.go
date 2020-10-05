@@ -146,34 +146,58 @@ func (data *OverallStats) updateData() error {
 	return nil
 }
 
-func getJSONData(iter uint32, refreshRate uint64) ([]OverallStats, error) {
-	var data []OverallStats
+func getJSONData(iter uint32, refreshRate uint64, exportChan chan OverallStats, done chan bool) {
+	//var data []OverallStats
 	var i uint32
 	stats := NewOverallStats()
 	for i = 0; i < iter; i++ {
 		err := stats.updateData()
 		if err != nil {
-			return data, err
+			panic(err)
 		}
-		data = append(data, *stats)
+		//data = append(data, *stats)
+		exportChan <- *stats
+		done <- false
 		time.Sleep(time.Duration(refreshRate) * time.Millisecond)
 	}
-	return data, nil
+	done <- true
+	// return data, nil
 }
 
 // ExportJSON exports data to a JSON file for a specified number of iterations
 // and a specified refreshed rate.
 func ExportJSON(fileName string, iter uint32, refreshRate uint64) error {
-	toWrite, _ := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE, os.ModePerm)
+	toWrite, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE, os.ModePerm)
+	if err != nil {
+		return err
+	}
 	defer toWrite.Close()
+	exportChannel := make(chan OverallStats, 2)
+	doneChannel := make(chan bool)
+	defer close(exportChannel)
+	defer close(doneChannel)
+
 	encoder := json.NewEncoder(toWrite)
-	data, err := getJSONData(iter, refreshRate)
-	if err != nil {
-		return err
+	go getJSONData(iter, refreshRate, exportChannel, doneChannel)
+	// if err != nil {
+	// 	return err
+	// }
+	for {
+		select {
+		case done := <-doneChannel:
+			if done {
+				return nil
+			}
+			if len(exportChannel) == 2 {
+				for len(exportChannel) > 0 {
+					exportObj := <-exportChannel
+					err := encoder.Encode(exportObj)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
 	}
-	err = encoder.Encode(data)
-	if err != nil {
-		return err
-	}
-	return nil
+	//return nil
 }
