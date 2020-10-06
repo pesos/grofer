@@ -20,18 +20,22 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	ui "github.com/gizak/termui/v3"
+	h "github.com/pesos/grofer/src/display/misc"
 	info "github.com/pesos/grofer/src/general"
 	"github.com/pesos/grofer/src/utils"
 	proc "github.com/shirou/gopsutil/process"
 )
 
 var runAllProc = true
+var helpVisible = false
+var help *h.HelpMenu = h.NewHelpMenu()
 
 func getData(procs []*proc.Process) []string {
 	var data []string
@@ -124,7 +128,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 		w, h := ui.TerminalDimensions()
 		ui.Clear()
 		myPage.Grid.SetRect(0, 0, w, h)
-		ui.Render(myPage.Grid)
+		help.Resize(w, h)
 	}
 
 	updateUI() // Render empty UI
@@ -163,90 +167,110 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 				return info.ErrCanceledByUser
 			case "<Resize>":
 				updateUI() // updateUI only during resize event
-			case "<Escape>":
-				if killSelected {
-					runAllProc = true
-					killSelected = false
-					myPage.BodyList.SelectedRowStyle = selectedStyle
+			case "?":
+				helpVisible = !helpVisible
+			case "<Resize>":
+				updateUI() // updateUI only during resize event
+			}
+			if helpVisible {
+				switch e.ID {
+				case "?":
+					ui.Clear()
+					ui.Render(help)
+				case "<Escape>":
+					helpVisible = false
+					ui.Render(myPage.Grid)
 				}
-			case "s": //s to pause
-				if !killSelected {
-					pauseProc()
-				}
-			case "j", "<Down>":
-				if !killSelected {
-					myPage.BodyList.ScrollDown()
-				}
-			case "k", "<Up>":
-				if !killSelected {
-					myPage.BodyList.ScrollUp()
-				}
-			case "<C-d>":
-				if !killSelected {
-					myPage.BodyList.ScrollHalfPageDown()
-				}
-			case "<C-u>":
-				if !killSelected {
-					myPage.BodyList.ScrollHalfPageUp()
-				}
-			case "<C-f>":
-				if !killSelected {
-					myPage.BodyList.ScrollPageDown()
-				}
-			case "<C-b>":
-				if !killSelected {
-					myPage.BodyList.ScrollPageUp()
-				}
-			case "g":
-				if !killSelected && previousKey == "g" {
-					myPage.BodyList.ScrollTop()
-				}
-			case "<Home>":
-				if !killSelected {
-					myPage.BodyList.ScrollTop()
-				}
-			case "G", "<End>":
-				if !killSelected {
-					myPage.BodyList.ScrollBottom()
-				}
-			case "K", "<F9>":
-				if myPage.BodyList.SelectedRow < len(myPage.BodyList.Rows) {
-					row := myPage.BodyList.Rows[myPage.BodyList.SelectedRow]
-					// get PID from the data
-					pid64, err := strconv.ParseInt(strings.SplitN(row, " ", 2)[0], 10, 32)
-					if err != nil {
-						return fmt.Errorf("Failed to get PID of process: %v", err)
-					}
-					pidToKill = int32(pid64)
-
-					if !killSelected {
-						runAllProc = false
-						killSelected = true
-						myPage.BodyList.SelectedRowStyle = killingStyle
-					} else {
-						// get process and kill it
-						procToKill, err := proc.NewProcess(pidToKill)
-						myPage.BodyList.SelectedRowStyle = selectedStyle
-						if err == nil {
-							err = procToKill.Kill()
-							if err != nil {
-								myPage.BodyList.SelectedRowStyle = errorStyle
-							}
-						} else {
-							myPage.BodyList.SelectedRowStyle = errorStyle
-						}
+				ui.Render(help)
+			} else {
+				switch e.ID {
+				case "?":
+					ui.Clear()
+					ui.Render(myPage.Grid)
+				case "<Escape>":
+					if killSelected {
 						runAllProc = true
 						killSelected = false
-						updateProcs()
+						myPage.BodyList.SelectedRowStyle = selectedStyle
+					}
+				case "s": //s to pause
+					if !killSelected {
+						pauseProc()
+					}
+				case "j", "<Down>":
+					if !killSelected {
+						myPage.BodyList.ScrollDown()
+					}
+				case "k", "<Up>":
+					if !killSelected {
+						myPage.BodyList.ScrollUp()
+					}
+				case "<C-d>":
+					if !killSelected {
+						myPage.BodyList.ScrollHalfPageDown()
+					}
+				case "<C-u>":
+					if !killSelected {
+						myPage.BodyList.ScrollHalfPageUp()
+					}
+				case "<C-f>":
+					if !killSelected {
+						myPage.BodyList.ScrollPageDown()
+					}
+				case "<C-b>":
+					if !killSelected {
+						myPage.BodyList.ScrollPageUp()
+					}
+				case "g":
+					if !killSelected && previousKey == "g" {
+						myPage.BodyList.ScrollTop()
+					}
+				case "<Home>":
+					if !killSelected {
+						myPage.BodyList.ScrollTop()
+					}
+				case "G", "<End>":
+					if !killSelected {
+						myPage.BodyList.ScrollBottom()
+					}
+				case "K", "<F9>":
+					if myPage.BodyList.SelectedRow < len(myPage.BodyList.Rows) {
+						row := myPage.BodyList.Rows[myPage.BodyList.SelectedRow]
+						// get PID from the data
+						pid64, err := strconv.ParseInt(strings.SplitN(row, " ", 2)[0], 10, 32)
+						if err != nil {
+							return fmt.Errorf("Failed to get PID of process: %v", err)
+						}
+						pidToKill = int32(pid64)
+
+						if !killSelected {
+							runAllProc = false
+							killSelected = true
+							myPage.BodyList.SelectedRowStyle = killingStyle
+						} else {
+							// get process and kill it
+							procToKill, err := proc.NewProcess(pidToKill)
+							myPage.BodyList.SelectedRowStyle = selectedStyle
+							if err == nil {
+								err = procToKill.Kill()
+								if err != nil {
+									myPage.BodyList.SelectedRowStyle = errorStyle
+								}
+							} else {
+								myPage.BodyList.SelectedRowStyle = errorStyle
+							}
+							runAllProc = true
+							killSelected = false
+							updateProcs()
+						}
 					}
 				}
-			}
-
-			ui.Render(myPage.Grid)
-			if previousKey == "g" {
-				previousKey = ""
-			} else {
-				previousKey = e.ID
+				ui.Render(myPage.Grid)
+				if previousKey == "g" {
+					previousKey = ""
+				} else {
+					previousKey = e.ID
+				}
 			}
 
 		case data := <-dataChannel:
@@ -269,8 +293,9 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 			} else {
 				myPage.BodyList.SelectedRowStyle = selectedStyle
 			}
-			ui.Render(myPage.Grid)
+			if !helpVisible {
+				ui.Render(myPage.Grid)
+			}
 		}
-
 	}
 }
