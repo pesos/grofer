@@ -129,7 +129,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 
 	updateUI() // Render empty UI
 
-	pause := func() {
+	pauseProc := func() {
 		runAllProc = !runAllProc
 	}
 
@@ -139,6 +139,22 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 	previousKey := ""
 	selectedStyle := ui.NewStyle(ui.ColorYellow, ui.ColorClear, ui.ModifierBold)
 
+	// updates process list immediately
+	updateProcs := func() {
+		myPage.BodyList.SelectedRowStyle = selectedStyle
+		if runAllProc {
+			procs, err := proc.Processes()
+			if err == nil {
+				myPage.BodyList.Rows = getData(procs)
+
+				on.Do(updateUI)
+			}
+		}
+	}
+
+	// whether the actual UI controls are paused
+	paused := false
+
 	for {
 		select {
 		case e := <-uiEvents:
@@ -147,45 +163,78 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 				return info.ErrCanceledByUser
 			case "<Resize>":
 				updateUI() // updateUI only during resize event
+			case "<Escape>":
+				if paused {
+					pauseProc()
+					paused = false
+				}
 			case "s": //s to pause
-				pause()
+				if !paused {
+					pauseProc()
+				}
 			case "j", "<Down>":
-				myPage.BodyList.ScrollDown()
+				if !paused {
+					myPage.BodyList.ScrollDown()
+				}
 			case "k", "<Up>":
-				myPage.BodyList.ScrollUp()
+				if !paused {
+					myPage.BodyList.ScrollUp()
+				}
 			case "<C-d>":
-				myPage.BodyList.ScrollHalfPageDown()
+				if !paused {
+					myPage.BodyList.ScrollHalfPageDown()
+				}
 			case "<C-u>":
-				myPage.BodyList.ScrollHalfPageUp()
+				if !paused {
+					myPage.BodyList.ScrollHalfPageUp()
+				}
 			case "<C-f>":
-				myPage.BodyList.ScrollPageDown()
+				if !paused {
+					myPage.BodyList.ScrollPageDown()
+				}
 			case "<C-b>":
-				myPage.BodyList.ScrollPageUp()
+				if !paused {
+					myPage.BodyList.ScrollPageUp()
+				}
 			case "g":
-				if previousKey == "g" {
+				if !paused && previousKey == "g" {
 					myPage.BodyList.ScrollTop()
 				}
 			case "<Home>":
-				myPage.BodyList.ScrollTop()
-			case "G", "<End>":
-				myPage.BodyList.ScrollBottom()
-			case "K", "<F9>":
-				updateUI()
-
-				row := myPage.BodyList.Rows[myPage.BodyList.SelectedRow]
-				// get PID from the data
-				pid64, err := strconv.ParseInt(strings.SplitN(row, " ", 2)[0], 10, 32)
-				if err != nil {
-					return fmt.Errorf("Failed to get PID of process: %v", err)
+				if !paused {
+					myPage.BodyList.ScrollTop()
 				}
-				pid := int32(pid64)
+			case "G", "<End>":
+				if !paused {
+					myPage.BodyList.ScrollBottom()
+				}
+			case "K", "<F9>":
+				updateProcs()
 
-				// get process and kill it
-				procToKill, err := proc.NewProcess(pid)
-				if err == nil {
-					err = procToKill.Kill()
+				if myPage.BodyList.SelectedRow < len(myPage.BodyList.Rows) {
+					row := myPage.BodyList.Rows[myPage.BodyList.SelectedRow]
+					// get PID from the data
+					pid64, err := strconv.ParseInt(strings.SplitN(row, " ", 2)[0], 10, 32)
 					if err != nil {
-						return fmt.Errorf("Failed to kill process with PID %d: %v", pid, err)
+						return fmt.Errorf("Failed to get PID of process: %v", err)
+					}
+					pid := int32(pid64)
+
+					if !paused {
+						runAllProc = false
+						paused = true
+					} else {
+						// get process and kill it
+						procToKill, err := proc.NewProcess(pid)
+						if err == nil {
+							err = procToKill.Kill()
+							if err != nil {
+								return fmt.Errorf("Failed to kill process with PID %d: %v", pid, err)
+							}
+						}
+						runAllProc = true
+						paused = false
+						updateProcs()
 					}
 				}
 			}
@@ -202,13 +251,9 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 			if runAllProc {
 				myPage.BodyList.Rows = getData(data)
 
-				on.Do(func() {
-					w, h := ui.TerminalDimensions()
-					ui.Clear()
-					myPage.Grid.SetRect(0, 0, w, h)
-					ui.Render(myPage.Grid)
-				})
+				on.Do(updateUI)
 			}
+
 		case <-tick: // Update page with new values
 			ui.Render(myPage.Grid)
 		}
