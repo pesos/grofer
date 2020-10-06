@@ -107,7 +107,7 @@ func getData(procs []*proc.Process) []string {
 
 func AllProcVisuals(dataChannel chan []*proc.Process,
 	endChannel chan os.Signal,
-	refreshRate int32,
+	refreshRate uint64,
 	wg *sync.WaitGroup) {
 
 	if err := ui.Init(); err != nil {

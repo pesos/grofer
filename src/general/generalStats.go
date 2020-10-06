@@ -28,7 +28,7 @@ type serveFunc func(context.Context, chan utils.DataStats) error
 // GlobalStats gets stats about the mem and the CPUs and prints it.
 func GlobalStats(ctx context.Context,
 	dataChannel chan utils.DataStats,
-	refreshRate int32) error {
+	refreshRate uint64) error {
 
 	serveFuncs := []serveFunc{
 		ServeCPURates,

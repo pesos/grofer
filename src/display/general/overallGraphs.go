@@ -36,7 +36,7 @@ var run = true
 // RenderCharts handles plotting graphs and charts for system stats in general.
 func RenderCharts(ctx context.Context,
 	dataChannel chan utils.DataStats,
-	refreshRate int32) error {
+	refreshRate uint64) error {
 
 	if err := ui.Init(); err != nil {
 		return fmt.Errorf("failed to initialize termui: %v", err)
@@ -213,7 +213,7 @@ func RenderCharts(ctx context.Context,
 
 func RenderCPUinfo(ctx context.Context,
 	dataChannel chan *info.CPULoad,
-	refreshRate int32) error {
+	refreshRate uint64) error {
 
 	var on sync.Once
 

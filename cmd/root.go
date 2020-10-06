@@ -45,7 +45,7 @@ var rootCmd = &cobra.Command{
 	Use:   "grofer",
 	Short: "grofer is a system profiler written in golang",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		overallRefreshRate, _ := cmd.Flags().GetInt32("refresh")
+		overallRefreshRate, _ := cmd.Flags().GetUint64("refresh")
 		if overallRefreshRate < 1000 {
 			return fmt.Errorf("invalid refresh rate: minimum refresh rate is 1000(ms)")
 		}
@@ -58,7 +58,7 @@ var rootCmd = &cobra.Command{
 			eg, ctx := errgroup.WithContext(context.Background())
 
 			eg.Go(func() error {
-				return info.GetCPULoad(ctx, cpuLoad, dataChannel, int32(4*overallRefreshRate/5))
+				return info.GetCPULoad(ctx, cpuLoad, dataChannel, uint64(4*overallRefreshRate/5))
 			})
 
 			eg.Go(func() error {
@@ -77,7 +77,7 @@ var rootCmd = &cobra.Command{
 			eg, ctx := errgroup.WithContext(context.Background())
 
 			eg.Go(func() error {
-				return general.GlobalStats(ctx, dataChannel, int32(4*overallRefreshRate/5))
+				return general.GlobalStats(ctx, dataChannel, uint64(4*overallRefreshRate/5))
 			})
 			eg.Go(func() error {
 				return overallGraph.RenderCharts(ctx, dataChannel, overallRefreshRate)
