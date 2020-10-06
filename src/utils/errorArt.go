@@ -24,7 +24,7 @@ import (
 
 func ErrorMsg() {
 	rand.Seed(time.Now().UnixNano())
-	num := rand.Intn(5)
+	num := rand.Intn(6)
 	switch num {
 	case 0:
 		ErrorDoggo()
@@ -36,6 +36,8 @@ func ErrorMsg() {
 		ErrorDolphy()
 	case 4:
 		ErrorOwl()
+	case 5:
+		ErrorJumbo()
 	}
 }
 
@@ -139,4 +141,22 @@ func ErrorBunny() {
   `
 
 	fmt.Println(bunny)
+}
+
+func ErrorJumbo(){
+	Jumbo:=`
+	  _.-- ,.--.
+	.'   .'    /
+	| @      |'..--------._
+ /      \._/              '.
+/  .-.-                     \
+(  /    \                     \
+\\      '.                  | #
+ \\       \   -.           /    Jumbo didn't understand that PID
+	:\       |    )._____.'   \     Done Jumbo a Bamboozle!
+	 "       |   /  \  |  \    )      Please enter a valid PID.
+		       |   |./'  :__ \.-'
+					 '--'
+	`
+	fmt.Println(Jumbo)
 }
