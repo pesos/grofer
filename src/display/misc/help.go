@@ -46,19 +46,32 @@ func (help *HelpMenu) Resize(termWidth, termHeight int) {
 	x := (termWidth - textWidth) / 2
 	y := (termHeight - textHeight) / 2
 
-	help.Block.SetRect(x, y, textWidth+x, textHeight+y)
+	help.List.SetRect(x, y, textWidth+x, textHeight+y)
 }
 
 func (help *HelpMenu) Draw(buf *ui.Buffer) {
-	help.Block.Draw(buf)
+	help.List.Title = "Keybindings"
 
-	for y, line := range strings.Split(KEYBINDS, "\n") {
-		for x, rune := range line {
-			buf.SetCell(
-				ui.NewCell(rune, ui.Theme.Default),
-				image.Pt(help.Inner.Min.X+x, help.Inner.Min.Y+y-1),
-			)
-		}
+	help.List.Rows = strings.Split(KEYBINDS, "\n")
+	help.List.TextStyle = ui.NewStyle(ui.ColorYellow)
+	help.List.WrapText = false
+	help.List.Draw(buf)
+	// help.Block.Draw(buf)
+	//
+	// for y, line := range strings.Split(KEYBINDS, "\n") {
+	// 	for x, rune := range line {
+	// 		buf.SetCell(
+	// 			ui.NewCell(rune, ui.Theme.Default),
+	// 			image.Pt(help.Inner.Min.X+x, help.Inner.Min.Y+y-1),
+	// 		)
+	// 	}
+	// }
+}
+
+func SelectHelpMenu(page string) {
+	switch page {
+	case "proc":
+		KEYBINDS = PROC_KEYBINDS
 	}
 }
 

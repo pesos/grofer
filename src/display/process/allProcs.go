@@ -123,6 +123,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 	var on sync.Once
 
 	myPage := NewAllProcsPage()
+	h.SelectHelpMenu("proc")
 
 	updateUI := func() {
 		w, h := ui.TerminalDimensions()
