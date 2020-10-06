@@ -146,8 +146,8 @@ func ErrorBunny() {
 func ErrorJumbo(){
 	Jumbo:=`
 
-	_.-- ,.--.
- .'   .'    /
+  _.-- ,.--.
+ (     '    /
  | @       |'..--------._
 /      \._/              '.
 /  .-.-                     \
@@ -155,9 +155,9 @@ func ErrorJumbo(){
 \\      '.                  | #
 \\       \   -.           /     Jumbo couldn't understand that PID.
  :\       |    )._____.'   \       Done Jumbo a Bamboozle!
-	"       |   /  \  |  \    )        Please give Jumbo a valid PID
-		      |   |./'  :__ \.-'
-					'--'
+	" |   /  \  |  \    )        Please give Jumbo a valid PID
+          |   |./'  :__ \.-'
+	  '--'
 
 	`
 	fmt.Println(Jumbo)
