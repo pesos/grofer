@@ -138,10 +138,11 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 
 	previousKey := ""
 	selectedStyle := ui.NewStyle(ui.ColorYellow, ui.ColorClear, ui.ModifierBold)
+	killingStyle := ui.NewStyle(ui.ColorWhite, ui.ColorMagenta, ui.ModifierBold)
+	errorStyle := ui.NewStyle(ui.ColorBlack, ui.ColorRed, ui.ModifierBold)
 
 	// updates process list immediately
 	updateProcs := func() {
-		myPage.BodyList.SelectedRowStyle = selectedStyle
 		if runAllProc {
 			procs, err := proc.Processes()
 			if err == nil {
@@ -165,8 +166,9 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 				updateUI() // updateUI only during resize event
 			case "<Escape>":
 				if paused {
-					pauseProc()
+					runAllProc = true
 					paused = false
+					myPage.BodyList.SelectedRowStyle = selectedStyle
 				}
 			case "s": //s to pause
 				if !paused {
@@ -223,17 +225,21 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 					if !paused {
 						runAllProc = false
 						paused = true
+						myPage.BodyList.SelectedRowStyle = killingStyle
 					} else {
 						// get process and kill it
-						procToKill, err := proc.NewProcess(pid)
+						procToKill, err := proc.NewProcess(pidToKill)
+						myPage.BodyList.SelectedRowStyle = selectedStyle
 						if err == nil {
 							err = procToKill.Kill()
 							if err != nil {
-								return fmt.Errorf("Failed to kill process with PID %d: %v", pid, err)
+								myPage.BodyList.SelectedRowStyle = errorStyle
 							}
+						} else {
+							myPage.BodyList.SelectedRowStyle = errorStyle
 						}
 						runAllProc = true
-						paused = false
+						killSelected = false
 						updateProcs()
 					}
 				}
@@ -247,8 +253,8 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 			}
 
 		case data := <-dataChannel:
-			myPage.BodyList.SelectedRowStyle = selectedStyle
 			if runAllProc {
+				myPage.BodyList.SelectedRowStyle = selectedStyle
 				myPage.BodyList.Rows = getData(data)
 
 				on.Do(updateUI)
@@ -256,6 +262,17 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 
 		case <-tick: // Update page with new values
 			ui.Render(myPage.Grid)
+		}
+
+		myPage.BodyList.SelectedRowStyle = selectedStyle
+		if killSelected {
+			exists, _ := proc.PidExists(pidToKill)
+			if !exists {
+				runAllProc = true
+				killSelected = false
+				myPage.BodyList.SelectedRowStyle = selectedStyle
+				updateProcs()
+			}
 		}
 	}
 }
