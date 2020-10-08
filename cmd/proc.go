@@ -60,7 +60,6 @@ Syntax:
 			return fmt.Errorf("invalid refresh rate: minimum refresh rate is 1000(ms)")
 		}
 
-
 		if pid != defaultProcPid {
 			dataChannel := make(chan *process.Process, 1)
 

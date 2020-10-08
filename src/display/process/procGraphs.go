@@ -54,7 +54,7 @@ func getChildProcs(proc *process.Process) []string {
 // ProcVisuals renders graphs and charts for per-process stats.
 func ProcVisuals(ctx context.Context,
 	dataChannel chan *process.Process,
-	refreshRate int32) error {
+	refreshRate uint64) error {
 
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
