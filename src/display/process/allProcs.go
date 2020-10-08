@@ -35,7 +35,6 @@ import (
 
 var runAllProc = true
 var helpVisible = false
-var help *h.HelpMenu = h.NewHelpMenu()
 
 func getData(procs []*proc.Process) []string {
 	var data []string
@@ -121,9 +120,10 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 	defer ui.Close()
 
 	var on sync.Once
+	var help *h.HelpMenu = h.NewHelpMenu()
+	h.SelectHelpMenu("proc")
 
 	myPage := NewAllProcsPage()
-	h.SelectHelpMenu("proc")
 
 	updateUI := func() {
 		w, h := ui.TerminalDimensions()
