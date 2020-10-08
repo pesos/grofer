@@ -29,3 +29,11 @@ Process navigation:
   - gg and <Home>: jump to top
   - G and <End>: jump to bottom
 `
+const MAIN_KEYBINDS = `
+Quit: q or <C-c>
+
+`
+const PROC_PID_KEYBINDS = `
+Quit: q or <C-c>
+
+`
