@@ -107,7 +107,7 @@ func ProcVisuals(ctx context.Context,
 		} else {
 			ui.Render(myPage.Grid)
 		}
-		
+
 	}
 
 	updateUI()
