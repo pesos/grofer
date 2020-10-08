@@ -130,6 +130,7 @@ func ProcVisuals(ctx context.Context,
 					ui.Render(help)
 				case "<Escape>":
 					helpVisible = false
+					ui.Clear()
 					ui.Render(myPage.Grid)
 				}
 				ui.Render(help)
