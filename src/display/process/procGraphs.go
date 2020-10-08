@@ -102,6 +102,12 @@ func ProcVisuals(ctx context.Context,
 		// Adjust Grid dimensions
 		myPage.Grid.SetRect(0, 0, w, h)
 		help.Resize(w, h)
+		if helpVisible {
+			ui.Render(help)
+		} else {
+			ui.Render(myPage.Grid)
+		}
+		
 	}
 
 	updateUI()
@@ -126,19 +132,16 @@ func ProcVisuals(ctx context.Context,
 			if helpVisible {
 				switch e.ID {
 				case "?":
-					ui.Clear()
-					ui.Render(help)
+					updateUI()
 				case "<Escape>":
 					helpVisible = false
-					ui.Clear()
-					ui.Render(myPage.Grid)
+					updateUI()
 				}
 				ui.Render(help)
 			} else {
 				switch e.ID {
 				case "?":
-					ui.Clear()
-					ui.Render(myPage.Grid)
+					updateUI()
 				case "s": //s to pause
 					pause()
 				case "j", "<Down>":

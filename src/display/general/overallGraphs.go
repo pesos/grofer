@@ -90,7 +90,16 @@ func RenderCharts(ctx context.Context,
 		// Adjust Grid dimensions
 		myPage.Grid.SetRect(w/2, 0, w, h-heightOffset)
 
-		help.Resize(w,h)
+		help.Resize(w, h)
+
+		if helpVisible {
+			ui.Render(help)
+		} else {
+			ui.Render(myPage.Grid)
+			for i := 0; i < numCores; i++ {
+				ui.Render(myPage.CPUCharts[i])
+			}
+		}
 	}
 
 	updateUI() // Initialize empty UI
@@ -116,25 +125,16 @@ func RenderCharts(ctx context.Context,
 			if helpVisible {
 				switch e.ID {
 				case "?":
-					ui.Clear()
-					ui.Render(help)
+					updateUI()
 				case "<Escape>":
 					helpVisible = false
-					ui.Clear()
-					ui.Render(myPage.Grid)
-					for i := 0; i < numCores; i++ {
-						ui.Render(myPage.CPUCharts[i])
-					}
+					updateUI()
 				}
 				ui.Render(help)
 			} else {
 				switch e.ID {
 				case "?":
-					ui.Clear()
-					ui.Render(myPage.Grid)
-					for i := 0; i < numCores; i++ {
-						ui.Render(myPage.CPUCharts[i])
-					}
+					updateUI()
 				case "s": //s to pause
 					pause()
 				}
@@ -270,6 +270,11 @@ func RenderCPUinfo(ctx context.Context,
 		ui.Clear()
 		myPage.Grid.SetRect(0, 0, w, h)
 		help.Resize(w, h)
+		if helpVisible {
+			ui.Render(help)
+		} else {
+			ui.Render(myPage.Grid)
+		}
 	}
 
 	updateUI()
@@ -294,19 +299,16 @@ func RenderCPUinfo(ctx context.Context,
 			if helpVisible {
 				switch e.ID {
 				case "?":
-					ui.Clear()
-					ui.Render(help)
+					updateUI()
 				case "<Escape>":
 					helpVisible = false
-					ui.Clear()
-					ui.Render(myPage.Grid)
+					updateUI()
 				}
 				ui.Render(help)
 			} else {
 				switch e.ID {
 				case "?":
-					ui.Clear()
-					ui.Render(myPage.Grid)
+					updateUI()
 				case "s": //s to pause
 					pause()
 				}

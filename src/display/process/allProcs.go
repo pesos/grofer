@@ -130,6 +130,11 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 		ui.Clear()
 		myPage.Grid.SetRect(0, 0, w, h)
 		help.Resize(w, h)
+		if helpVisible {
+			ui.Render(help)
+		} else {
+			ui.Render(myPage.Grid)
+		}
 	}
 
 	updateUI() // Render empty UI
@@ -166,8 +171,6 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 			switch e.ID {
 			case "q", "<C-c>": //q or Ctrl-C to quit
 				return info.ErrCanceledByUser
-			case "<Resize>":
-				updateUI() // updateUI only during resize event
 			case "?":
 				helpVisible = !helpVisible
 			case "<Resize>":
@@ -176,8 +179,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 			if helpVisible {
 				switch e.ID {
 				case "?":
-					ui.Clear()
-					ui.Render(help)
+					updateUI()
 				case "<Escape>":
 					helpVisible = false
 					ui.Clear()
@@ -187,8 +189,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 			} else {
 				switch e.ID {
 				case "?":
-					ui.Clear()
-					ui.Render(myPage.Grid)
+					updateUI()
 				case "<Escape>":
 					if killSelected {
 						runAllProc = true
