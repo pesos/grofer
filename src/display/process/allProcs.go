@@ -127,9 +127,9 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 
 	updateUI := func() {
 		w, h := ui.TerminalDimensions()
-		ui.Clear()
 		myPage.Grid.SetRect(0, 0, w, h)
 		help.Resize(w, h)
+		ui.Clear()
 		if helpVisible {
 			ui.Render(help)
 		} else {
@@ -182,10 +182,8 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 					updateUI()
 				case "<Escape>":
 					helpVisible = false
-					ui.Clear()
-					ui.Render(myPage.Grid)
+					updateUI()
 				}
-				ui.Render(help)
 			} else {
 				switch e.ID {
 				case "?":

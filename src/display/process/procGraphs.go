@@ -88,7 +88,6 @@ func ProcVisuals(ctx context.Context,
 
 		// Get Terminal Dimensions adn clear the UI
 		w, h := ui.TerminalDimensions()
-		ui.Clear()
 
 		// Adjust Memory Stats Bar graph values
 		myPage.MemStatsChart.BarGap = ((w / 2) - (4 * myPage.MemStatsChart.BarWidth)) / 4
@@ -102,6 +101,7 @@ func ProcVisuals(ctx context.Context,
 		// Adjust Grid dimensions
 		myPage.Grid.SetRect(0, 0, w, h)
 		help.Resize(w, h)
+		ui.Clear()
 		if helpVisible {
 			ui.Render(help)
 		} else {
@@ -136,8 +136,13 @@ func ProcVisuals(ctx context.Context,
 				case "<Escape>":
 					helpVisible = false
 					updateUI()
+				case "j", "<Down>":
+					help.List.ScrollDown()
+					ui.Render(help)
+				case "k", "<Up>":
+					help.List.ScrollUp()
+					ui.Render(help)
 				}
-				ui.Render(help)
 			} else {
 				switch e.ID {
 				case "?":

@@ -129,8 +129,13 @@ func RenderCharts(ctx context.Context,
 				case "<Escape>":
 					helpVisible = false
 					updateUI()
+				case "j", "<Down>":
+					help.List.ScrollDown()
+					ui.Render(help)
+				case "k", "<Up>":
+					help.List.ScrollUp()
+					ui.Render(help)
 				}
-				ui.Render(help)
 			} else {
 				switch e.ID {
 				case "?":
@@ -303,8 +308,13 @@ func RenderCPUinfo(ctx context.Context,
 				case "<Escape>":
 					helpVisible = false
 					updateUI()
+				case "j", "<Down>":
+					help.List.ScrollDown()
+					ui.Render(help)
+				case "k", "<Up>":
+					help.List.ScrollUp()
+					ui.Render(help)
 				}
-				ui.Render(help)
 			} else {
 				switch e.ID {
 				case "?":
