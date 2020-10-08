@@ -109,7 +109,7 @@ func init() {
 		"config file (default is $HOME/.grofer.yaml)",
 	)
 
-	rootCmd.Flags().Int32P(
+	rootCmd.Flags().Uint64P(
 		"refresh",
 		"r",
 		defaultOverallRefreshRate,
