@@ -16,14 +16,15 @@ limitations under the License.
 package process
 
 import (
+	"context"
 	"log"
-	"os"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	ui "github.com/gizak/termui/v3"
+	info "github.com/pesos/grofer/src/general"
 	"github.com/pesos/grofer/src/process"
 	"github.com/pesos/grofer/src/utils"
 )
@@ -51,10 +52,11 @@ func getChildProcs(proc *process.Process) []string {
 }
 
 // ProcVisuals renders graphs and charts for per-process stats.
-func ProcVisuals(endChannel chan os.Signal,
+func ProcVisuals(ctx context.Context,
 	dataChannel chan *process.Process,
-	refreshRate uint64,
-	wg *sync.WaitGroup) {
+	refreshRate uint64) error {
+
+	defer ui.Close()
 
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
@@ -110,10 +112,7 @@ func ProcVisuals(endChannel chan os.Signal,
 		case e := <-uiEvents:
 			switch e.ID {
 			case "q", "<C-c>": //q or Ctrl-C to quit
-				endChannel <- os.Kill
-				ui.Close()
-				wg.Done()
-				return
+				return info.ErrCanceledByUser
 			case "s": //s to pause
 				pause()
 			case "<Resize>":
