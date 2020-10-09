@@ -42,7 +42,7 @@ func (help *HelpMenu) Resize(termWidth, termHeight int) {
 			textWidth = len(line) + 2
 		}
 	}
-	textHeight := strings.Count(KEYBINDS, "\n") + 1
+	textHeight := strings.Count(KEYBINDS, "\n") + 3
 	x := (termWidth - textWidth) / 2
 	y := (termHeight - textHeight) / 2
 	if x < 0 {
@@ -58,10 +58,9 @@ func (help *HelpMenu) Resize(termWidth, termHeight int) {
 }
 
 func (help *HelpMenu) Draw(buf *ui.Buffer) {
-	help.List.Title = "Keybindings"
+	help.List.Title = " Keybindings "
 
 	help.List.Rows = strings.Split(KEYBINDS, "\n")
-	// fmt.Println(help.List.Rows)
 	help.List.TextStyle = ui.NewStyle(ui.ColorYellow)
 	help.List.WrapText = false
 	help.List.Draw(buf)

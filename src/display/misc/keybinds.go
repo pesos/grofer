@@ -16,8 +16,7 @@ limitations under the License.
 
 package help
 
-const PROC_KEYBINDS = `
-Quit: q or <C-c>
+const PROC_KEYBINDS = `Quit: q or <C-c>
 
 Process navigation:
   - k and <Up>: up
@@ -27,13 +26,8 @@ Process navigation:
   - <C-b>: full page up
   - <C-f>: full page down
   - gg and <Home>: jump to top
-  - G and <End>: jump to bottom
-`
-const MAIN_KEYBINDS = `
-Quit: q or <C-c>
+  - G and <End>: jump to bottom`
 
-`
-const PROC_PID_KEYBINDS = `
-Quit: q or <C-c>
+const MAIN_KEYBINDS = `Quit: q or <C-c>`
 
-`
+const PROC_PID_KEYBINDS = `Quit: q or <C-c>`
