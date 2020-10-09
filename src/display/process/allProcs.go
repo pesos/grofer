@@ -182,6 +182,12 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 				case "<Escape>":
 					helpVisible = false
 					updateUI()
+				case "j", "<Down>":
+					help.List.ScrollDown()
+					ui.Render(help)
+				case "k", "<Up>":
+					help.List.ScrollUp()
+					ui.Render(help)
 				}
 			} else {
 				switch e.ID {
