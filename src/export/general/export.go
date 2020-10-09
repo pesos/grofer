@@ -198,6 +198,12 @@ func ExportJSON(fileName string, iter uint32, refreshRate uint64, bufferFraction
 	}
 	defer toWrite.Close()
 
+	// add an opening [ to signify opening of array of json objects
+	_, err = toWrite.Write([]byte("[\n"))
+	if err != nil {
+		return err
+	}
+
 	bufferSize := int(float32(iter) * bufferFraction)
 	if bufferSize == 0 {
 		bufferSize = 1
@@ -208,7 +214,15 @@ func ExportJSON(fileName string, iter uint32, refreshRate uint64, bufferFraction
 	defer close(doneChannel)
 
 	encoder := json.NewEncoder(toWrite)
+	encoder.SetIndent("", "  ")
 	go getJSONData(iter, refreshRate, exportChannel, doneChannel)
+
+	// encode and write the first json object.
+	initialObject := <-exportChannel
+	err = encoder.Encode(initialObject)
+	if err != nil {
+		return err
+	}
 
 	// buffer a user-defined fraction of total data in memory before making an IO
 	// buffering is done instead of writing on a per record basis as the number of
@@ -217,12 +231,21 @@ func ExportJSON(fileName string, iter uint32, refreshRate uint64, bufferFraction
 		select {
 		case status := <-doneChannel:
 			if status.finished {
+				// add a ] to close the array of JSON objects.
+				_, err = toWrite.Write([]byte("]"))
+				if err != nil {
+					return err
+				}
 				return status.err
 			}
 			if len(exportChannel) == bufferSize {
 				for len(exportChannel) > 0 {
 					exportObj := <-exportChannel
-					err := encoder.Encode(exportObj)
+					_, err := toWrite.Write([]byte(","))
+					if err != nil {
+						return err
+					}
+					err = encoder.Encode(exportObj)
 					if err != nil {
 						return err
 					}

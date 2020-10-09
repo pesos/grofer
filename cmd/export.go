@@ -83,6 +83,9 @@ var exportCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		if iter <= 0 {
+			return fmt.Errorf("no. of iterations should be positive")
+		}
 
 		refreshRate, err := cmd.Flags().GetUint64("refresh")
 		if err != nil {
