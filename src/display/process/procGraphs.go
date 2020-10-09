@@ -24,8 +24,8 @@ import (
 	"time"
 
 	ui "github.com/gizak/termui/v3"
-	info "github.com/pesos/grofer/src/general"
 	h "github.com/pesos/grofer/src/display/misc"
+	info "github.com/pesos/grofer/src/general"
 	"github.com/pesos/grofer/src/process"
 	"github.com/pesos/grofer/src/utils"
 )

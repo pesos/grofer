@@ -17,26 +17,26 @@ limitations under the License.
 package help
 
 var PROC_KEYBINDS = []string{
-"Quit: q or <C-c>",
-"",
-"Process navigation:",
-"  - k and <Up>: up",
-"  - j and <Down>: down",
-"  - <C-u>: half page up",
-"  - <C-d>: half page down",
-"  - <C-b>: full page up",
-"  - <C-f>: full page down",
-"  - gg and <Home>: jump to top",
-"  - G and <End>: jump to bottom",
-"",
-"Process actions:",
-"  - K and <F9>: Kill process",
+	"Quit: q or <C-c>",
+	"",
+	"Process navigation:",
+	"  - k and <Up>: up",
+	"  - j and <Down>: down",
+	"  - <C-u>: half page up",
+	"  - <C-d>: half page down",
+	"  - <C-b>: full page up",
+	"  - <C-f>: full page down",
+	"  - gg and <Home>: jump to top",
+	"  - G and <End>: jump to bottom",
+	"",
+	"Process actions:",
+	"  - K and <F9>: Kill process",
 }
 
 var MAIN_KEYBINDS = []string{
-  "Quit: q or <C-c>",
+	"Quit: q or <C-c>",
 }
 
 var PROC_PID_KEYBINDS = []string{
-  "Quit: q or <C-c>",
+	"Quit: q or <C-c>",
 }
