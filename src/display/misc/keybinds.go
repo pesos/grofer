@@ -28,6 +28,9 @@ var PROC_KEYBINDS = []string{
 "  - <C-f>: full page down",
 "  - gg and <Home>: jump to top",
 "  - G and <End>: jump to bottom",
+"",
+"Process actions:",
+"  - K and <F9>: Kill process",
 }
 
 var MAIN_KEYBINDS = []string{
