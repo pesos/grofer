@@ -56,6 +56,8 @@ func ProcVisuals(ctx context.Context,
 	dataChannel chan *process.Process,
 	refreshRate uint64) error {
 
+	defer ui.Close()
+
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
