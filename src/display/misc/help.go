@@ -17,13 +17,11 @@ limitations under the License.
 package help
 
 import (
-	"strings"
-
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 )
 
-var KEYBINDS string
+var KEYBINDS []string
 
 type HelpMenu struct {
 	*widgets.List
@@ -37,12 +35,12 @@ func NewHelpMenu() *HelpMenu {
 
 func (help *HelpMenu) Resize(termWidth, termHeight int) {
 	textWidth := 50
-	for _, line := range strings.Split(KEYBINDS, "\n") {
+	for _, line := range KEYBINDS {
 		if textWidth < len(line) {
 			textWidth = len(line) + 2
 		}
 	}
-	textHeight := strings.Count(KEYBINDS, "\n") + 3
+	textHeight := len(KEYBINDS) + 3
 	x := (termWidth - textWidth) / 2
 	y := (termHeight - textHeight) / 2
 	if x < 0 {
@@ -60,7 +58,7 @@ func (help *HelpMenu) Resize(termWidth, termHeight int) {
 func (help *HelpMenu) Draw(buf *ui.Buffer) {
 	help.List.Title = " Keybindings "
 
-	help.List.Rows = strings.Split(KEYBINDS, "\n")
+	help.List.Rows = KEYBINDS
 	help.List.TextStyle = ui.NewStyle(ui.ColorYellow)
 	help.List.WrapText = false
 	help.List.Draw(buf)
