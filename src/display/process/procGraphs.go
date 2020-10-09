@@ -109,8 +109,6 @@ func ProcVisuals(ctx context.Context,
 		}
 	}
 
-	// updateUI()
-
 	uiEvents := ui.PollEvents()
 	tick := time.Tick(time.Duration(refreshRate) * time.Millisecond)
 
