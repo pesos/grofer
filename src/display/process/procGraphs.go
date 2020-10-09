@@ -107,10 +107,9 @@ func ProcVisuals(ctx context.Context,
 		} else {
 			ui.Render(myPage.Grid)
 		}
-
 	}
 
-	updateUI()
+	// updateUI()
 
 	uiEvents := ui.PollEvents()
 	tick := time.Tick(time.Duration(refreshRate) * time.Millisecond)
