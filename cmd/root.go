@@ -46,7 +46,7 @@ var rootCmd = &cobra.Command{
 	Short: "grofer is a system and resource monitor written in golang",
 	Long: `grofer is a system and resource monitor written in golang.
 
-While using a TUI based command, press ? to get information about keybindigns (if any) for that command.`,
+While using a TUI based command, press ? to get information about key bindings (if any) for that command.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		overallRefreshRate, _ := cmd.Flags().GetUint64("refresh")
 		if overallRefreshRate < 1000 {

@@ -84,7 +84,7 @@ Usage
 ```
 grofer is a system profiler written in golang.
 
-While using a TUI based command, press ? to get information about keybindigns (if any) for that command. 
+While using a TUI based command, press ? to get information about key bindings (if any) for that command. 
 
 Usage:
   grofer [flags]
