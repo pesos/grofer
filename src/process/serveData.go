@@ -25,14 +25,14 @@ import (
 // Serve serves data on a per process basis
 func Serve(process *Process, dataChannel chan *Process, ctx context.Context, refreshRate int32) error {
 	for {
+		process.UpdateProcInfo()
+		dataChannel <- process
+
 		select {
 		case <-ctx.Done():
-			return ctx.Err() // Stop execution if end signal received
-
-		default:
-			process.UpdateProcInfo()
-			dataChannel <- process
-			time.Sleep(time.Duration(refreshRate) * time.Millisecond)
+			return ctx.Err()
+		case <-time.After(time.Duration(refreshRate) * time.Millisecond):
+			break
 		}
 	}
 
@@ -40,16 +40,16 @@ func Serve(process *Process, dataChannel chan *Process, ctx context.Context, ref
 
 func ServeProcs(dataChannel chan []*proc.Process, ctx context.Context, refreshRate int32) error {
 	for {
+		procs, err := proc.Processes()
+		if err == nil {
+			dataChannel <- procs
+		}
+
 		select {
 		case <-ctx.Done():
 			return ctx.Err() // Stop execution if end signal received
-
-		default:
-			procs, err := proc.Processes()
-			if err == nil {
-				dataChannel <- procs
-				time.Sleep(time.Duration(refreshRate) * time.Millisecond)
-			}
+		case <-time.After(time.Duration(refreshRate) * time.Millisecond):
+			break
 		}
 	}
 }

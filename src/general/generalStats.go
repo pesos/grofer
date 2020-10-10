@@ -38,38 +38,32 @@ func GlobalStats(ctx context.Context,
 	}
 
 	for {
+		// Get Memory and CPU rates per core periodically
+		var wg sync.WaitGroup
+
+		errCh := make(chan error, len(serveFuncs))
+
+		for _, sf := range serveFuncs {
+			wg.Add(1)
+			go func(sf serveFunc, dc chan utils.DataStats) {
+				defer wg.Done()
+				errCh <- sf(ctx, dc)
+			}(sf, dataChannel)
+		}
+
+		wg.Wait()
+		close(errCh)
+		for err := range errCh {
+			if err != nil {
+				return err
+			}
+		}
+
 		select {
+		case <-time.After(time.Duration(refreshRate) * time.Millisecond):
+			break
 		case <-ctx.Done():
 			return ctx.Err()
-
-		default: // Get Memory and CPU rates per core periodically
-			var wg sync.WaitGroup
-
-			errCh := make(chan error, len(serveFuncs))
-
-			for _, sf := range serveFuncs {
-				wg.Add(1)
-				go func(sf serveFunc, dc chan utils.DataStats) {
-					defer wg.Done()
-					errCh <- sf(ctx, dc)
-				}(sf, dataChannel)
-			}
-
-			wg.Wait()
-			close(errCh)
-
-			for err := range errCh {
-				if err != nil {
-					return err
-				}
-			}
-
-			select {
-			case <-time.After(time.Duration(refreshRate) * time.Millisecond):
-				break
-			case <-ctx.Done():
-				return ctx.Err()
-			}
 		}
 	}
 }

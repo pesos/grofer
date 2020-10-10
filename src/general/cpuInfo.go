@@ -93,17 +93,17 @@ func GetCPULoad(ctx context.Context,
 	dataChannel chan *CPULoad,
 	refreshRate uint64) error {
 	for {
+		err := cpuLoad.updateCPULoad()
+		if err != nil {
+			return err
+		}
+		dataChannel <- cpuLoad
+
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-
-		default: // Get Memory and CPU rates per core periodically
-			err := cpuLoad.updateCPULoad()
-			if err != nil {
-				return err
-			}
-			dataChannel <- cpuLoad
-			time.Sleep(time.Duration(refreshRate) * time.Millisecond)
+		case <-time.After(time.Duration(refreshRate) * time.Millisecond):
+			break
 		}
 	}
 }
