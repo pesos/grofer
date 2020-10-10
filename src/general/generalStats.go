@@ -64,7 +64,12 @@ func GlobalStats(ctx context.Context,
 				}
 			}
 
-			time.Sleep(time.Duration(refreshRate) * time.Millisecond)
+			select {
+			case <-time.After(time.Duration(refreshRate) * time.Millisecond):
+				break
+			case <-ctx.Done():
+				return ctx.Err()
+			}
 		}
 	}
 }
