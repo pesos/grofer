@@ -24,7 +24,7 @@ import (
 
 func ErrorMsg() {
 	rand.Seed(time.Now().UnixNano())
-	num := rand.Intn(5)
+	num := rand.Intn(6)
 	switch num {
 	case 0:
 		ErrorDoggo()
@@ -36,6 +36,10 @@ func ErrorMsg() {
 		ErrorDolphy()
 	case 4:
 		ErrorOwl()
+	case 5:
+		ErrorBeaver()
+	case 6:
+
 	}
 }
 
@@ -139,4 +143,42 @@ func ErrorBunny() {
   `
 
 	fmt.Println(bunny)
+}
+
+//ErrorBeaver displays a PID Error Message with a beaver as ascii ART
+func ErrorBeaver() {
+	beaver := `
+    /   \          /   \
+    \_   \        /  __/
+    _\   \      /  /__
+    \___  \____/   __/
+        \_       _/
+          | @ @  \_
+          |
+        _/     /\
+        /o)  (o/\ \_
+        \_____/ /
+          \____/
+  Whoooopsssss, invalid PID. 
+  Please enter a valid PID.
+  `
+	fmt.Println(beaver)
+}
+
+//ErrorElephant prints out an elephant to display an error message
+func ErrorElephant() {
+	elephant := `
+                         ____
+                    ---'-    \
+      .-----------/           \
+     /           (         ^  |   __
+&   (             \        O  /  / .'
+'._/(              '-'  (.   (_.' /
+     \                    \     ./
+     |    |       |    |/ '._.'
+     )   @).____\|  @ |
+ .  /    /       (    |           Pawoo. Pawoo. Pawoo!
+\|, '_:::\  . ..  '_:::\ ..\).    Plz give Elephant a valid PID.
+  `
+	fmt.Println(elephant)
 }
