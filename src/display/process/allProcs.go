@@ -128,7 +128,6 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 		w, h := ui.TerminalDimensions()
 		myPage.Grid.SetRect(0, 0, w, h)
 		help.Resize(w, h)
-		ui.Clear()
 		if helpVisible {
 			ui.Render(help)
 		} else {

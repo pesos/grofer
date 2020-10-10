@@ -71,7 +71,6 @@ func RenderCharts(ctx context.Context,
 
 		// Get Terminal Dimensions adn clear the UI
 		w, h := ui.TerminalDimensions()
-		ui.Clear()
 
 		// Calculate Heigth offset
 		height := int(h / numCores)
@@ -212,31 +211,7 @@ func RenderCharts(ctx context.Context,
 
 				}
 
-				on.Do(func() {
-					// Get Terminal Dimensions adn clear the UI
-					w, h := ui.TerminalDimensions()
-					ui.Clear()
-
-					// Calculate Heigth offset
-					height := int(h / numCores)
-					heightOffset := h - (height * numCores)
-
-					// Adjust Memory Bar graph values
-					myPage.MemoryChart.BarGap = ((w / 2) - (4 * myPage.MemoryChart.BarWidth)) / 4
-
-					// Adjust CPU Gauge dimensions
-					if isCPUSet {
-						for i := 0; i < numCores; i++ {
-							myPage.CPUCharts[i].SetRect(0, i*height, w/2, (i+1)*height)
-							ui.Render(myPage.CPUCharts[i])
-						}
-					}
-
-					// Adjust Grid dimensions
-					myPage.Grid.SetRect(w/2, 0, w, h-heightOffset)
-
-					ui.Render(myPage.Grid)
-				})
+				on.Do(updateUI)
 			}
 
 		case <-tick: // Update page with new values
@@ -272,7 +247,6 @@ func RenderCPUinfo(ctx context.Context,
 	// Re render UI
 	updateUI := func() {
 		w, h := ui.TerminalDimensions()
-		ui.Clear()
 		myPage.Grid.SetRect(0, 0, w, h)
 		help.Resize(w, h)
 		if helpVisible {
