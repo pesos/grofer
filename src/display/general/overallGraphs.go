@@ -92,6 +92,7 @@ func RenderCharts(ctx context.Context,
 		help.Resize(w, h)
 
 		if helpVisible {
+			ui.Clear()
 			ui.Render(help)
 		} else {
 			ui.Render(myPage.Grid)
