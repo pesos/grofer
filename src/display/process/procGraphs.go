@@ -24,6 +24,7 @@ import (
 	"time"
 
 	ui "github.com/gizak/termui/v3"
+	h "github.com/pesos/grofer/src/display/misc"
 	info "github.com/pesos/grofer/src/general"
 	"github.com/pesos/grofer/src/process"
 	"github.com/pesos/grofer/src/utils"
@@ -63,6 +64,8 @@ func ProcVisuals(ctx context.Context,
 	}
 
 	var on sync.Once
+	var help *h.HelpMenu = h.NewHelpMenu()
+	h.SelectHelpMenu("proc_pid")
 
 	// Create new page
 	myPage := NewPerProcPage()
@@ -85,7 +88,6 @@ func ProcVisuals(ctx context.Context,
 
 		// Get Terminal Dimensions adn clear the UI
 		w, h := ui.TerminalDimensions()
-		ui.Clear()
 
 		// Adjust Memory Stats Bar graph values
 		myPage.MemStatsChart.BarGap = ((w / 2) - (4 * myPage.MemStatsChart.BarWidth)) / 4
@@ -98,7 +100,13 @@ func ProcVisuals(ctx context.Context,
 
 		// Adjust Grid dimensions
 		myPage.Grid.SetRect(0, 0, w, h)
-		ui.Render(myPage.Grid)
+		help.Resize(w, h)
+		ui.Clear()
+		if helpVisible {
+			ui.Render(help)
+		} else {
+			ui.Render(myPage.Grid)
+		}
 	}
 
 	uiEvents := ui.PollEvents()
@@ -113,38 +121,59 @@ func ProcVisuals(ctx context.Context,
 			switch e.ID {
 			case "q", "<C-c>": //q or Ctrl-C to quit
 				return info.ErrCanceledByUser
-			case "s": //s to pause
-				pause()
 			case "<Resize>":
 				updateUI()
-
-			case "j", "<Down>":
-				myPage.ChildProcsList.ScrollDown()
-			case "k", "<Up>":
-				myPage.ChildProcsList.ScrollUp()
-			case "<C-d>":
-				myPage.ChildProcsList.ScrollHalfPageDown()
-			case "<C-u>":
-				myPage.ChildProcsList.ScrollHalfPageUp()
-			case "<C-f>":
-				myPage.ChildProcsList.ScrollPageDown()
-			case "<C-b>":
-				myPage.ChildProcsList.ScrollPageUp()
-			case "g":
-				if previousKey == "g" {
-					myPage.ChildProcsList.ScrollTop()
-				}
-			case "<Home>":
-				myPage.ChildProcsList.ScrollTop()
-			case "G", "<End>":
-				myPage.ChildProcsList.ScrollBottom()
+			case "?":
+				helpVisible = !helpVisible
 			}
-
-			ui.Render(myPage.Grid)
-			if previousKey == "g" {
-				previousKey = ""
+			if helpVisible {
+				switch e.ID {
+				case "?":
+					updateUI()
+				case "<Escape>":
+					helpVisible = false
+					updateUI()
+				case "j", "<Down>":
+					help.List.ScrollDown()
+					ui.Render(help)
+				case "k", "<Up>":
+					help.List.ScrollUp()
+					ui.Render(help)
+				}
 			} else {
-				previousKey = e.ID
+				switch e.ID {
+				case "?":
+					updateUI()
+				case "s": //s to pause
+					pause()
+				case "j", "<Down>":
+					myPage.ChildProcsList.ScrollDown()
+				case "k", "<Up>":
+					myPage.ChildProcsList.ScrollUp()
+				case "<C-d>":
+					myPage.ChildProcsList.ScrollHalfPageDown()
+				case "<C-u>":
+					myPage.ChildProcsList.ScrollHalfPageUp()
+				case "<C-f>":
+					myPage.ChildProcsList.ScrollPageDown()
+				case "<C-b>":
+					myPage.ChildProcsList.ScrollPageUp()
+				case "g":
+					if previousKey == "g" {
+						myPage.ChildProcsList.ScrollTop()
+					}
+				case "<Home>":
+					myPage.ChildProcsList.ScrollTop()
+				case "G", "<End>":
+					myPage.ChildProcsList.ScrollBottom()
+				}
+
+				ui.Render(myPage.Grid)
+				if previousKey == "g" {
+					previousKey = ""
+				} else {
+					previousKey = e.ID
+				}
 			}
 
 		case data := <-dataChannel:
@@ -213,7 +242,9 @@ func ProcVisuals(ctx context.Context,
 			}
 
 		case <-tick:
-			updateUI()
+			if !helpVisible {
+				ui.Render(myPage.Grid)
+			}
 		}
 	}
 }
