@@ -102,6 +102,7 @@ func ProcVisuals(ctx context.Context,
 		myPage.Grid.SetRect(0, 0, w, h)
 		help.Resize(w, h)
 		if helpVisible {
+			ui.Clear()
 			ui.Render(help)
 		} else {
 			ui.Render(myPage.Grid)
