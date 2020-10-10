@@ -3,7 +3,7 @@ Grofer
 
 ![build](https://api.travis-ci.org/pesos/grofer.svg?branch=master&status=started)
 
-A clean system monitor and profiler written purely in golang using [termui](https://github.com/gizak/termui) and [gopsutil](https://github.com/shirou/gopsutil)!
+A clean and modern system and resource monitor written purely in golang using [termui](https://github.com/gizak/termui) and [gopsutil](https://github.com/shirou/gopsutil)!
 
 Currently compatible with Linux only.
 
@@ -82,7 +82,9 @@ Usage
 -----
 
 ```
-grofer is a system profiler written in golang
+grofer is a system profiler written in golang.
+
+While using a TUI based command, press ? to get information about keybindigns (if any) for that command. 
 
 Usage:
   grofer [flags]
@@ -90,6 +92,7 @@ Usage:
 
 Available Commands:
   about       about is a command that gives information about the project in a cute way
+  completion  Generate completion script
   help        Help about any command
   proc        proc command is used to get per-process information
 
@@ -97,7 +100,7 @@ Flags:
       --config string   config file (default is $HOME/.grofer.yaml)
   -c, --cpuinfo         Info about the CPU Load over all CPUs
   -h, --help            help for grofer
-  -r, --refresh int32   Overall stats UI refreshes rate in milliseconds greater than 1000 (default 1000)
+  -r, --refresh uint    Overall stats UI refreshes rate in milliseconds greater than 1000 (default 1000)
   -t, --toggle          Help message for toggle
 
 Use "grofer [command] --help" for more information about a command.
@@ -134,8 +137,7 @@ Information provided:
 - Nice : % of time spent by CPU executing user level processes with a nice priority.  
 - Iowait: % of time spent by CPU waiting for an outstanding disk I/O.  
 - Soft : % of time spent by the CPU servicing software interrupts.
-
--	Steal : % of time spent in involuntary waiting by logical CPUs.  
+- Steal : % of time spent in involuntary waiting by logical CPUs.  
 
 ---
 

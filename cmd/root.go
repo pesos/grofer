@@ -43,7 +43,10 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "grofer",
-	Short: "grofer is a system profiler written in golang",
+	Short: "grofer is a system and resource monitor written in golang",
+	Long: `grofer is a system and resource monitor written in golang.
+
+While using a TUI based command, press ? to get information about keybindigns (if any) for that command.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		overallRefreshRate, _ := cmd.Flags().GetUint64("refresh")
 		if overallRefreshRate < 1000 {
