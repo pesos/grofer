@@ -146,7 +146,6 @@ func errorBunny() {
 	fmt.Println(bunny)
 }
 
-//ErrorBeaver displays a PID Error Message with a beaver as ascii ART
 func errorBeaver() {
 	beaver := `
     /   \          /   \
@@ -166,7 +165,6 @@ func errorBeaver() {
 	fmt.Println(beaver)
 }
 
-//errorElephant prints out an elephant to display an error message
 func errorElephant() {
 	elephant := `
                          ____
