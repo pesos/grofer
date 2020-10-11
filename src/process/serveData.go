@@ -17,39 +17,28 @@ package process
 
 import (
 	"context"
-	"time"
 
+	"github.com/pesos/grofer/src/utils"
 	proc "github.com/shirou/gopsutil/process"
 )
 
 // Serve serves data on a per process basis
-func Serve(process *Process, dataChannel chan *Process, ctx context.Context, refreshRate int32) error {
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err() // Stop execution if end signal received
+func Serve(process *Process, dataChannel chan *Process, ctx context.Context, refreshRate int64) error {
+	return utils.TickUntilDone(ctx, refreshRate, func() error {
+		process.UpdateProcInfo()
+		dataChannel <- process
 
-		default:
-			process.UpdateProcInfo()
-			dataChannel <- process
-			time.Sleep(time.Duration(refreshRate) * time.Millisecond)
-		}
-	}
-
+		return nil
+	})
 }
 
-func ServeProcs(dataChannel chan []*proc.Process, ctx context.Context, refreshRate int32) error {
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err() // Stop execution if end signal received
-
-		default:
-			procs, err := proc.Processes()
-			if err == nil {
-				dataChannel <- procs
-				time.Sleep(time.Duration(refreshRate) * time.Millisecond)
-			}
+func ServeProcs(dataChannel chan []*proc.Process, ctx context.Context, refreshRate int64) error {
+	return utils.TickUntilDone(ctx, refreshRate, func() error {
+		procs, err := proc.Processes()
+		if err == nil {
+			dataChannel <- procs
 		}
-	}
+
+		return nil
+	})
 }
