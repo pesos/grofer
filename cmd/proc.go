@@ -72,7 +72,7 @@ Syntax:
 			}
 
 			eg.Go(func() error {
-				return process.Serve(proc, dataChannel, ctx, int32(4*procRefreshRate/5))
+				return process.Serve(proc, dataChannel, ctx, int64(4*procRefreshRate/5))
 			})
 			eg.Go(func() error {
 				return procGraph.ProcVisuals(ctx, dataChannel, procRefreshRate)
@@ -89,7 +89,7 @@ Syntax:
 			eg, ctx := errgroup.WithContext(context.Background())
 
 			eg.Go(func() error {
-				return process.ServeProcs(dataChannel, ctx, int32(4*procRefreshRate/5))
+				return process.ServeProcs(dataChannel, ctx, int64(4*procRefreshRate/5))
 			})
 			eg.Go(func() error {
 				return procGraph.AllProcVisuals(dataChannel, ctx, procRefreshRate)

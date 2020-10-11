@@ -203,6 +203,7 @@ func ProcVisuals(ctx context.Context,
 					[]string{"[Nice value](fg:yellow)", strconv.Itoa(int(data.Nice))},
 					[]string{"[Thread count](fg:yellow)", strconv.Itoa(int(data.NumThreads))},
 					[]string{"[Child process count](fg:yellow)", strconv.Itoa(len(data.Children))},
+					[]string{"[Last Update](fg:yellow)", time.Now().Format("15:04:05")},
 				}
 				myPage.PIDTable.Title = " PID: " + strconv.Itoa(int(data.Proc.Pid)) + " "
 

@@ -18,7 +18,6 @@ package general
 import (
 	"context"
 	"sync"
-	"time"
 
 	"github.com/pesos/grofer/src/utils"
 )
@@ -26,9 +25,7 @@ import (
 type serveFunc func(context.Context, chan utils.DataStats) error
 
 // GlobalStats gets stats about the mem and the CPUs and prints it.
-func GlobalStats(ctx context.Context,
-	dataChannel chan utils.DataStats,
-	refreshRate uint64) error {
+func GlobalStats(ctx context.Context, dataChannel chan utils.DataStats, refreshRate uint64) error {
 
 	serveFuncs := []serveFunc{
 		ServeCPURates,
@@ -37,8 +34,7 @@ func GlobalStats(ctx context.Context,
 		ServeNetRates,
 	}
 
-	for {
-		// Get Memory and CPU rates per core periodically
+	return utils.TickUntilDone(ctx, int64(refreshRate), func() error {
 		var wg sync.WaitGroup
 
 		errCh := make(chan error, len(serveFuncs))
@@ -59,11 +55,6 @@ func GlobalStats(ctx context.Context,
 			}
 		}
 
-		select {
-		case <-time.After(time.Duration(refreshRate) * time.Millisecond):
-			break
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-	}
+		return nil
+	})
 }
