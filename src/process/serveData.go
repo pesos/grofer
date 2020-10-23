@@ -16,43 +16,29 @@ limitations under the License.
 package process
 
 import (
-	"os"
-	"sync"
-	"time"
+	"context"
 
+	"github.com/pesos/grofer/src/utils"
 	proc "github.com/shirou/gopsutil/process"
 )
 
 // Serve serves data on a per process basis
-func Serve(process *Process, dataChannel chan *Process, endChannel chan os.Signal, refreshRate int32, wg *sync.WaitGroup) {
-	for {
-		select {
-		case <-endChannel:
-			wg.Done() // Stop execution if end signal received
-			return
+func Serve(process *Process, dataChannel chan *Process, ctx context.Context, refreshRate int64) error {
+	return utils.TickUntilDone(ctx, refreshRate, func() error {
+		process.UpdateProcInfo()
+		dataChannel <- process
 
-		default:
-			process.UpdateProcInfo()
-			dataChannel <- process
-			time.Sleep(time.Duration(refreshRate) * time.Millisecond)
-		}
-	}
-
+		return nil
+	})
 }
 
-func ServeProcs(dataChannel chan []*proc.Process, endChannel chan os.Signal, refreshRate int32, wg *sync.WaitGroup) {
-	for {
-		select {
-		case <-endChannel:
-			wg.Done()
-			return
-
-		default:
-			procs, err := proc.Processes()
-			if err == nil {
-				dataChannel <- procs
-				time.Sleep(time.Duration(refreshRate) * time.Millisecond)
-			}
+func ServeProcs(dataChannel chan []*proc.Process, ctx context.Context, refreshRate int64) error {
+	return utils.TickUntilDone(ctx, refreshRate, func() error {
+		procs, err := proc.Processes()
+		if err == nil {
+			dataChannel <- procs
 		}
-	}
+
+		return nil
+	})
 }

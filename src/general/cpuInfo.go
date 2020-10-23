@@ -21,8 +21,8 @@ import (
 	"fmt"
 	"os/exec"
 	"strconv"
-	"time"
 
+	"github.com/pesos/grofer/src/utils"
 	gjson "github.com/tidwall/gjson"
 )
 
@@ -90,22 +90,14 @@ func (c *CPULoad) UpdateCPULoad() error {
 }
 
 // GetCPULoad updated the CPULoad struct and serves the data to the data channel.
-func GetCPULoad(ctx context.Context,
-	cpuLoad *CPULoad,
-	dataChannel chan *CPULoad,
-	refreshRate int32) error {
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-
-		default: // Get Memory and CPU rates per core periodically
-			err := cpuLoad.UpdateCPULoad()
-			if err != nil {
-				return err
-			}
-			dataChannel <- cpuLoad
-			time.Sleep(time.Duration(refreshRate) * time.Millisecond)
+func GetCPULoad(ctx context.Context, cpuLoad *CPULoad, dataChannel chan *CPULoad, refreshRate uint64) error {
+	return utils.TickUntilDone(ctx, int64(refreshRate), func() error {
+		err := cpuLoad.UpdateCPULoad()
+		if err != nil {
+			return err
 		}
-	}
+		dataChannel <- cpuLoad
+
+		return nil
+	})
 }
