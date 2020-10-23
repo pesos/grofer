@@ -8,7 +8,7 @@ require (
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/mattn/go-runewidth v0.0.2
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/prometheus/procfs v0.2.0 // indirect
+	github.com/prometheus/procfs v0.2.0
 	github.com/shirou/gopsutil v2.20.6+incompatible
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/viper v1.7.0

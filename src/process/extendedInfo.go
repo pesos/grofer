@@ -22,17 +22,8 @@ import (
 	"strings"
 )
 
-const (
-	procPath                 = "/proc"
-	schedAlgorithmSearch     = "sched"
-	schedAlgorithmSearchTerm = "policy"
-	cpuAllowedSearch         = "status"
-	cpuAllowedList           = "Cpus_allowed_list"
-)
-
-type ExtendedInfo struct {
+type extendedInfo struct {
 	SchedPolicy string `json:"sched_policy,omitempty"`
-	CPUAllowed  []int  `json:"cpu_allowed,omitempty"`
 }
 
 var policyMap map[string]string = map[string]string{
@@ -59,24 +50,13 @@ func getPolicy(pid int32) (string, error) {
 	return policyMap[policy], nil
 }
 
-func getAllowedCPUList(pid int32) ([]int, error) {
-	var dummy []int
-	return dummy, nil
-}
-
-func (extended *ExtendedInfo) updateExtendedInfo(pid int32) error {
+func (extended *extendedInfo) updateExtendedInfo(pid int32) error {
 	policy, err := getPolicy(pid)
 	if err != nil {
 		return err
 	}
 
-	allowedCPUs, err := getAllowedCPUList(pid)
-	if err != nil {
-		return err
-	}
-
 	extended.SchedPolicy = policy
-	extended.CPUAllowed = allowedCPUs
 
 	return nil
 }
