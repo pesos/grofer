@@ -22,8 +22,6 @@ jobs:
       - checkout
 
       # specify any bash command here prefixed with `run: `
-      - run: go get -v -t -d ./...
-      - run: go test -v ./...
       - run: bash ./scripts/fmt.sh
       - run: bash ./scripts/build.sh
       - run: python3 ./scripts/license_check.py
