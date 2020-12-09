@@ -1,7 +1,7 @@
 Grofer
 ======
 
-![build](https://api.travis-ci.org/pesos/grofer.svg?branch=master&status=started)
+[![pesos](https://circleci.com/gh/pesos/grofer.svg?style=svg)](https://app.circleci.com/pipelines/github/pesos/grofer)
 
 A clean and modern system and resource monitor written purely in golang using [termui](https://github.com/gizak/termui) and [gopsutil](https://github.com/shirou/gopsutil)!
 
@@ -42,10 +42,12 @@ go build grofer.go
 Shell Completions
 -----------------
 
-`grofer` includes a subcommand to generate shell completion scripts to get autocompletion for subcommands and flags  
+`grofer` includes a subcommand to generate shell completion scripts to get autocompletion for subcommands and flags
 
 ### Bash
+
 To get completions for current session only,
+
 ```sh
 source <(grofer completion bash)
 ```
@@ -55,11 +57,13 @@ To load completions for each session, the generated script must be moved to the 
 ### Zsh
 
 If shell completion is not already enabled in your environment you will need to enable it. You can execute the following once:
+
 ```sh
 echo "autoload -U compinit; compinit" >> ~/.zshrc
 ```
 
 To load completions for each session, the generated script must be placed in a directory in your [fpath](http://zsh.sourceforge.net/Doc/Release/Functions.html). For a quick-and-dirty solution, run once:
+
 ```sh
 grofer completion zsh > "${fpath[1]}/_grofer"
 ```
@@ -69,11 +73,13 @@ You will need to start a new shell for this setup to take effect.
 ### Fish
 
 To get completions for current session only,
+
 ```sh
 grofer completion fish | source
 ```
 
 To load completions for each session, the generated script must be moved to the completions directory
+
 ```sh
 grofer completion fish > ~/.config/fish/completions/grofer.fish
 ```
@@ -84,7 +90,7 @@ Usage
 ```
 grofer is a system profiler written in golang.
 
-While using a TUI based command, press ? to get information about key bindings (if any) for that command. 
+While using a TUI based command, press ? to get information about key bindings (if any) for that command.
 
 Usage:
   grofer [flags]
@@ -136,8 +142,7 @@ Information provided:
 - Idle : % of time CPU was idle.  
 - Nice : % of time spent by CPU executing user level processes with a nice priority.  
 - Iowait: % of time spent by CPU waiting for an outstanding disk I/O.  
-- Soft : % of time spent by the CPU servicing software interrupts.
-- Steal : % of time spent in involuntary waiting by logical CPUs.  
+- Soft : % of time spent by the CPU servicing software interrupts. - Steal : % of time spent in involuntary waiting by logical CPUs.
 
 ---
 
