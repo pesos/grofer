@@ -69,7 +69,7 @@ func NewOverallStats() *OverallStats {
 
 func roundOff(num uint64) float64 {
 	x := float64(num) / (1024 * 1024 * 1024)
-	return math.Round(x*10) / 10
+	return math.Round(x*100) / 100
 }
 
 func (data *OverallStats) updateData() error {
@@ -82,6 +82,7 @@ func (data *OverallStats) updateData() error {
 		return err
 	}
 
+	// Memory values in giga
 	memory, err := mem.VirtualMemory()
 	memRates := memStats{roundOff(memory.Total),
 		roundOff(memory.Available),
@@ -95,6 +96,7 @@ func (data *OverallStats) updateData() error {
 		return err
 	}
 
+	// Disk values in giga
 	partitions, err := disk.Partitions(false)
 	if err == nil {
 		var tempParts []diskStats
@@ -112,7 +114,13 @@ func (data *OverallStats) updateData() error {
 				usedPercent := usageVals.UsedPercent
 				free := float64(usageVals.Free) / (1024 * 1024 * 1024)
 				fs := usageVals.Fstype
-				temp := diskStats{path, total, used, usedPercent, free, fs}
+
+				roundedTotal := math.Round(total*100) / 100
+				roundedUsed := math.Round(used*100) / 100
+				roundedUsedPercent := math.Round(usedPercent*100) / 100
+				roundedFree := math.Round(free*100) / 100
+
+				temp := diskStats{path, roundedTotal, roundedUsed, roundedUsedPercent, roundedFree, fs}
 				tempParts = append(tempParts, temp)
 			}
 		}
@@ -121,6 +129,7 @@ func (data *OverallStats) updateData() error {
 		return err
 	}
 
+	// Net values in kilo
 	netData, err := net.IOCounters(false)
 	if err == nil {
 		IO := make(map[string]netStats)
@@ -146,36 +155,31 @@ func (data *OverallStats) updateData() error {
 	return nil
 }
 
-func getJSONData(iter uint32, refreshRate uint64) ([]OverallStats, error) {
-	var data []OverallStats
-	var i uint32
+// ExportJSON exports data to a JSON file for a specified number of iterations
+// and a specified refreshed rate.
+func ExportJSON(filename string, iter uint32, refreshRate uint64) error {
+	os.Remove(filename)
+
+	logFile, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer logFile.Close()
+
+	encoder := json.NewEncoder(logFile)
 	stats := NewOverallStats()
+	var i uint32
+
 	for i = 0; i < iter; i++ {
 		err := stats.updateData()
 		if err != nil {
-			return data, err
+			return err
 		}
-		data = append(data, *stats)
+
+		err = encoder.Encode(&stats)
 		time.Sleep(time.Duration(refreshRate) * time.Millisecond)
 	}
-	return data, nil
-}
 
-// ExportJSON exports data to a JSON file for a specified number of iterations
-// and a specified refreshed rate.
-func ExportJSON(fileName string, iter uint32, refreshRate uint64) error {
-	os.Remove(fileName)
-	toWrite, _ := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE, os.ModePerm)
-	defer toWrite.Close()
-	encoder := json.NewEncoder(toWrite)
-	data, err := getJSONData(iter, refreshRate)
-	if err != nil {
-		return err
-	}
-	err = encoder.Encode(data)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 

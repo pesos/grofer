@@ -38,18 +38,17 @@ const (
 // a map would prove useful.
 var providedExportTypes = map[string]bool{
 	"json": true,
-	"csv":  true,
 }
 
-func hasValidExtension(fileName, exportType string) error {
-	fileName = strings.ToLower(fileName)
+func hasValidExtension(filename, exportType string) error {
+	filename = strings.ToLower(filename)
 	var hasProvidedExtension bool = false
 
 	// Check if any one of the allowed export types is a suffix for the
 	// file name provided.
 	for exportType, allowed := range providedExportTypes {
 		if allowed {
-			hasType := strings.HasSuffix(fileName, "."+exportType)
+			hasType := strings.HasSuffix(filename, "."+exportType)
 			hasProvidedExtension = hasProvidedExtension || hasType
 		}
 	}
@@ -57,7 +56,7 @@ func hasValidExtension(fileName, exportType string) error {
 	// then check if it matches with the export type specified
 	// in the command. If not then return an error
 	if hasProvidedExtension {
-		validExtension := strings.HasSuffix(fileName, exportType)
+		validExtension := strings.HasSuffix(filename, exportType)
 		if validExtension {
 			return nil
 		}
@@ -69,8 +68,8 @@ func hasValidExtension(fileName, exportType string) error {
 	return nil
 }
 
-func validateFileName(fileName, exportType string) error {
-	isValid := hasValidExtension(fileName, exportType)
+func validateFileName(filename, exportType string) error {
+	isValid := hasValidExtension(filename, exportType)
 	return isValid
 }
 
@@ -105,11 +104,11 @@ var exportCmd = &cobra.Command{
 			return err
 		}
 
-		fileName, err := cmd.Flags().GetString("fileName")
+		filename, err := cmd.Flags().GetString("filename")
 		if err != nil {
 			return err
 		}
-		err = validateFileName(fileName, exportType)
+		err = validateFileName(filename, exportType)
 		if err != nil {
 			return err
 		}
@@ -117,10 +116,7 @@ var exportCmd = &cobra.Command{
 		if exportPid == defaultExportPid {
 			switch exportType {
 			case "json":
-				return exportGeneral.ExportJSON(fileName, iter, refreshRate)
-
-			case "csv":
-				return exportGeneral.ExportCSV(fileName, iter, refreshRate)
+				return exportGeneral.ExportJSON(filename, iter, refreshRate)
 
 			default:
 				return fmt.Errorf("invalid export type, see grofer export --help")
@@ -128,11 +124,7 @@ var exportCmd = &cobra.Command{
 		} else {
 			switch exportType {
 			case "json":
-				return exportProc.ExportPidJSON(exportPid, fileName, iter, refreshRate)
-
-			case "csv":
-				// TODO
-				return nil
+				return exportProc.ExportPidJSON(exportPid, filename, iter, refreshRate)
 
 			default:
 				return fmt.Errorf("invalid export type, see grofer export --help")
@@ -153,7 +145,7 @@ func init() {
 		"specify the number of iterations to run profiler",
 	)
 	exportCmd.Flags().StringP(
-		"fileName",
+		"filename",
 		"f",
 		defaultExportFileName,
 		"specify the name of the export file",
