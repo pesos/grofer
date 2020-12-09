@@ -1,12 +1,9 @@
 /*
 Copyright © 2020 The PES Open Source Team pesos@pes.edu
-
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
     http://www.apache.org/licenses/LICENSE-2.0
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,8 +18,8 @@ import (
 	"fmt"
 	"os/exec"
 	"strconv"
-	"time"
 
+	"github.com/pesos/grofer/src/utils"
 	gjson "github.com/tidwall/gjson"
 )
 
@@ -42,13 +39,11 @@ type CPULoad struct {
 	CPURates [][]string `json:"-"` // Has first row with CPU names and second row with CPU usage rates, might not be ideal format for export
 }
 
-// NewCPULoad is a constructor for the CPULoad type.
 func NewCPULoad() *CPULoad {
 	return &CPULoad{}
 }
 
-// UpdateCPULoad updates fields of the type CPULoad
-func (c *CPULoad) UpdateCPULoad() error {
+func (c *CPULoad) updateCPULoad() error {
 	mpstat := "mpstat"
 	arg0 := "-o"
 	arg1 := "JSON"
@@ -90,22 +85,14 @@ func (c *CPULoad) UpdateCPULoad() error {
 }
 
 // GetCPULoad updated the CPULoad struct and serves the data to the data channel.
-func GetCPULoad(ctx context.Context,
-	cpuLoad *CPULoad,
-	dataChannel chan *CPULoad,
-	refreshRate int32) error {
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-
-		default: // Get Memory and CPU rates per core periodically
-			err := cpuLoad.UpdateCPULoad()
-			if err != nil {
-				return err
-			}
-			dataChannel <- cpuLoad
-			time.Sleep(time.Duration(refreshRate) * time.Millisecond)
+func GetCPULoad(ctx context.Context, cpuLoad *CPULoad, dataChannel chan *CPULoad, refreshRate uint64) error {
+	return utils.TickUntilDone(ctx, int64(refreshRate), func() error {
+		err := cpuLoad.updateCPULoad()
+		if err != nil {
+			return err
 		}
-	}
+		dataChannel <- cpuLoad
+
+		return nil
+	})
 }

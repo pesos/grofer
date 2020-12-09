@@ -22,24 +22,29 @@ import (
 	"time"
 )
 
+//ErrorMsg displays cute error ASCI Art for PID Errors
 func ErrorMsg() {
 	rand.Seed(time.Now().UnixNano())
-	num := rand.Intn(5)
+	num := rand.Intn(7) //gives a pseudorandom number in the range [0, n) (n not included).
 	switch num {
 	case 0:
-		ErrorDoggo()
+		errorDoggo()
 	case 1:
-		ErrorCatto()
+		errorCatto()
 	case 2:
-		ErrorBunny()
+		errorBunny()
 	case 3:
-		ErrorDolphy()
+		errorDolphy()
 	case 4:
-		ErrorOwl()
+		errorOwl()
+	case 5:
+		errorBeaver()
+	case 6:
+		errorElephant()
 	}
 }
 
-func ErrorDoggo() {
+func errorDoggo() {
 	dog := `
 	pid no exist, done doggo a sad
 		\
@@ -56,7 +61,7 @@ func ErrorDoggo() {
 	fmt.Println(dog)
 }
 
-func ErrorOwl() {
+func errorOwl() {
 	goobes := `
 
    /\_/\  The council of wise owls are confused!  /\_/\
@@ -70,7 +75,7 @@ func ErrorOwl() {
 	fmt.Println(goobes)
 }
 
-func ErrorCatto() {
+func errorCatto() {
 	cat := `
 Catto says PID is invalid, plis give valid PID
     \
@@ -96,7 +101,7 @@ Catto says PID is invalid, plis give valid PID
 	fmt.Println(cat)
 }
 
-func ErrorDolphy() {
+func errorDolphy() {
 	dolphy := `
                                _.-~  )
                     _..--~~~~,'   ,-/     _
@@ -115,7 +120,7 @@ func ErrorDolphy() {
 	fmt.Println(dolphy)
 }
 
-func ErrorBunny() {
+func errorBunny() {
 	bunny := `             ,
             /|      __
            / |   ,-~ /
@@ -139,4 +144,40 @@ func ErrorBunny() {
   `
 
 	fmt.Println(bunny)
+}
+
+func errorBeaver() {
+	beaver := `
+    /   \          /   \
+    \_   \        /  __/
+    _\   \      /  /__
+    \___  \____/   __/
+        \_       _/
+          | @ @  \_
+          |
+        _/     /\
+        /o)  (o/\ \_
+        \_____/ /
+          \____/
+  Whoooopsssss, invalid PID. 
+  Please enter a valid PID.
+  `
+	fmt.Println(beaver)
+}
+
+func errorElephant() {
+	elephant := `
+                         ____
+                    ---'-    \
+      .-----------/           \
+     /           (         ^  |   __
+&   (             \        O  /  / .'
+'._/(              '-'  (.   (_.' /
+     \                    \     ./
+     |    |       |    |/ '._.'
+     )   @).____\|  @ |
+ .  /    /       (    |           Pawoo. Pawoo. Pawoo!
+\|, '_:::\  . ..  '_:::\ ..\).    Plz give Elephant a valid PID.
+  `
+	fmt.Println(elephant)
 }
