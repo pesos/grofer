@@ -39,11 +39,13 @@ type CPULoad struct {
 	CPURates [][]string `json:"-"` // Has first row with CPU names and second row with CPU usage rates, might not be ideal format for export
 }
 
+// NewCPULoad is a constructor for the CPULoad type.
 func NewCPULoad() *CPULoad {
 	return &CPULoad{}
 }
 
-func (c *CPULoad) updateCPULoad() error {
+// UpdateCPULoad updates fields of the type CPULoad
+func (c *CPULoad) UpdateCPULoad() error {
 	mpstat := "mpstat"
 	arg0 := "-o"
 	arg1 := "JSON"
@@ -90,6 +92,7 @@ func GetCPULoad(ctx context.Context, cpuLoad *CPULoad, dataChannel chan *CPULoad
 		err := cpuLoad.updateCPULoad()
 		if err != nil {
 			return err
+
 		}
 		dataChannel <- cpuLoad
 

@@ -21,6 +21,7 @@ import (
 
 	exportGeneral "github.com/pesos/grofer/src/export/general"
 	exportProc "github.com/pesos/grofer/src/export/proc"
+
 	"github.com/spf13/cobra"
 )
 
@@ -30,6 +31,7 @@ const (
 	defaultExportFileName    = "grofer_profile"
 	defaultExportType        = "json"
 	defaultExportPid         = -1
+
 )
 
 // Maintain a map of extensions provided by grofer.
@@ -42,6 +44,7 @@ var providedExportTypes = map[string]bool{
 
 func hasValidExtension(filename, exportType string) error {
 	filename = strings.ToLower(filename)
+
 	var hasProvidedExtension bool = false
 
 	// Check if any one of the allowed export types is a suffix for the
@@ -108,6 +111,7 @@ var exportCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+    
 		err = validateFileName(filename, exportType)
 		if err != nil {
 			return err
@@ -130,7 +134,6 @@ var exportCmd = &cobra.Command{
 				return fmt.Errorf("invalid export type, see grofer export --help")
 			}
 		}
-
 	},
 }
 
