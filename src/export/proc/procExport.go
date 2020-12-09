@@ -23,7 +23,6 @@ import (
 	"time"
 
 	procInfo "github.com/pesos/grofer/src/process"
-	"github.com/pesos/grofer/src/utils"
 )
 
 type contextSwitches struct {
@@ -88,7 +87,7 @@ func getPidDataJSON(pid int32) (PidStats, error) {
 		Status:            statusMap[proc.Status],
 		Background:        strconv.FormatBool(proc.Background),
 		Running:           strconv.FormatBool(proc.IsRunning),
-		CreationTime:      utils.GetDateFromUnix(proc.CreateTime),
+		CreationTime:      strconv.FormatInt(proc.CreateTime, 10),
 		NiceValue:         strconv.Itoa(int(proc.Nice)),
 		ThreadCount:       strconv.Itoa(int(proc.NumThreads)),
 		ChildProcessCount: strconv.Itoa(len(proc.Children)),
@@ -124,22 +123,27 @@ func getPidDataJSON(pid int32) (PidStats, error) {
 
 func ExportPidJSON(pid int32, filename string, iter uint32, refreshRate uint64) error {
 	os.Remove(filename)
-	toWrite, _ := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, os.ModePerm)
-	defer toWrite.Close()
-	encoder := json.NewEncoder(toWrite)
-	var jsonData []PidStats
-	for i := uint32(0); i < iter; i++ {
-		data, err := getPidDataJSON(pid)
-		if err != nil {
-			break
-		}
-		jsonData = append(jsonData, data)
-		time.Sleep(time.Duration(refreshRate) * time.Millisecond)
-	}
-
-	err := encoder.Encode(jsonData)
+	logFile, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
+	defer logFile.Close()
+
+	encoder := json.NewEncoder(logFile)
+
+	for i := uint32(0); i < iter; i++ {
+		data, err := getPidDataJSON(pid)
+		if err != nil {
+			return err
+		}
+
+		err = encoder.Encode(data)
+		if err != nil {
+			return err
+		}
+
+		time.Sleep(time.Duration(refreshRate) * time.Millisecond)
+	}
+
 	return nil
 }
