@@ -18,5 +18,5 @@ package main
 import "github.com/pesos/grofer/cmd"
 
 func main() {
-						cmd.Execute()
+	cmd.Execute()
 }
