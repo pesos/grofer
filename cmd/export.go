@@ -31,7 +31,6 @@ const (
 	defaultExportFileName    = "grofer_profile"
 	defaultExportType        = "json"
 	defaultExportPid         = -1
-
 )
 
 // Maintain a map of extensions provided by grofer.
@@ -111,7 +110,7 @@ var exportCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-    
+
 		err = validateFileName(filename, exportType)
 		if err != nil {
 			return err
