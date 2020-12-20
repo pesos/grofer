@@ -182,8 +182,3 @@ func ExportJSON(filename string, iter uint32, refreshRate uint64) error {
 
 	return nil
 }
-
-func ExportCSV(fileName string, iter uint32, refreshRate uint64) error {
-	// TODO
-	return nil
-}

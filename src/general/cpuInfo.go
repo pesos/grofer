@@ -89,7 +89,7 @@ func (c *CPULoad) UpdateCPULoad() error {
 // GetCPULoad updated the CPULoad struct and serves the data to the data channel.
 func GetCPULoad(ctx context.Context, cpuLoad *CPULoad, dataChannel chan *CPULoad, refreshRate uint64) error {
 	return utils.TickUntilDone(ctx, int64(refreshRate), func() error {
-		err := cpuLoad.updateCPULoad()
+		err := cpuLoad.UpdateCPULoad()
 		if err != nil {
 			return err
 
