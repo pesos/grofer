@@ -18,11 +18,14 @@ package export
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	procInfo "github.com/pesos/grofer/src/process"
+	"github.com/pesos/grofer/src/utils"
 )
 
 type contextSwitches struct {
@@ -56,7 +59,7 @@ type ProcDetails struct {
 
 type PidStats struct {
 	Cpu         float64         `json:"cpu"`
-	Mem         float32         `json:"mem"`
+	Mem         float64         `json:"mem"`
 	PidDetails  ProcDetails     `json:"pid"`
 	CtxSwitches contextSwitches `json:"ctxSwitches"`
 	PageFaults  pageFaults      `json:"pageFaults"`
@@ -111,8 +114,8 @@ func getPidDataJSON(pid int32) (PidStats, error) {
 	}
 
 	pidData := PidStats{
-		Cpu:         proc.CPUPercent,
-		Mem:         proc.MemoryPercent,
+		Cpu:         utils.RoundFloat(proc.CPUPercent, "NONE", 2),
+		Mem:         utils.RoundFloat(float64(proc.MemoryPercent), "NONE", 2),
 		PidDetails:  pidDetails,
 		CtxSwitches: ctxSwitches,
 		PageFaults:  pgFaults,
@@ -122,7 +125,19 @@ func getPidDataJSON(pid int32) (PidStats, error) {
 }
 
 func ExportPidJSON(pid int32, filename string, iter uint32, refreshRate uint64) error {
-	os.Remove(filename)
+	if _, err := os.Stat(filename); err == nil {
+		fmt.Printf("Previous profile with name %s exists. Overwrite? (Y/N) ", filename)
+		var choice string
+		fmt.Scanf("%s", &choice)
+
+		choice = strings.ToLower(choice)
+		if choice != "y" {
+			return nil
+		} else {
+			os.Remove(filename)
+		}
+	}
+
 	logFile, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return err

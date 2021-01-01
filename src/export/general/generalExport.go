@@ -157,7 +157,7 @@ func (data *OverallStats) updateData() error {
 // and a specified refreshed rate.
 func ExportJSON(filename string, iter uint32, refreshRate uint64) error {
 	if _, err := os.Stat(filename); err == nil {
-		fmt.Printf("Previous profile with name 'grofer_profile' exists. Overwrite? (Y/N) ")
+		fmt.Printf("Previous profile with name %s exists. Overwrite? (Y/N) ", filename)
 		var choice string
 		fmt.Scanf("%s", &choice)
 
