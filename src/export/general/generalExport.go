@@ -18,6 +18,7 @@ package general
 
 import (
 	"encoding/json"
+	"fmt"
 	"math"
 	"os"
 	"strings"
@@ -174,7 +175,19 @@ func (data *OverallStats) updateData() error {
 // ExportJSON exports data to a JSON file for a specified number of iterations
 // and a specified refreshed rate.
 func ExportJSON(filename string, iter uint32, refreshRate uint64) error {
-	os.Remove(filename)
+	fmt.Println("Here", filename)
+	if _, err := os.Stat(filename); err == nil {
+		fmt.Printf("Previous profile with name 'grofer_profile' exists. Overwrite? (Y/N) ")
+		var choice string
+		fmt.Scanf("%s", &choice)
+
+		choice = strings.ToLower(choice)
+		if choice != "y" {
+			return nil
+		} else {
+			os.Remove(filename)
+		}
+	}
 
 	logFile, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
