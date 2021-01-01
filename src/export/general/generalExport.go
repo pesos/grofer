@@ -177,15 +177,18 @@ func ExportJSON(filename string, iter uint32, refreshRate uint64) error {
 
 	encoder := json.NewEncoder(logFile)
 	stats := NewOverallStats()
-	var i uint32
 
-	for i = 0; i < iter; i++ {
+	for i := uint32(0); i < iter; i++ {
 		err := stats.updateData()
 		if err != nil {
-			return err
+			fmt.Println(err)
 		}
 
 		err = encoder.Encode(&stats)
+		if err != nil {
+			fmt.Println(err)
+		}
+
 		time.Sleep(time.Duration(refreshRate) * time.Millisecond)
 	}
 
