@@ -19,12 +19,12 @@ package general
 import (
 	"encoding/json"
 	"fmt"
-	"math"
 	"os"
 	"strings"
 	"time"
 
 	cpuInfo "github.com/pesos/grofer/src/general"
+	"github.com/pesos/grofer/src/utils"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/mem"
@@ -68,32 +68,13 @@ func NewOverallStats() *OverallStats {
 	return &OverallStats{}
 }
 
-func roundFloat(num float64, base string, precision int) float64 {
-	x := num
-	div := math.Pow10(precision)
-	switch base {
-	case "K":
-		x /= 1024
-	case "M":
-		x /= (1024 * 1024)
-	case "G":
-		x /= (1024 * 1024 * 1024)
-	}
-	return math.Round(x*div) / div
-}
-
-func roundUint(num uint64, base string, precision int) float64 {
-	x := float64(num)
-	return roundFloat(x, base, precision)
-}
-
 func (data *OverallStats) updateData() error {
 	startUpdateTime := uint64(time.Now().Unix())
 
 	cpuRates, err := cpu.Percent(time.Second, true)
 	if err == nil {
 		for i, rate := range cpuRates {
-			cpuRates[i] = roundFloat(rate, "NONE", 2)
+			cpuRates[i] = utils.RoundFloat(rate, "NONE", 2)
 		}
 		data.CpuStats = cpuRates
 	} else {
@@ -103,10 +84,10 @@ func (data *OverallStats) updateData() error {
 	// Memory values in giga
 	memory, err := mem.VirtualMemory()
 	memRates := memStats{
-		roundUint(memory.Total, "G", 2),
-		roundUint(memory.Available, "G", 2),
-		roundUint(memory.Used, "G", 2),
-		roundUint(memory.Free, "G", 2),
+		utils.RoundUint(memory.Total, "G", 2),
+		utils.RoundUint(memory.Available, "G", 2),
+		utils.RoundUint(memory.Used, "G", 2),
+		utils.RoundUint(memory.Free, "G", 2),
 	}
 
 	if err == nil {
@@ -128,10 +109,10 @@ func (data *OverallStats) updateData() error {
 				continue
 			} else {
 				path := usageVals.Path
-				total := roundUint(usageVals.Total, "G", 2)
-				used := roundUint(usageVals.Used, "G", 2)
-				usedPercent := roundFloat(usageVals.UsedPercent, "NONE", 2)
-				free := roundUint(usageVals.Free, "G", 2)
+				total := utils.RoundUint(usageVals.Total, "G", 2)
+				used := utils.RoundUint(usageVals.Used, "G", 2)
+				usedPercent := utils.RoundFloat(usageVals.UsedPercent, "NONE", 2)
+				free := utils.RoundUint(usageVals.Free, "G", 2)
 				fs := usageVals.Fstype
 
 				temp := diskStats{path, total, used, usedPercent, free, fs}
@@ -149,8 +130,8 @@ func (data *OverallStats) updateData() error {
 		IO := make(map[string]netStats)
 		for _, IOStat := range netData {
 			nic := netStats{
-				roundUint(IOStat.BytesSent, "K", 2),
-				roundUint(IOStat.BytesRecv, "K", 2),
+				utils.RoundUint(IOStat.BytesSent, "K", 2),
+				utils.RoundUint(IOStat.BytesRecv, "K", 2),
 			}
 			IO[IOStat.Name] = nic
 		}
@@ -175,7 +156,6 @@ func (data *OverallStats) updateData() error {
 // ExportJSON exports data to a JSON file for a specified number of iterations
 // and a specified refreshed rate.
 func ExportJSON(filename string, iter uint32, refreshRate uint64) error {
-	fmt.Println("Here", filename)
 	if _, err := os.Stat(filename); err == nil {
 		fmt.Printf("Previous profile with name 'grofer_profile' exists. Overwrite? (Y/N) ")
 		var choice string
