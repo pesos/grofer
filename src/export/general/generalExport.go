@@ -67,9 +67,23 @@ func NewOverallStats() *OverallStats {
 	return &OverallStats{}
 }
 
-func roundOff(num uint64) float64 {
-	x := float64(num) / (1024 * 1024 * 1024)
-	return math.Round(x*100) / 100
+func roundFloat(num float64, base string, precision int) float64 {
+	x := num
+	div := math.Pow10(precision)
+	switch base {
+	case "K":
+		x /= 1024
+	case "M":
+		x /= (1024 * 1024)
+	case "G":
+		x /= (1024 * 1024 * 1024)
+	}
+	return math.Round(x*div) / div
+}
+
+func roundUint(num uint64, base string, precision int) float64 {
+	x := float64(num)
+	return roundFloat(x, base, precision)
 }
 
 func (data *OverallStats) updateData() error {
@@ -77,6 +91,9 @@ func (data *OverallStats) updateData() error {
 
 	cpuRates, err := cpu.Percent(time.Second, true)
 	if err == nil {
+		for i, rate := range cpuRates {
+			cpuRates[i] = roundFloat(rate, "NONE", 2)
+		}
 		data.CpuStats = cpuRates
 	} else {
 		return err
@@ -84,10 +101,11 @@ func (data *OverallStats) updateData() error {
 
 	// Memory values in giga
 	memory, err := mem.VirtualMemory()
-	memRates := memStats{roundOff(memory.Total),
-		roundOff(memory.Available),
-		roundOff(memory.Used),
-		roundOff(memory.Free),
+	memRates := memStats{
+		roundUint(memory.Total, "G", 2),
+		roundUint(memory.Available, "G", 2),
+		roundUint(memory.Used, "G", 2),
+		roundUint(memory.Free, "G", 2),
 	}
 
 	if err == nil {
@@ -109,18 +127,13 @@ func (data *OverallStats) updateData() error {
 				continue
 			} else {
 				path := usageVals.Path
-				total := float64(usageVals.Total) / (1024 * 1024 * 1024)
-				used := float64(usageVals.Used) / (1024 * 1024 * 1024)
-				usedPercent := usageVals.UsedPercent
-				free := float64(usageVals.Free) / (1024 * 1024 * 1024)
+				total := roundUint(usageVals.Total, "G", 2)
+				used := roundUint(usageVals.Used, "G", 2)
+				usedPercent := roundFloat(usageVals.UsedPercent, "NONE", 2)
+				free := roundUint(usageVals.Free, "G", 2)
 				fs := usageVals.Fstype
 
-				roundedTotal := math.Round(total*100) / 100
-				roundedUsed := math.Round(used*100) / 100
-				roundedUsedPercent := math.Round(usedPercent*100) / 100
-				roundedFree := math.Round(free*100) / 100
-
-				temp := diskStats{path, roundedTotal, roundedUsed, roundedUsedPercent, roundedFree, fs}
+				temp := diskStats{path, total, used, usedPercent, free, fs}
 				tempParts = append(tempParts, temp)
 			}
 		}
@@ -134,7 +147,10 @@ func (data *OverallStats) updateData() error {
 	if err == nil {
 		IO := make(map[string]netStats)
 		for _, IOStat := range netData {
-			nic := netStats{float64(IOStat.BytesSent) / (1024), float64(IOStat.BytesRecv) / (1024)}
+			nic := netStats{
+				roundUint(IOStat.BytesSent, "K", 2),
+				roundUint(IOStat.BytesRecv, "K", 2),
+			}
 			IO[IOStat.Name] = nic
 		}
 		data.NetStats = IO
