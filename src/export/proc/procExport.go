@@ -149,12 +149,12 @@ func ExportPidJSON(pid int32, filename string, iter uint32, refreshRate uint64) 
 	for i := uint32(0); i < iter; i++ {
 		data, err := getPidDataJSON(pid)
 		if err != nil {
-			fmt.Println(err)
-		}
-
-		err = encoder.Encode(data)
-		if err != nil {
-			fmt.Println(err)
+			fmt.Println("Error in iteration", i, "Error:", err)
+		} else {
+			err = encoder.Encode(data)
+			if err != nil {
+				fmt.Println("Error in iteration", i, "Error:", err)
+			}
 		}
 
 		time.Sleep(time.Duration(refreshRate) * time.Millisecond)

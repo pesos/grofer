@@ -181,12 +181,12 @@ func ExportJSON(filename string, iter uint32, refreshRate uint64) error {
 	for i := uint32(0); i < iter; i++ {
 		err := stats.updateData()
 		if err != nil {
-			fmt.Println(err)
-		}
-
-		err = encoder.Encode(&stats)
-		if err != nil {
-			fmt.Println(err)
+			fmt.Println("Error in iteration", i, "Error:", err)
+		} else {
+			err = encoder.Encode(&stats)
+			if err != nil {
+				fmt.Println("Error in iteration", i, "Error:", err)
+			}
 		}
 
 		time.Sleep(time.Duration(refreshRate) * time.Millisecond)
