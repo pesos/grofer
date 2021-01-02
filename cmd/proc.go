@@ -120,6 +120,6 @@ func init() {
 		"pid",
 		"p",
 		defaultProcPid,
-		"specify pid of process",
+		"specify PID of process. Passing PID 0 lists all the processes (same as not using the -p flag).",
 	)
 }
