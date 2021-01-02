@@ -31,7 +31,7 @@ import (
 
 const (
 	defaultProcRefreshRate = 3000
-	defaultProcPid         = -1
+	defaultProcPid         = 0
 )
 
 // procCmd represents the proc command
