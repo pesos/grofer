@@ -190,6 +190,8 @@ The flags are explained as follows:
 
 -	`-r, --refresh`: Refresh rate, time interval between iterations (in milliseconds).
 
--	`-t, --type`: Specify the output data format (JSON by default).
+-	`-t, --type`: Specify the output data format (JSON by default). Types supported are:
+
+	-	JSON: Specifically, LJSON, where each line consists of one JSON object which contain nested fields and values.
 
 -	`-p, --pid`: Specify PID of process to profile.
