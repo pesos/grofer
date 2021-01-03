@@ -7,6 +7,8 @@ A clean and modern system and resource monitor written purely in golang using [t
 
 Currently compatible with Linux only.
 
+Currently compatible with Linux only.
+
 Installation
 ------------
 
@@ -143,7 +145,8 @@ Information provided:
 - Idle : % of time CPU was idle.  
 - Nice : % of time spent by CPU executing user level processes with a nice priority.  
 - Iowait: % of time spent by CPU waiting for an outstanding disk I/O.  
-- Soft : % of time spent by the CPU servicing software interrupts. - Steal : % of time spent in involuntary waiting by logical CPUs.
+- Soft : % of time spent by the CPU servicing software interrupts.
+-	Steal : % of time spent in involuntary waiting by logical CPUs.  
 
 ---
 

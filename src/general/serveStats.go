@@ -86,7 +86,6 @@ func ServeMemRates(ctx context.Context, dataChannel chan utils.DataStats) error 
 
 // ServeDiskRates serves the disk rate data to the data channel
 func ServeDiskRates(ctx context.Context, dataChannel chan utils.DataStats) error {
-
 	var partitions []disk.PartitionStat
 	var err error
 	partitions, err = disk.Partitions(false)

@@ -211,7 +211,6 @@ func RenderCharts(ctx context.Context,
 					myPage.NetworkChart.Data = temp
 
 				}
-
 				on.Do(updateUI)
 			}
 
@@ -326,6 +325,80 @@ func RenderCPUinfo(ctx context.Context,
 			if !helpVisible {
 				ui.Render(myPage.Grid)
 			}
+		}
+	}
+}
+
+func RenderCPUinfo(endChannel chan os.Signal,
+	dataChannel chan *info.CPULoad,
+	refreshRate int32,
+	wg *sync.WaitGroup) {
+
+	var on sync.Once
+
+	if err := ui.Init(); err != nil {
+		log.Fatalf("failed to initialize termui: %v", err)
+	}
+	defer ui.Close()
+
+	numCores := runtime.NumCPU()
+	myPage := NewCPUPage(numCores)
+
+	pause := func() {
+		run = !run
+	}
+
+	// Re render UI
+	updateUI := func() {
+		w, h := ui.TerminalDimensions()
+		ui.Clear()
+		myPage.Grid.SetRect(0, 0, w, h)
+		ui.Render(myPage.Grid)
+	}
+
+	updateUI()
+
+	uiEvents := ui.PollEvents()
+	tick := time.Tick(time.Duration(refreshRate) * time.Millisecond)
+	for {
+		select {
+		case e := <-uiEvents: // For keyboard events
+			switch e.ID {
+			case "q", "<C-c>": // q or Ctrl-C to quit
+				endChannel <- os.Kill
+				wg.Done()
+				return
+
+			case "<Resize>":
+				updateUI()
+
+			case "s": // s to stop
+				pause()
+			}
+
+		case data := <-dataChannel: // Update chart values
+			if run {
+				myPage.UsrChart.Percent = data.Usr
+				myPage.NiceChart.Percent = data.Nice
+				myPage.SysChart.Percent = data.Sys
+				myPage.IowaitChart.Percent = data.Iowait
+				myPage.IrqChart.Percent = data.Irq
+				myPage.SoftChart.Percent = data.Soft
+				myPage.StealChart.Percent = data.Steal
+				myPage.IdleChart.Percent = data.Idle
+
+				myPage.CPUChart.Rows = data.CPURates
+
+				on.Do(func() {
+					w, h := ui.TerminalDimensions()
+					ui.Clear()
+					myPage.Grid.SetRect(0, 0, w, h)
+					ui.Render(myPage.Grid)
+				})
+			}
+
+		case <-tick:
+			updateUI()
 		}
 	}
 }
