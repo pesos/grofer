@@ -31,7 +31,7 @@ import (
 
 const (
 	defaultProcRefreshRate = 3000
-	defaultProcPid         = -1
+	defaultProcPid         = 0
 )
 
 // procCmd represents the proc command
@@ -120,6 +120,6 @@ func init() {
 		"pid",
 		"p",
 		defaultProcPid,
-		"specify pid of process",
+		"specify PID of process. Passing PID 0 lists all the processes (same as not using the -p flag).",
 	)
 }

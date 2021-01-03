@@ -95,7 +95,6 @@ func GetCPULoad(ctx context.Context, cpuLoad *CPULoad, dataChannel chan *CPULoad
 		err := cpuLoad.UpdateCPULoad()
 		if err != nil {
 			return err
-
 		}
 		dataChannel <- cpuLoad
 

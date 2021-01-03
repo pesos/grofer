@@ -164,6 +164,8 @@ This lists all running processes and relevant information.
 
 This gives information specific to a process, specified by a valid PID.
 
+Passing a PID of 0 will list all the processes instead (same as `grofer proc`).
+
 ![grofer-proc-pid](images/README/grofer-proc-pid.png)
 
 Information provided:
