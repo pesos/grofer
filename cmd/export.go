@@ -54,6 +54,7 @@ func hasValidExtension(filename, exportType string) error {
 			hasProvidedExtension = hasProvidedExtension || hasType
 		}
 	}
+
 	// If en extension which is supported by grofer is provided
 	// then check if it matches with the export type specified
 	// in the command. If not then return an error
@@ -162,7 +163,7 @@ func init() {
 		"type",
 		"t",
 		defaultExportType,
-		"specify the output format of the profiling result (json or csv)",
+		"specify the output format of the profiling result (json or xml)",
 	)
 	exportCmd.Flags().Int32P(
 		"pid",

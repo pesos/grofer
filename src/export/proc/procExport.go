@@ -77,6 +77,7 @@ var statusMap map[string]string = map[string]string{
 	"L": "Lock",
 }
 
+// getPidDataJSON returns a PidStats structure populated with information about the process specified by pid
 func getPidDataJSON(pid int32) (PidStats, error) {
 	proc, err := procInfo.NewProcess(pid)
 	if err != nil {
@@ -124,7 +125,11 @@ func getPidDataJSON(pid int32) (PidStats, error) {
 	return pidData, nil
 }
 
+// ExportJSON exports data particular to a given process (given by pid) to a
+// JSON file for a specified number of iterations and a specified
+// refreshed rate.
 func ExportPidJSON(pid int32, filename string, iter uint32, refreshRate uint64) error {
+	// Verify if previous profile exists and whether or not to overwrite
 	if _, err := os.Stat(filename); err == nil {
 		fmt.Printf("Previous profile with name %s exists. Overwrite? (Y/N) ", filename)
 		var choice string
@@ -138,14 +143,17 @@ func ExportPidJSON(pid int32, filename string, iter uint32, refreshRate uint64) 
 		}
 	}
 
+	// Open file pointer to file to be written
 	logFile, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
 	defer logFile.Close()
 
+	// Encoder to encode JSON data into file
 	encoder := json.NewEncoder(logFile)
 
+	// Encode JSON object by object into file
 	for i := uint32(0); i < iter; i++ {
 		data, err := getPidDataJSON(pid)
 		if err != nil {

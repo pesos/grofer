@@ -62,12 +62,12 @@ type OverallStats struct {
 	CpuLoad   cpuInfo.CPULoad     `json:"cpuLoad"`
 }
 
-// NewOverallStats returns a pointer to
-// an empty OverallStats struct
+// NewOverallStats returns a pointer to an empty OverallStats struct
 func NewOverallStats() *OverallStats {
 	return &OverallStats{}
 }
 
+// updateData updates values of a received OverallStats struct, returns error on failure of updates
 func (data *OverallStats) updateData() error {
 	startUpdateTime := uint64(time.Now().Unix())
 
@@ -156,6 +156,7 @@ func (data *OverallStats) updateData() error {
 // ExportJSON exports data to a JSON file for a specified number of iterations
 // and a specified refreshed rate.
 func ExportJSON(filename string, iter uint32, refreshRate uint64) error {
+	// Verify if previous profile exists and whether or not to overwrite
 	if _, err := os.Stat(filename); err == nil {
 		fmt.Printf("Previous profile with name %s exists. Overwrite? (Y/N) ", filename)
 		var choice string
@@ -169,15 +170,18 @@ func ExportJSON(filename string, iter uint32, refreshRate uint64) error {
 		}
 	}
 
+	// Open file pointer to file to be written
 	logFile, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
 	defer logFile.Close()
 
+	// Encoder to encode JSON data into file
 	encoder := json.NewEncoder(logFile)
 	stats := NewOverallStats()
 
+	// Encode JSON object by object into file
 	for i := uint32(0); i < iter; i++ {
 		err := stats.updateData()
 		if err != nil {
