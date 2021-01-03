@@ -18,12 +18,13 @@ package general
 
 import (
 	"encoding/json"
-	"math"
+	"fmt"
 	"os"
 	"strings"
 	"time"
 
 	cpuInfo "github.com/pesos/grofer/src/general"
+	"github.com/pesos/grofer/src/utils"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/mem"
@@ -61,32 +62,32 @@ type OverallStats struct {
 	CpuLoad   cpuInfo.CPULoad     `json:"cpuLoad"`
 }
 
-// NewOverallStats returns a pointer to
-// an empty OverallStats struct
+// NewOverallStats returns a pointer to an empty OverallStats struct
 func NewOverallStats() *OverallStats {
 	return &OverallStats{}
 }
 
-func roundOff(num uint64) float64 {
-	x := float64(num) / (1024 * 1024 * 1024)
-	return math.Round(x*10) / 10
-}
-
+// updateData updates values of a received OverallStats struct, returns error on failure of updates
 func (data *OverallStats) updateData() error {
 	startUpdateTime := uint64(time.Now().Unix())
 
 	cpuRates, err := cpu.Percent(time.Second, true)
 	if err == nil {
+		for i, rate := range cpuRates {
+			cpuRates[i] = utils.RoundFloat(rate, "NONE", 2)
+		}
 		data.CpuStats = cpuRates
 	} else {
 		return err
 	}
 
+	// Memory values in giga
 	memory, err := mem.VirtualMemory()
-	memRates := memStats{roundOff(memory.Total),
-		roundOff(memory.Available),
-		roundOff(memory.Used),
-		roundOff(memory.Free),
+	memRates := memStats{
+		utils.RoundUint(memory.Total, "G", 2),
+		utils.RoundUint(memory.Available, "G", 2),
+		utils.RoundUint(memory.Used, "G", 2),
+		utils.RoundUint(memory.Free, "G", 2),
 	}
 
 	if err == nil {
@@ -95,6 +96,7 @@ func (data *OverallStats) updateData() error {
 		return err
 	}
 
+	// Disk values in giga
 	partitions, err := disk.Partitions(false)
 	if err == nil {
 		var tempParts []diskStats
@@ -107,11 +109,12 @@ func (data *OverallStats) updateData() error {
 				continue
 			} else {
 				path := usageVals.Path
-				total := float64(usageVals.Total) / (1024 * 1024 * 1024)
-				used := float64(usageVals.Used) / (1024 * 1024 * 1024)
-				usedPercent := usageVals.UsedPercent
-				free := float64(usageVals.Free) / (1024 * 1024 * 1024)
+				total := utils.RoundUint(usageVals.Total, "G", 2)
+				used := utils.RoundUint(usageVals.Used, "G", 2)
+				usedPercent := utils.RoundFloat(usageVals.UsedPercent, "NONE", 2)
+				free := utils.RoundUint(usageVals.Free, "G", 2)
 				fs := usageVals.Fstype
+
 				temp := diskStats{path, total, used, usedPercent, free, fs}
 				tempParts = append(tempParts, temp)
 			}
@@ -121,11 +124,15 @@ func (data *OverallStats) updateData() error {
 		return err
 	}
 
+	// Net values in kilo
 	netData, err := net.IOCounters(false)
 	if err == nil {
 		IO := make(map[string]netStats)
 		for _, IOStat := range netData {
-			nic := netStats{float64(IOStat.BytesSent) / (1024), float64(IOStat.BytesRecv) / (1024)}
+			nic := netStats{
+				utils.RoundUint(IOStat.BytesSent, "K", 2),
+				utils.RoundUint(IOStat.BytesRecv, "K", 2),
+			}
 			IO[IOStat.Name] = nic
 		}
 		data.NetStats = IO
@@ -146,34 +153,48 @@ func (data *OverallStats) updateData() error {
 	return nil
 }
 
-func getJSONData(iter uint32, refreshRate uint64) ([]OverallStats, error) {
-	var data []OverallStats
-	var i uint32
-	stats := NewOverallStats()
-	for i = 0; i < iter; i++ {
-		err := stats.updateData()
-		if err != nil {
-			return data, err
-		}
-		data = append(data, *stats)
-		time.Sleep(time.Duration(refreshRate) * time.Millisecond)
-	}
-	return data, nil
-}
-
 // ExportJSON exports data to a JSON file for a specified number of iterations
 // and a specified refreshed rate.
-func ExportJSON(fileName string, iter uint32, refreshRate uint64) error {
-	toWrite, _ := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE, os.ModePerm)
-	defer toWrite.Close()
-	encoder := json.NewEncoder(toWrite)
-	data, err := getJSONData(iter, refreshRate)
+func ExportJSON(filename string, iter uint32, refreshRate uint64) error {
+	// Verify if previous profile exists and whether or not to overwrite
+	if _, err := os.Stat(filename); err == nil {
+		fmt.Printf("Previous profile with name %s exists. Overwrite? (Y/N) ", filename)
+		var choice string
+		fmt.Scanf("%s", &choice)
+
+		choice = strings.ToLower(choice)
+		if choice != "y" {
+			return nil
+		} else {
+			os.Remove(filename)
+		}
+	}
+
+	// Open file pointer to file to be written
+	logFile, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
-	err = encoder.Encode(data)
-	if err != nil {
-		return err
+	defer logFile.Close()
+
+	// Encoder to encode JSON data into file
+	encoder := json.NewEncoder(logFile)
+	stats := NewOverallStats()
+
+	// Encode JSON object by object into file
+	for i := uint32(0); i < iter; i++ {
+		err := stats.updateData()
+		if err != nil {
+			fmt.Println("Error in iteration", i, "Error:", err)
+		} else {
+			err = encoder.Encode(&stats)
+			if err != nil {
+				fmt.Println("Error in iteration", i, "Error:", err)
+			}
+		}
+
+		time.Sleep(time.Duration(refreshRate) * time.Millisecond)
 	}
+
 	return nil
 }

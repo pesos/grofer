@@ -91,3 +91,22 @@ func GetDateFromUnix(createTime int64) string {
 	date := t.Format(time.RFC822)
 	return date
 }
+
+func RoundFloat(num float64, base string, precision int) float64 {
+	x := num
+	div := math.Pow10(precision)
+	switch base {
+	case "K":
+		x /= 1024
+	case "M":
+		x /= (1024 * 1024)
+	case "G":
+		x /= (1024 * 1024 * 1024)
+	}
+	return math.Round(x*div) / div
+}
+
+func RoundUint(num uint64, base string, precision int) float64 {
+	x := float64(num)
+	return RoundFloat(x, base, precision)
+}

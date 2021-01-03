@@ -25,6 +25,7 @@ import (
 	"time"
 
 	ui "github.com/gizak/termui/v3"
+	h "github.com/pesos/grofer/src/display/misc"
 	info "github.com/pesos/grofer/src/general"
 	"github.com/pesos/grofer/src/utils"
 )
@@ -32,11 +33,12 @@ import (
 var isCPUSet = false
 
 var run = true
+var helpVisible = false
 
 // RenderCharts handles plotting graphs and charts for system stats in general.
 func RenderCharts(ctx context.Context,
 	dataChannel chan utils.DataStats,
-	refreshRate int32) error {
+	refreshRate uint64) error {
 
 	if err := ui.Init(); err != nil {
 		return fmt.Errorf("failed to initialize termui: %v", err)
@@ -46,6 +48,8 @@ func RenderCharts(ctx context.Context,
 	var on sync.Once
 	var totalBytesRecv float64
 	var totalBytesSent float64
+	var help *h.HelpMenu = h.NewHelpMenu()
+	h.SelectHelpMenu("main")
 
 	// Get number of cores in machine
 	numCores := runtime.NumCPU()
@@ -67,7 +71,6 @@ func RenderCharts(ctx context.Context,
 
 		// Get Terminal Dimensions adn clear the UI
 		w, h := ui.TerminalDimensions()
-		ui.Clear()
 
 		// Calculate Heigth offset
 		height := int(h / numCores)
@@ -80,14 +83,23 @@ func RenderCharts(ctx context.Context,
 		if isCPUSet {
 			for i := 0; i < numCores; i++ {
 				myPage.CPUCharts[i].SetRect(0, i*height, w/2, (i+1)*height)
-				ui.Render(myPage.CPUCharts[i])
 			}
 		}
 
 		// Adjust Grid dimensions
 		myPage.Grid.SetRect(w/2, 0, w, h-heightOffset)
 
-		ui.Render(myPage.Grid)
+		help.Resize(w, h)
+
+		if helpVisible {
+			ui.Clear()
+			ui.Render(help)
+		} else {
+			ui.Render(myPage.Grid)
+			for i := 0; i < numCores; i++ {
+				ui.Render(myPage.CPUCharts[i])
+			}
+		}
 	}
 
 	updateUI() // Initialize empty UI
@@ -107,8 +119,30 @@ func RenderCharts(ctx context.Context,
 			case "<Resize>":
 				updateUI()
 
-			case "s": // s to stop
-				pause()
+			case "?": // s to stop
+				helpVisible = !helpVisible
+			}
+			if helpVisible {
+				switch e.ID {
+				case "?":
+					updateUI()
+				case "<Escape>":
+					helpVisible = false
+					updateUI()
+				case "j", "<Down>":
+					help.List.ScrollDown()
+					ui.Render(help)
+				case "k", "<Up>":
+					help.List.ScrollUp()
+					ui.Render(help)
+				}
+			} else {
+				switch e.ID {
+				case "?":
+					updateUI()
+				case "s": //s to pause
+					pause()
+				}
 			}
 
 		case data := <-dataChannel:
@@ -178,44 +212,27 @@ func RenderCharts(ctx context.Context,
 
 				}
 
-				on.Do(func() {
-					// Get Terminal Dimensions adn clear the UI
-					w, h := ui.TerminalDimensions()
-					ui.Clear()
-
-					// Calculate Heigth offset
-					height := int(h / numCores)
-					heightOffset := h - (height * numCores)
-
-					// Adjust Memory Bar graph values
-					myPage.MemoryChart.BarGap = ((w / 2) - (4 * myPage.MemoryChart.BarWidth)) / 4
-
-					// Adjust CPU Gauge dimensions
-					if isCPUSet {
-						for i := 0; i < numCores; i++ {
-							myPage.CPUCharts[i].SetRect(0, i*height, w/2, (i+1)*height)
-							ui.Render(myPage.CPUCharts[i])
-						}
-					}
-
-					// Adjust Grid dimensions
-					myPage.Grid.SetRect(w/2, 0, w, h-heightOffset)
-
-					ui.Render(myPage.Grid)
-				})
+				on.Do(updateUI)
 			}
 
 		case <-tick: // Update page with new values
-			updateUI()
+			if !helpVisible {
+				ui.Render(myPage.Grid)
+				for i := 0; i < numCores; i++ {
+					ui.Render(myPage.CPUCharts[i])
+				}
+			}
 		}
 	}
 }
 
 func RenderCPUinfo(ctx context.Context,
 	dataChannel chan *info.CPULoad,
-	refreshRate int32) error {
+	refreshRate uint64) error {
 
 	var on sync.Once
+	var help *h.HelpMenu = h.NewHelpMenu()
+	h.SelectHelpMenu("main")
 
 	if err := ui.Init(); err != nil {
 		return fmt.Errorf("failed to initialize termui: %v", err)
@@ -232,9 +249,14 @@ func RenderCPUinfo(ctx context.Context,
 	// Re render UI
 	updateUI := func() {
 		w, h := ui.TerminalDimensions()
-		ui.Clear()
 		myPage.Grid.SetRect(0, 0, w, h)
-		ui.Render(myPage.Grid)
+		help.Resize(w, h)
+		if helpVisible {
+			ui.Clear()
+			ui.Render(help)
+		} else {
+			ui.Render(myPage.Grid)
+		}
 	}
 
 	updateUI()
@@ -253,8 +275,30 @@ func RenderCPUinfo(ctx context.Context,
 			case "<Resize>":
 				updateUI()
 
-			case "s": // s to stop
-				pause()
+			case "?": // s to stop
+				helpVisible = !helpVisible
+			}
+			if helpVisible {
+				switch e.ID {
+				case "?":
+					updateUI()
+				case "<Escape>":
+					helpVisible = false
+					updateUI()
+				case "j", "<Down>":
+					help.List.ScrollDown()
+					ui.Render(help)
+				case "k", "<Up>":
+					help.List.ScrollUp()
+					ui.Render(help)
+				}
+			} else {
+				switch e.ID {
+				case "?":
+					updateUI()
+				case "s": //s to pause
+					pause()
+				}
 			}
 
 		case data := <-dataChannel: // Update chart values
@@ -279,7 +323,9 @@ func RenderCPUinfo(ctx context.Context,
 			}
 
 		case <-tick:
-			updateUI()
+			if !helpVisible {
+				ui.Render(myPage.Grid)
+			}
 		}
 	}
 }

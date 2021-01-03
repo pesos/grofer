@@ -1,0 +1,21 @@
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2
+jobs:
+  build:
+    docker:
+      # specify the version
+      - image: circleci/golang:1.14
+
+    working_directory: /go/src/github.com/pesos/grofer
+    steps:
+      - checkout
+
+      # specify any bash command here prefixed with `run: `
+      - run: go get -v
+      - run: bash ./scripts/fmt.sh
+      - run: bash ./scripts/build.sh
+      - run: sudo apt install python3 -y
+      - run: python3 ./scripts/license_check.py
+      - run: go test -v -race $(go list ./src/utils | grep -v vendor)

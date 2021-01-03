@@ -19,7 +19,9 @@ import (
 	"fmt"
 	"strings"
 
-	export "github.com/pesos/grofer/src/export/general"
+	exportGeneral "github.com/pesos/grofer/src/export/general"
+	exportProc "github.com/pesos/grofer/src/export/proc"
+
 	"github.com/spf13/cobra"
 )
 
@@ -28,6 +30,7 @@ const (
 	defaultExportIterations  = 10
 	defaultExportFileName    = "grofer_profile"
 	defaultExportType        = "json"
+	defaultExportPid         = -1
 )
 
 // Maintain a map of extensions provided by grofer.
@@ -36,26 +39,27 @@ const (
 // a map would prove useful.
 var providedExportTypes = map[string]bool{
 	"json": true,
-	"csv":  true,
 }
 
-func hasValidExtension(fileName, exportType string) error {
-	fileName = strings.ToLower(fileName)
+func hasValidExtension(filename, exportType string) error {
+	filename = strings.ToLower(filename)
+
 	var hasProvidedExtension bool = false
 
 	// Check if any one of the allowed export types is a suffix for the
 	// file name provided.
 	for exportType, allowed := range providedExportTypes {
 		if allowed {
-			hasType := strings.HasSuffix(fileName, "."+exportType)
+			hasType := strings.HasSuffix(filename, "."+exportType)
 			hasProvidedExtension = hasProvidedExtension || hasType
 		}
 	}
+
 	// If en extension which is supported by grofer is provided
 	// then check if it matches with the export type specified
 	// in the command. If not then return an error
 	if hasProvidedExtension {
-		validExtension := strings.HasSuffix(fileName, exportType)
+		validExtension := strings.HasSuffix(filename, exportType)
 		if validExtension {
 			return nil
 		}
@@ -67,8 +71,8 @@ func hasValidExtension(fileName, exportType string) error {
 	return nil
 }
 
-func validateFileName(fileName, exportType string) error {
-	isValid := hasValidExtension(fileName, exportType)
+func validateFileName(filename, exportType string) error {
+	isValid := hasValidExtension(filename, exportType)
 	return isValid
 }
 
@@ -87,30 +91,48 @@ var exportCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+
 		exportType, err := cmd.Flags().GetString("type")
 		if err != nil {
 			return err
 		}
+
 		exportType = strings.ToLower(exportType)
 		if validExportType := providedExportTypes[exportType]; !validExportType {
 			return fmt.Errorf("export type not supported")
 		}
 
-		fileName, err := cmd.Flags().GetString("fileName")
-		if err != nil {
-			return err
-		}
-		err = validateFileName(fileName, exportType)
+		exportPid, err := cmd.Flags().GetInt32("pid")
 		if err != nil {
 			return err
 		}
 
-		switch exportType {
-		case "json":
-			return export.ExportJSON(fileName, iter, refreshRate)
-		// TODO: add csv export functionality
-		default:
-			return fmt.Errorf("invalid export type, see grofer export --help")
+		filename, err := cmd.Flags().GetString("filename")
+		if err != nil {
+			return err
+		}
+
+		err = validateFileName(filename, exportType)
+		if err != nil {
+			return err
+		}
+
+		if exportPid == defaultExportPid {
+			switch exportType {
+			case "json":
+				return exportGeneral.ExportJSON(filename, iter, refreshRate)
+
+			default:
+				return fmt.Errorf("invalid export type, see grofer export --help")
+			}
+		} else {
+			switch exportType {
+			case "json":
+				return exportProc.ExportPidJSON(exportPid, filename, iter, refreshRate)
+
+			default:
+				return fmt.Errorf("invalid export type, see grofer export --help")
+			}
 		}
 	},
 }
@@ -126,7 +148,7 @@ func init() {
 		"specify the number of iterations to run profiler",
 	)
 	exportCmd.Flags().StringP(
-		"fileName",
+		"filename",
 		"f",
 		defaultExportFileName,
 		"specify the name of the export file",
@@ -141,6 +163,12 @@ func init() {
 		"type",
 		"t",
 		defaultExportType,
-		"specify the output format of the profiling result (json or csv)",
+		"specify the output format of the profiling result (json by default)",
+	)
+	exportCmd.Flags().Int32P(
+		"pid",
+		"p",
+		defaultExportPid,
+		"specify pid of process to profile, ignore to profile all processes",
 	)
 }
