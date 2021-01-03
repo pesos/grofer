@@ -88,7 +88,7 @@ Usage
 -----
 
 ```
-grofer is a system profiler written in golang.
+grofer is a system and resource monitor written in golang.
 
 While using a TUI based command, press ? to get information about key bindings (if any) for that command.
 
@@ -99,6 +99,7 @@ Usage:
 Available Commands:
   about       about is a command that gives information about the project in a cute way
   completion  Generate completion script
+  export      Used to export profiled data.
   help        Help about any command
   proc        proc command is used to get per-process information
 
@@ -167,9 +168,32 @@ Passing a PID of 0 will list all the processes instead (same as `grofer proc`).
 
 ![grofer-proc-pid](images/README/grofer-proc-pid.png)
 
-Information provided:  
- - CPU utilization %  
- - Memory utilization %  
- - Child processes  
- - Number of voluntary and involuntary context switches  
- - Memory usage (RSS, Data, Stack, Swap)
+Information provided:
+
+-	CPU utilization %
+
+-	Memory utilization %
+
+-	Child processes
+
+-	Number of voluntary and involuntary context switches
+
+-	Memory usage (RSS, Data, Stack, Swap)
+
+### `grofer export [-i Iterations] [-f File] [-r refreshRate] [-t type] [-p PID]`
+
+This allows exporting of profiled data either of system usage or data particular to that of a process. Data format is JSON by default, but XML support exists too!
+
+The flags are explained as follows:
+
+-	`-i, --iter`: Number of iterations to profile for.
+
+-	`-f, --filename`: Name of output file (exported data).
+
+-	`-r, --refresh`: Refresh rate, time interval between iterations (in milliseconds).
+
+-	`-t, --type`: Specify the output data format (JSON by default). Types supported are:
+
+	-	JSON: Specifically, LJSON, where each line consists of one JSON object which contain nested fields and values.
+
+-	`-p, --pid`: Specify PID of process to profile.
