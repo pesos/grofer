@@ -163,7 +163,7 @@ func init() {
 		"type",
 		"t",
 		defaultExportType,
-		"specify the output format of the profiling result (json or xml)",
+		"specify the output format of the profiling result (json by default)",
 	)
 	exportCmd.Flags().Int32P(
 		"pid",

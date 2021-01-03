@@ -190,6 +190,6 @@ The flags are explained as follows:
 
 -	`-r, --refresh`: Refresh rate, time interval between iterations (in milliseconds).
 
--	`-t, --type`: Specify the output data format (XML or JSON).
+-	`-t, --type`: Specify the output data format (JSON by default).
 
 -	`-p, --pid`: Specify PID of process to profile.
