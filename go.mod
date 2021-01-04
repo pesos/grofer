@@ -13,5 +13,6 @@ require (
 	github.com/spf13/viper v1.7.0
 	github.com/thedevsaddam/gojsonq/v2 v2.5.2
 	github.com/tidwall/gjson v1.6.0
+	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
 	golang.org/x/sys v0.0.0-20200722175500-76b94024e4b6 // indirect
 )

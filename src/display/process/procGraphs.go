@@ -16,13 +16,16 @@ limitations under the License.
 package process
 
 import (
+	"context"
 	"log"
-	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
 	ui "github.com/gizak/termui/v3"
+	h "github.com/pesos/grofer/src/display/misc"
+	info "github.com/pesos/grofer/src/general"
 	"github.com/pesos/grofer/src/process"
 	"github.com/pesos/grofer/src/utils"
 )
@@ -30,35 +33,39 @@ import (
 var runProc = true
 
 func getChildProcs(proc *process.Process) []string {
-	childProcs := []string{"PID                   Command"}
+	headerString := "PID" + strings.Repeat(" ", 19) + "Command"
+	childProcs := []string{headerString}
 	for _, proc := range proc.Children {
+		var processData, spacesForCommandRowData string
+		processPid := strconv.Itoa(int(proc.Pid))
+		// 22 reflects position where row data for "Command" column should start (headerString has 19 spaces + length of ("PID") is 3 i.e. 22)
+		spacesForCommandRowData = strings.Repeat(" ", 22-len(processPid))
+		processData = processPid + spacesForCommandRowData
 		exe, err := proc.Exe()
 		if err == nil {
-			temp := strconv.Itoa(int(proc.Pid))
-			for i := 0; i < 22-len(strconv.Itoa(int(proc.Pid))); i++ {
-				temp = temp + " "
-			}
-			temp = temp + "[" + exe + "](fg:green)"
-			childProcs = append(childProcs, temp)
+			processData += "[" + exe + "](fg:green)"
 		} else {
-			childProcs = append(childProcs, "["+strconv.Itoa(int(proc.Pid))+"](fg:yellow)"+"            "+"NA")
+			processData += "NA"
 		}
+		childProcs = append(childProcs, processData)
 	}
-
 	return childProcs
 }
 
 // ProcVisuals renders graphs and charts for per-process stats.
-func ProcVisuals(endChannel chan os.Signal,
+func ProcVisuals(ctx context.Context,
 	dataChannel chan *process.Process,
-	refreshRate int32,
-	wg *sync.WaitGroup) {
+	refreshRate uint64) error {
+
+	defer ui.Close()
 
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
 
 	var on sync.Once
+	var help *h.HelpMenu = h.NewHelpMenu()
+	h.SelectHelpMenu("proc_pid")
 
 	// Create new page
 	myPage := NewPerProcPage()
@@ -81,7 +88,6 @@ func ProcVisuals(endChannel chan os.Signal,
 
 		// Get Terminal Dimensions adn clear the UI
 		w, h := ui.TerminalDimensions()
-		ui.Clear()
 
 		// Adjust Memory Stats Bar graph values
 		myPage.MemStatsChart.BarGap = ((w / 2) - (4 * myPage.MemStatsChart.BarWidth)) / 4
@@ -94,56 +100,84 @@ func ProcVisuals(endChannel chan os.Signal,
 
 		// Adjust Grid dimensions
 		myPage.Grid.SetRect(0, 0, w, h)
-		ui.Render(myPage.Grid)
+		help.Resize(w, h)
+		if helpVisible {
+			ui.Clear()
+			ui.Render(help)
+		} else {
+			ui.Render(myPage.Grid)
+		}
 	}
 
 	uiEvents := ui.PollEvents()
 	tick := time.Tick(time.Duration(refreshRate) * time.Millisecond)
 
 	previousKey := ""
+	selectedStyle := ui.NewStyle(ui.ColorYellow, ui.ColorClear, ui.ModifierBold)
+
 	for {
 		select {
 		case e := <-uiEvents:
 			switch e.ID {
 			case "q", "<C-c>": //q or Ctrl-C to quit
-				endChannel <- os.Kill
-				ui.Close()
-				wg.Done()
-				return
-			case "s": //s to pause
-				pause()
+				return info.ErrCanceledByUser
 			case "<Resize>":
 				updateUI()
-
-			case "j", "<Down>":
-				myPage.ChildProcsList.ScrollDown()
-			case "k", "<Up>":
-				myPage.ChildProcsList.ScrollUp()
-			case "<C-d>":
-				myPage.ChildProcsList.ScrollHalfPageDown()
-			case "<C-u>":
-				myPage.ChildProcsList.ScrollHalfPageUp()
-			case "<C-f>":
-				myPage.ChildProcsList.ScrollPageDown()
-			case "<C-b>":
-				myPage.ChildProcsList.ScrollPageUp()
-			case "g":
-				if previousKey == "g" {
-					myPage.ChildProcsList.ScrollTop()
-				}
-			case "<Home>":
-				myPage.ChildProcsList.ScrollTop()
-			case "G", "<End>":
-				myPage.ChildProcsList.ScrollBottom()
+			case "?":
+				helpVisible = !helpVisible
 			}
-
-			if previousKey == "g" {
-				previousKey = ""
+			if helpVisible {
+				switch e.ID {
+				case "?":
+					updateUI()
+				case "<Escape>":
+					helpVisible = false
+					updateUI()
+				case "j", "<Down>":
+					help.List.ScrollDown()
+					ui.Render(help)
+				case "k", "<Up>":
+					help.List.ScrollUp()
+					ui.Render(help)
+				}
 			} else {
-				previousKey = e.ID
+				switch e.ID {
+				case "?":
+					updateUI()
+				case "s": //s to pause
+					pause()
+				case "j", "<Down>":
+					myPage.ChildProcsList.ScrollDown()
+				case "k", "<Up>":
+					myPage.ChildProcsList.ScrollUp()
+				case "<C-d>":
+					myPage.ChildProcsList.ScrollHalfPageDown()
+				case "<C-u>":
+					myPage.ChildProcsList.ScrollHalfPageUp()
+				case "<C-f>":
+					myPage.ChildProcsList.ScrollPageDown()
+				case "<C-b>":
+					myPage.ChildProcsList.ScrollPageUp()
+				case "g":
+					if previousKey == "g" {
+						myPage.ChildProcsList.ScrollTop()
+					}
+				case "<Home>":
+					myPage.ChildProcsList.ScrollTop()
+				case "G", "<End>":
+					myPage.ChildProcsList.ScrollBottom()
+				}
+
+				ui.Render(myPage.Grid)
+				if previousKey == "g" {
+					previousKey = ""
+				} else {
+					previousKey = e.ID
+				}
 			}
 
 		case data := <-dataChannel:
+			myPage.ChildProcsList.SelectedRowStyle = selectedStyle
 			if runProc {
 				// update ctx switches
 				switches, units := utils.RoundValues(float64(data.NumCtxSwitches.Voluntary), float64(data.NumCtxSwitches.Involuntary))
@@ -169,6 +203,7 @@ func ProcVisuals(endChannel chan os.Signal,
 					[]string{"[Nice value](fg:yellow)", strconv.Itoa(int(data.Nice))},
 					[]string{"[Thread count](fg:yellow)", strconv.Itoa(int(data.NumThreads))},
 					[]string{"[Child process count](fg:yellow)", strconv.Itoa(len(data.Children))},
+					[]string{"[Last Update](fg:yellow)", time.Now().Format("15:04:05")},
 				}
 				myPage.PIDTable.Title = " PID: " + strconv.Itoa(int(data.Proc.Pid)) + " "
 
@@ -187,28 +222,13 @@ func ProcVisuals(endChannel chan os.Signal,
 				myPage.PageFaultsChart.Title = " Page Faults" + units
 				myPage.ChildProcsList.Rows = getChildProcs(data)
 
-				on.Do(func() {
-					// Get Terminal Dimensions adn clear the UI
-					w, h := ui.TerminalDimensions()
-					ui.Clear()
-
-					// Adjust Memory Stats Bar graph values
-					myPage.MemStatsChart.BarGap = ((w / 2) - (4 * myPage.MemStatsChart.BarWidth)) / 4
-
-					// Adjust Page Faults Bar graph values
-					myPage.PageFaultsChart.BarGap = ((w / 4) - (2 * myPage.PageFaultsChart.BarWidth)) / 2
-
-					// Adjust Context Switches Bar graph values
-					myPage.CTXSwitchesChart.BarGap = ((w / 4) - (2 * myPage.CTXSwitchesChart.BarWidth)) / 2
-
-					// Adjust Grid dimensions
-					myPage.Grid.SetRect(0, 0, w, h)
-					ui.Render(myPage.Grid)
-				})
+				on.Do(updateUI)
 			}
 
 		case <-tick:
-			updateUI()
+			if !helpVisible {
+				ui.Render(myPage.Grid)
+			}
 		}
 	}
 }

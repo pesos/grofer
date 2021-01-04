@@ -16,9 +16,9 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
-	"sync"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -28,10 +28,14 @@ import (
 	"github.com/pesos/grofer/src/general"
 	info "github.com/pesos/grofer/src/general"
 	"github.com/pesos/grofer/src/utils"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
-	DefaultOverallRefreshRate = 1000
+	defaultOverallRefreshRate = 1000
+	defaultConfigFileLocation = ""
+	defaultCPUBehavior        = false
+	defaultHelpMessageToggle  = false
 )
 
 var cfgFile string
@@ -39,39 +43,55 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "grofer",
-	Short: "grofer is a system profiler written in golang",
+	Short: "grofer is a system and resource monitor written in golang",
+	Long: `grofer is a system and resource monitor written in golang.
+
+While using a TUI based command, press ? to get information about key bindings (if any) for that command.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		overallRefreshRate, _ := cmd.Flags().GetInt32("refresh")
+		overallRefreshRate, _ := cmd.Flags().GetUint64("refresh")
+
 		if overallRefreshRate < 1000 {
 			return fmt.Errorf("invalid refresh rate: minimum refresh rate is 1000(ms)")
 		}
-
-		var wg sync.WaitGroup
 
 		cpuLoadFlag, _ := cmd.Flags().GetBool("cpuinfo")
 		if cpuLoadFlag {
 			cpuLoad := info.NewCPULoad()
 			dataChannel := make(chan *info.CPULoad, 1)
-			endChannel := make(chan os.Signal, 1)
 
-			wg.Add(2)
+			eg, ctx := errgroup.WithContext(context.Background())
 
-			go info.GetCPULoad(cpuLoad, dataChannel, endChannel, int32(4*overallRefreshRate/5), &wg)
+			eg.Go(func() error {
+				return info.GetCPULoad(ctx, cpuLoad, dataChannel, uint64(4*overallRefreshRate/5))
+			})
 
-			go overallGraph.RenderCPUinfo(endChannel, dataChannel, overallRefreshRate, &wg)
+			eg.Go(func() error {
+				return overallGraph.RenderCPUinfo(ctx, dataChannel, overallRefreshRate)
+			})
 
-			wg.Wait()
+			if err := eg.Wait(); err != nil {
+				if err != general.ErrCanceledByUser {
+					fmt.Printf("Error: %v\n", err)
+				}
+			}
 
 		} else {
-			endChannel := make(chan os.Signal, 1)
 			dataChannel := make(chan utils.DataStats, 1)
 
-			wg.Add(2)
+			eg, ctx := errgroup.WithContext(context.Background())
 
-			go general.GlobalStats(endChannel, dataChannel, int32(4*overallRefreshRate/5), &wg)
-			go overallGraph.RenderCharts(endChannel, dataChannel, overallRefreshRate, &wg)
+			eg.Go(func() error {
+				return general.GlobalStats(ctx, dataChannel, uint64(4*overallRefreshRate/5))
+			})
+			eg.Go(func() error {
+				return overallGraph.RenderCharts(ctx, dataChannel, overallRefreshRate)
+			})
 
-			wg.Wait()
+			if err := eg.Wait(); err != nil {
+				if err != general.ErrCanceledByUser {
+					fmt.Printf("Error: %v\n", err)
+				}
+			}
 		}
 
 		return nil
@@ -80,18 +100,39 @@ var rootCmd = &cobra.Command{
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
 		os.Exit(1)
 	}
 }
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.grofer.yaml)")
+	rootCmd.PersistentFlags().StringVar(
+		&cfgFile,
+		"config",
+		defaultConfigFileLocation,
+		"config file (default is $HOME/.grofer.yaml)",
+	)
 
-	rootCmd.Flags().Int32P("refresh", "r", DefaultOverallRefreshRate, "Overall stats UI refreshes rate in milliseconds greater than 1000")
-	rootCmd.Flags().BoolP("cpuinfo", "c", false, "Info about the CPU Load over all CPUs")
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.Flags().Uint64P(
+		"refresh",
+		"r",
+		defaultOverallRefreshRate,
+		"Overall stats UI refreshes rate in milliseconds greater than 1000",
+	)
+
+	rootCmd.Flags().BoolP(
+		"cpuinfo",
+		"c",
+		defaultCPUBehavior,
+		"Info about the CPU Load over all CPUs",
+	)
+
+	rootCmd.Flags().BoolP(
+		"toggle",
+		"t",
+		defaultHelpMessageToggle,
+		"Help message for toggle",
+	)
 }
 
 // initConfig reads in config file and ENV variables if set.
