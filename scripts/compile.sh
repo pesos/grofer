@@ -1,5 +1,7 @@
 #! /bin/bash
 
+cd ..
+
 archs=("amd64" "386" "arm" "arm64")
 
 mkdir -p bin
