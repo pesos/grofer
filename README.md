@@ -24,6 +24,11 @@ As an executable:
 curl -sSL https://github.com/pesos/grofer/releases/download/<version tag>/grofer --output grofer
 chmod +x grofer
 ```
+`architecture`: underlying system architecture on which grofer will be run
+- grofer_386
+- grofer_amd64
+- grofer_arm
+- grofer_arm64
 
 For system wide usage, install `grofer` to a location on `$PATH`, e.g. `/usr/local/bin`
 
