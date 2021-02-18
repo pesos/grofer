@@ -55,9 +55,9 @@ type memStats struct {
 // OverallStats describes the structure of each exported json object.
 type OverallStats struct {
 	NetStats  map[string]netStats `json:"net"`
-	CpuLoad   cpuInfo.CPULoad     `json:"cpuLoad"`
 	CpuStats  []float64           `json:"cpu"`
 	DiskStats []diskStats         `json:"disk"`
+	CpuLoad   cpuInfo.CPULoad     `json:"cpuLoad"`
 	MemStats  memStats            `json:"mem"`
 	Epoch     uint64              `json:"epoch"`
 }
