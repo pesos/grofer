@@ -29,17 +29,17 @@ import (
 // CPULoad type contains info about load on CPU from various sources
 // as well as general stats about the CPU.
 type CPULoad struct {
+	CPURates [][]string `json:"-"`
 	Usr      int        `json:"usr"`
 	Nice     int        `json:"nice"`
 	Sys      int        `json:"sys"`
 	Iowait   int        `json:"iowait"`
-	Irq      int        `json:"irq"`
 	Soft     int        `json:"soft"`
 	Steal    int        `json:"steal"`
 	Guest    int        `json:"guest"`
 	Gnice    int        `json:"gnice"`
 	Idle     int        `json:"idle"`
-	CPURates [][]string `json:"-"` // Has first row with CPU names and second row with CPU usage rates, might not be ideal format for export
+	Irq      int        `json:"irq"`
 }
 
 // NewCPULoad is a constructor for the CPULoad type.

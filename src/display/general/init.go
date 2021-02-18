@@ -28,8 +28,8 @@ type MainPage struct {
 	MemoryChart  *widgets.BarChart
 	DiskChart    *widgets.Table
 	NetworkChart *widgets.Plot
-	CPUCharts    []*widgets.Gauge
 	NetPara      *widgets.Paragraph
+	CPUCharts    []*widgets.Gauge
 }
 
 type CPUPage struct {

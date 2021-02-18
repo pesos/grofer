@@ -26,16 +26,16 @@ import (
 )
 
 type BarChart struct {
-	Block
+	NumFormatter func(float64) string
+	Labels       []string
 	BarColors    []Color
 	LabelStyles  []Style
-	NumStyles    []Style // only Fg and Modifier are used
-	NumFormatter func(float64) string
+	NumStyles    []Style
 	Data         []float64
-	Labels       []string
-	BarWidth     int
-	BarGap       int
-	MaxVal       float64
+	Block
+	BarWidth int
+	BarGap   int
+	MaxVal   float64
 }
 
 func NewBarChart() *BarChart {

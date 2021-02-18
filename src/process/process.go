@@ -22,23 +22,23 @@ import (
 // Process type contains as fields all the information extracted from the kernel.
 type Process struct {
 	Proc           *proc.Process
-	Background     bool
-	Foreground     bool
-	IsRunning      bool
-	CPUPercent     float64
-	Children       []*proc.Process
-	CreateTime     int64
-	Gids           []int32
 	MemoryInfo     *proc.MemoryInfoStat
-	MemoryPercent  float32
-	Name           string
-	Nice           int32
-	NumCtxSwitches *proc.NumCtxSwitchesStat
-	NumThreads     int32
 	PageFault      *proc.PageFaultsStat
-	Status         string
+	NumCtxSwitches *proc.NumCtxSwitchesStat
 	Exe            string
+	Name           string
+	Status         string
+	Children       []*proc.Process
+	Gids           []int32
 	CPUAffinity    []int32
+	CreateTime     int64
+	CPUPercent     float64
+	Nice           int32
+	NumThreads     int32
+	MemoryPercent  float32
+	IsRunning      bool
+	Foreground     bool
+	Background     bool
 }
 
 // InitAllProcs initialises the set of currently running processes in the system.
