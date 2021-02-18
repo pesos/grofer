@@ -4,19 +4,15 @@ jobs:
     docker:
       # specify the version
       - image: circleci/golang:1.14
-        environment:
-          GO111MODULE: "on"
 
     working_directory: /go/src/github.com/pesos/grofer
     steps:
       - checkout
 
       # specify any bash command here prefixed with `run: `
+      - run: go get -v
+      - run: bash ./scripts/fmt.sh
+      - run: bash ./scripts/build.sh
       - run: sudo apt install python3 -y
       - run: python3 ./scripts/license_check.py
-      - run: go get -v
-      - run: go get golang.org/x/tools/go/analysis/passes/fieldalignment
-      - run: bash ./scripts/fmt.sh
-      - run: bash ./scripts/field_align_check.sh
-      - run: bash ./scripts/build.sh
       - run: go test -v -race $(go list ./src/utils | grep -v vendor)
