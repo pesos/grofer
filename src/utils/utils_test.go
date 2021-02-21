@@ -25,29 +25,29 @@ import (
 
 func TestRoundValues(t *testing.T) {
 	tests := []struct {
+		expectedUnit        string
 		input               []float64
 		expectedRoundedVals []float64
-		expectedUnit        string
 	}{
 		{
-			[]float64{999, 895},
-			[]float64{999, 895},
 			" ",
+			[]float64{999, 895},
+			[]float64{999, 895},
 		},
 		{
+			" per thousand ",
 			[]float64{100000, 1000},
 			[]float64{100, 1},
-			" per thousand ",
 		},
 		{
+			" per million ",
 			[]float64{10000000, 1000},
 			[]float64{10, 0},
-			" per million ",
 		},
 		{
+			" per trillion ",
 			[]float64{100000000, 100000000000},
 			[]float64{0.1, 100},
-			" per trillion ",
 		},
 	}
 
@@ -90,13 +90,13 @@ func TestGetDateFromUnix(t *testing.T) {
 	date4 := t4.Format(time.RFC822)
 
 	tests := []struct {
-		inputVal    int64
 		expectedVal string
+		inputVal    int64
 	}{
-		{10000000, date1},
-		{0, date2},
-		{1596652055, date3},
-		{9999999999, date4},
+		{date1, 10000000},
+		{date2, 0},
+		{date3, 1596652055},
+		{date4, 9999999999},
 	}
 
 	for _, test := range tests {
