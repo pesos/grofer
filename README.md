@@ -188,7 +188,7 @@ Information provided:
 
 ### `grofer export [-i Iterations] [-f File] [-r refreshRate] [-t type] [-p PID]`
 
-This allows exporting of profiled data either of system usage or data particular to that of a process. Data format is JSON by default, but XML support exists too!
+This allows exporting of profiled data either of system usage or data particular to that of a process. Data format is JSON by default, see below for more details.
 
 The flags are explained as follows:
 
