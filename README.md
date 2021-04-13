@@ -7,8 +7,6 @@ A clean and modern system and resource monitor written purely in golang using [t
 
 Currently compatible with Linux only.
 
-Currently compatible with Linux only.
-
 Installation
 ------------
 
