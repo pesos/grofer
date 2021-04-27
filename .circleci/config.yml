@@ -13,6 +13,7 @@ jobs:
       - run: go get -v
       - run: bash ./scripts/fmt.sh
       - run: bash ./scripts/build.sh
+      - run: sudo apt update
       - run: sudo apt install python3 -y
       - run: python3 ./scripts/license_check.py
       - run: go test -v -race $(go list ./src/utils | grep -v vendor)
