@@ -34,18 +34,13 @@ const (
 
 // containerCmd represents the container command
 var containerCmd = &cobra.Command{
-	Use:   "container",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Use:     "container",
+	Short:   "container command is used to get information related to docker containers",
+	Long:    `container command is used to get information related to docker containers. It provides both overall and per container metrics.`,
 	Aliases: []string{"containers"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) > 0 {
-			return fmt.Errorf("the proc command should have no arguments, see grofer proc --help for further info")
+			return fmt.Errorf("the container command should have no arguments, see grofer container --help for further info")
 		}
 
 		cid, _ := cmd.Flags().GetString("container-id")
