@@ -8,6 +8,7 @@ import (
 	"time"
 
 	ui "github.com/gizak/termui/v3"
+	h "github.com/pesos/grofer/src/display/misc"
 	info "github.com/pesos/grofer/src/general"
 
 	"github.com/pesos/grofer/src/container"
@@ -43,13 +44,16 @@ var helpVisible = false
 
 func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMetrics, refreshRate uint64) error {
 
-	defer ui.Close()
-
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
 
+	defer ui.Close()
+
 	var on sync.Once
+
+	var help *h.HelpMenu = h.NewHelpMenu()
+	h.SelectHelpMenu("proc")
 
 	// Create new page
 	myPage := NewOverallContainerPage()
@@ -72,11 +76,10 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 		// Adjust Grid dimensions
 		myPage.Grid.SetRect(0, 0, w, h)
 
-		// TODO: HELP SECTION
-		// help.Resize(w, h)
+		help.Resize(w, h)
 		if helpVisible {
-			// 	ui.Clear()
-			// 	ui.Render(help)
+			ui.Clear()
+			ui.Render(help)
 		} else {
 			ui.Render(myPage.Grid)
 		}
@@ -103,19 +106,19 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 				helpVisible = !helpVisible
 			}
 			if helpVisible {
-				// switch e.ID {
-				// case "?":
-				// 	updateUI()
-				// case "<Escape>":
-				// 	helpVisible = false
-				// 	updateUI()
-				// case "j", "<Down>":
-				// 	help.List.ScrollDown()
-				// 	ui.Render(help)
-				// case "k", "<Up>":
-				// 	help.List.ScrollUp()
-				// 	ui.Render(help)
-				// }
+				switch e.ID {
+				case "?":
+					updateUI()
+				case "<Escape>":
+					helpVisible = false
+					updateUI()
+				case "j", "<Down>":
+					help.List.ScrollDown()
+					ui.Render(help)
+				case "k", "<Up>":
+					help.List.ScrollUp()
+					ui.Render(help)
+				}
 			} else {
 				switch e.ID {
 				case "?":

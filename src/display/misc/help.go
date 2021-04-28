@@ -72,6 +72,8 @@ func SelectHelpMenu(page string) {
 		KEYBINDS = PROC_PID_KEYBINDS
 	case "main":
 		KEYBINDS = MAIN_KEYBINDS
+	case "cont":
+		KEYBINDS = CONT_KEYBINDS
 	}
 }
 
