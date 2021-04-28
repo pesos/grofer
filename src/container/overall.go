@@ -13,8 +13,8 @@ import (
 type ContainerMetrics struct {
 	totalCPU     float64
 	totalMem     float64
-	totalNet     []float64
-	totalBlk     []uint64
+	totalNet     netStat
+	totalBlk     blkStat
 	perContainer []perContainerMetrics
 }
 
@@ -26,8 +26,18 @@ type perContainerMetrics struct {
 	state       string
 	cpu         float64
 	mem         float64
-	net         []float64
-	blk         []uint64
+	net         netStat
+	blk         blkStat
+}
+
+type netStat struct {
+	rx float64
+	tx float64
+}
+
+type blkStat struct {
+	read  uint64
+	write uint64
 }
 
 func GetOverallMetrics() {
@@ -53,8 +63,8 @@ func GetOverallMetrics() {
 	}
 
 	var totalCPU, totalMem float64
-	totalNet := []float64{0, 0}
-	totalBlk := []uint64{0, 0}
+	totalNet := netStat{}
+	totalBlk := blkStat{}
 
 	// Aggregate metrics and compute total metrics
 	for range containers {
@@ -64,11 +74,11 @@ func GetOverallMetrics() {
 
 		totalMem += metric.mem
 
-		totalNet[0] += metric.net[0]
-		totalNet[1] += metric.net[1]
+		totalNet.rx += metric.net.rx
+		totalNet.tx += metric.net.tx
 
-		totalBlk[0] += metric.blk[0]
-		totalBlk[1] += metric.blk[1]
+		totalBlk.read += metric.blk.read
+		totalBlk.write += metric.blk.write
 
 		metrics.perContainer = append(metrics.perContainer, metric)
 	}
@@ -132,8 +142,8 @@ func getMetrics(cli *client.Client, ctx context.Context, c types.Container, ch c
 		state:       c.State,
 		cpu:         cpuPercent,
 		mem:         memPercent,
-		net:         []float64{rx, tx},
-		blk:         []uint64{blkRead, blkWrite},
+		net:         netStat{rx: rx, tx: tx},
+		blk:         blkStat{read: blkRead, write: blkWrite},
 	}
 
 	// Send back metrics
