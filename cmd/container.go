@@ -16,8 +16,20 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
+	"fmt"
+
+	containerGraph "github.com/pesos/grofer/src/display/container"
+
 	"github.com/pesos/grofer/src/container"
+	"github.com/pesos/grofer/src/general"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
+)
+
+const (
+	defaultCid                  = ""
+	defaultContainerRefreshRate = 3000
 )
 
 // containerCmd represents the container command
@@ -31,27 +43,59 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Aliases: []string{"containers"},
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) > 0 {
+			return fmt.Errorf("the proc command should have no arguments, see grofer proc --help for further info")
+		}
+
+		cid, _ := cmd.Flags().GetString("container-id")
+		containerRefreshRate, _ := cmd.Flags().GetUint64("refresh")
+
+		if containerRefreshRate < 1000 {
+			return fmt.Errorf("invalid refresh rate: minimum refresh rate is 1000(ms)")
+		}
+
+		if cid != defaultCid {
+
+		} else {
+			dataChannel := make(chan container.ContainerMetrics, 1)
+
+			eg, ctx := errgroup.WithContext(context.Background())
+
+			eg.Go(func() error {
+				return container.Serve(dataChannel, ctx, int64(containerRefreshRate))
+			})
+			eg.Go(func() error {
+				return containerGraph.OverallVisuals(ctx, dataChannel, containerRefreshRate)
+			})
+
+			if err := eg.Wait(); err != nil {
+				if err != general.ErrCanceledByUser {
+					fmt.Printf("Error: %v\n", err)
+				}
+			}
+		}
+
 		container.GetOverallMetrics()
+
+		return nil
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(containerCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// containerCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// containerCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	containerCmd.Flags().StringP(
 		"container-id",
 		"c",
 		"",
 		"specify container ID",
+	)
+
+	containerCmd.Flags().Uint64P(
+		"refresh",
+		"r",
+		defaultContainerRefreshRate,
+		"Container information UI refreshes rate in milliseconds greater than 1000",
 	)
 }

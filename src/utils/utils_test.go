@@ -52,7 +52,7 @@ func TestRoundValues(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		testRoundedVals, testUnit := utils.RoundValues(test.input[0], test.input[1])
+		testRoundedVals, testUnit := utils.RoundValues(test.input[0], test.input[1], false)
 		utils.Equals(t, test.expectedRoundedVals, testRoundedVals)
 		utils.Equals(t, test.expectedUnit, testUnit)
 	}

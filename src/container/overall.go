@@ -3,7 +3,6 @@ package container
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"strings"
 
 	"github.com/docker/docker/api/types"
@@ -11,36 +10,36 @@ import (
 )
 
 type ContainerMetrics struct {
-	totalCPU     float64
-	totalMem     float64
-	totalNet     netStat
-	totalBlk     blkStat
-	perContainer []perContainerMetrics
+	TotalCPU     float64
+	TotalMem     float64
+	TotalNet     netStat
+	TotalBlk     blkStat
+	PerContainer []PerContainerMetrics
 }
 
-type perContainerMetrics struct {
-	containerID string
-	image       string
-	name        string
-	status      string
-	state       string
-	cpu         float64
-	mem         float64
-	net         netStat
-	blk         blkStat
+type PerContainerMetrics struct {
+	ContainerID string
+	Image       string
+	Name        string
+	Status      string
+	State       string
+	Cpu         float64
+	Mem         float64
+	Net         netStat
+	Blk         blkStat
 }
 
 type netStat struct {
-	rx float64
-	tx float64
+	Rx float64
+	Tx float64
 }
 
 type blkStat struct {
-	read  uint64
-	write uint64
+	Read  uint64
+	Write uint64
 }
 
-func GetOverallMetrics() {
+func GetOverallMetrics() ContainerMetrics {
 	metrics := ContainerMetrics{}
 
 	ctx := context.Background()
@@ -55,7 +54,7 @@ func GetOverallMetrics() {
 		panic(err)
 	}
 
-	metrcisChan := make(chan perContainerMetrics, len(containers))
+	metrcisChan := make(chan PerContainerMetrics, len(containers))
 
 	// get per container metrics
 	for _, container := range containers {
@@ -70,34 +69,34 @@ func GetOverallMetrics() {
 	for range containers {
 		metric := <-metrcisChan
 
-		totalCPU += metric.cpu
+		totalCPU += metric.Cpu
 
-		totalMem += metric.mem
+		totalMem += metric.Mem
 
-		totalNet.rx += metric.net.rx
-		totalNet.tx += metric.net.tx
+		totalNet.Rx += metric.Net.Rx
+		totalNet.Tx += metric.Net.Tx
 
-		totalBlk.read += metric.blk.read
-		totalBlk.write += metric.blk.write
+		totalBlk.Read += metric.Blk.Read
+		totalBlk.Write += metric.Blk.Write
 
-		metrics.perContainer = append(metrics.perContainer, metric)
+		metrics.PerContainer = append(metrics.PerContainer, metric)
 	}
 
-	metrics.totalCPU = totalCPU
-	metrics.totalMem = totalMem
-	metrics.totalNet = totalNet
-	metrics.totalBlk = totalBlk
+	metrics.TotalCPU = totalCPU
+	metrics.TotalMem = totalMem
+	metrics.TotalNet = totalNet
+	metrics.TotalBlk = totalBlk
 
-	fmt.Println(metrics)
+	return metrics
 }
 
-func getMetrics(cli *client.Client, ctx context.Context, c types.Container, ch chan perContainerMetrics) {
+func getMetrics(cli *client.Client, ctx context.Context, c types.Container, ch chan PerContainerMetrics) {
 
 	stats, _ := cli.ContainerStatsOneShot(ctx, c.ID)
 	data := types.StatsJSON{}
 	err := json.NewDecoder(stats.Body).Decode(&data)
 	if err != nil {
-		ch <- perContainerMetrics{}
+		ch <- PerContainerMetrics{}
 		return
 	}
 
@@ -134,16 +133,16 @@ func getMetrics(cli *client.Client, ctx context.Context, c types.Container, ch c
 	// Calculate Memory
 	memPercent := float64(data.MemoryStats.Usage) / float64(data.MemoryStats.Limit) * 100
 
-	metrics := perContainerMetrics{
-		containerID: c.ID[:10],
-		image:       c.Image,
-		name:        strings.Join(c.Names, ","),
-		status:      c.Status,
-		state:       c.State,
-		cpu:         cpuPercent,
-		mem:         memPercent,
-		net:         netStat{rx: rx, tx: tx},
-		blk:         blkStat{read: blkRead, write: blkWrite},
+	metrics := PerContainerMetrics{
+		ContainerID: c.ID[:10],
+		Image:       c.Image,
+		Name:        strings.Join(c.Names, ","),
+		Status:      c.Status,
+		State:       c.State,
+		Cpu:         cpuPercent,
+		Mem:         memPercent,
+		Net:         netStat{Rx: rx, Tx: tx},
+		Blk:         blkStat{Read: blkRead, Write: blkWrite},
 	}
 
 	// Send back metrics

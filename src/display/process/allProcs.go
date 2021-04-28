@@ -245,7 +245,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 						// get PID from the data
 						pid64, err := strconv.ParseInt(strings.SplitN(row, " ", 2)[0], 10, 32)
 						if err != nil {
-							return fmt.Errorf("Failed to get PID of process: %v", err)
+							return fmt.Errorf("failed to get PID of process: %v", err)
 						}
 						pidToKill = int32(pid64)
 
