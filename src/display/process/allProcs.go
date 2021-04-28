@@ -50,7 +50,7 @@ func getData(procs []*proc.Process) []string {
 			command := commands[len(commands)-1]
 
 			if len(command) > 40 {
-				command = command[:40]
+				temp = temp + "[" + command[:40] + "](fg:green)" + strings.Repeat(" ", 41-len(command))
 			} else {
 				temp = temp + "[" + command + "](fg:green)" + strings.Repeat(" ", 41-len(command))
 			}
@@ -143,7 +143,8 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 	}
 
 	uiEvents := ui.PollEvents()
-	tick := time.Tick(time.Duration(refreshRate) * time.Millisecond)
+	t := time.NewTicker(time.Duration(refreshRate) * time.Millisecond)
+	tick := t.C
 
 	previousKey := ""
 	selectedStyle := ui.NewStyle(ui.ColorYellow, ui.ColorClear, ui.ModifierBold)

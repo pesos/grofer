@@ -85,7 +85,8 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 	updateUI() // Initialize empty UI
 
 	uiEvents := ui.PollEvents()
-	tick := time.Tick(time.Duration(refreshRate) * time.Millisecond)
+	t := time.NewTicker(time.Duration(refreshRate) * time.Millisecond)
+	tick := t.C
 
 	previousKey := ""
 	selectedStyle := ui.NewStyle(ui.ColorYellow, ui.ColorClear, ui.ModifierBold)

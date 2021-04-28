@@ -105,7 +105,8 @@ func RenderCharts(ctx context.Context,
 	updateUI() // Initialize empty UI
 
 	uiEvents := ui.PollEvents()
-	tick := time.Tick(time.Duration(refreshRate) * time.Millisecond)
+	t := time.NewTicker(time.Duration(refreshRate) * time.Millisecond)
+	tick := t.C
 	for {
 		select {
 		case <-ctx.Done():
