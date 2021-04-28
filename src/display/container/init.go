@@ -98,7 +98,7 @@ func (page *OverallContainerPage) InitOverallContainer() {
 		" Net I/O",
 		" Block I/O ",
 	}}
-	page.HeadingTable.ColumnWidths = []int{10, 10, 10, 10, 10, 10, 10, 10, 15}
+	page.HeadingTable.ColumnWidths = []int{15, 16, 20, 15, 15, 10, 10, 17, 17}
 	page.HeadingTable.TextAlignment = ui.AlignLeft
 	page.HeadingTable.RowSeparator = false
 

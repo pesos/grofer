@@ -76,8 +76,6 @@ to quickly create a Cobra application.`,
 			}
 		}
 
-		container.GetOverallMetrics()
-
 		return nil
 	},
 }

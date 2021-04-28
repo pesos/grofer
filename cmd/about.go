@@ -45,7 +45,8 @@ var aboutCmd = &cobra.Command{
 				"Made with [♥](fg:red) by [PES Open Source](fg:green)\n\n"
 
 		uiEvents := ui.PollEvents()
-		tick := time.Tick(100 * time.Millisecond)
+		t := time.NewTicker(100 * time.Millisecond)
+		tick := t.C
 
 		for {
 			select {

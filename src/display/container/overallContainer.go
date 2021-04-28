@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
@@ -19,19 +20,56 @@ func getContainers(metrics []container.PerContainerMetrics) []string {
 	rows := []string{}
 
 	for _, metric := range metrics {
-		row := fmt.Sprintf("%s %s %s %s %s %.2f %% %.2f %% %.2f/%.2f %d/%d",
-			metric.ContainerID,
-			metric.Image,
-			metric.Name,
-			metric.Status,
-			metric.State,
-			metric.Cpu,
-			metric.Mem,
-			metric.Net.Rx,
-			metric.Net.Tx,
-			metric.Blk.Read,
-			metric.Blk.Write,
-		)
+		row := metric.ContainerID + strings.Repeat(" ", 15-len(metric.ContainerID)+2)
+
+		if len(metric.Image) > 15 {
+			metric.Image = metric.Image[:15]
+		}
+		row += metric.Image + strings.Repeat(" ", 16-len(metric.Image)+1)
+
+		metric.Name = strings.ReplaceAll(metric.Name, "/", "")
+		if len(metric.Name) > 19 {
+			metric.Name = metric.Name[:19]
+		}
+		row += metric.Name + strings.Repeat(" ", 20-len(metric.Name)+1)
+
+		if len(metric.Status) > 14 {
+			metric.Status = metric.Status[:14]
+		}
+		row += metric.Status + strings.Repeat(" ", 15-len(metric.Status)+1)
+
+		if len(metric.State) > 14 {
+			metric.State = metric.State[:14]
+		}
+		row += metric.State + strings.Repeat(" ", 15-len(metric.State)+1)
+
+		cpu := fmt.Sprintf("%.1f%%", metric.Cpu)
+		if len(cpu) > 9 {
+			cpu = cpu[:9]
+		}
+		row += cpu + strings.Repeat(" ", 10-len(cpu)+1)
+
+		mem := fmt.Sprintf("%.1f%%", metric.Mem)
+		if len(mem) > 9 {
+			mem = mem[:9]
+		}
+		row += mem + strings.Repeat(" ", 10-len(mem)+1)
+
+		netVals, units := utils.RoundValues(metric.Net.Rx, metric.Net.Tx, true)
+		units = strings.Trim(units, " \n\r")
+		net := fmt.Sprintf("%.1f%s/%.1f%s", netVals[0], units, netVals[1], units)
+		if len(net) > 16 {
+			net = net[:16]
+		}
+		row += net + strings.Repeat(" ", 17-len(net)+1)
+
+		blkVals, units := utils.RoundValues(float64(metric.Blk.Read), float64(metric.Blk.Write), true)
+		units = strings.Trim(units, " \n\r")
+		blk := fmt.Sprintf("%.2f%s/%.2f%s", blkVals[0], units, blkVals[1], units)
+		if len(blk) > 16 {
+			blk = blk[:16]
+		}
+		row += blk + strings.Repeat(" ", 17-len(blk))
 
 		rows = append(rows, row)
 	}
@@ -173,19 +211,6 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 				blkVals, units := utils.RoundValues(float64(data.TotalBlk.Read), float64(data.TotalBlk.Write), true)
 				myPage.BlkChart.Data = blkVals
 				myPage.BlkChart.Title = " Block I/O " + units
-
-				// update proc info
-				myPage.HeadingTable.Rows = [][]string{{
-					" ID",
-					" Image",
-					" Name",
-					" Status",
-					" State",
-					" CPU",
-					" Memory",
-					" Net I/O",
-					" Block I/O ",
-				}}
 
 				myPage.BodyList.Rows = getContainers(data.PerContainer)
 
