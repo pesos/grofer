@@ -16,60 +16,60 @@ import (
 	"github.com/pesos/grofer/src/utils"
 )
 
-func getContainers(metrics []container.PerContainerMetrics) []string {
+func getContainers(metrics []container.PerContainerMetrics, sizes []int) []string {
 	rows := []string{}
 
 	for _, metric := range metrics {
-		row := metric.ContainerID + strings.Repeat(" ", 15-len(metric.ContainerID)+2)
+		row := metric.ContainerID + strings.Repeat(" ", sizes[0]-len(metric.ContainerID)+2)
 
-		if len(metric.Image) > 15 {
-			metric.Image = metric.Image[:15]
+		if len(metric.Image) >= sizes[1] {
+			metric.Image = metric.Image[:sizes[1]]
 		}
-		row += metric.Image + strings.Repeat(" ", 16-len(metric.Image)+1)
+		row += metric.Image + strings.Repeat(" ", sizes[1]-len(metric.Image)+1)
 
 		metric.Name = strings.ReplaceAll(metric.Name, "/", "")
-		if len(metric.Name) > 19 {
-			metric.Name = metric.Name[:19]
+		if len(metric.Name) >= sizes[2] {
+			metric.Name = metric.Name[:sizes[2]]
 		}
-		row += metric.Name + strings.Repeat(" ", 20-len(metric.Name)+1)
+		row += metric.Name + strings.Repeat(" ", sizes[2]-len(metric.Name)+1)
 
-		if len(metric.Status) > 14 {
-			metric.Status = metric.Status[:14]
+		if len(metric.Status) >= sizes[3] {
+			metric.Status = metric.Status[:sizes[3]]
 		}
-		row += metric.Status + strings.Repeat(" ", 15-len(metric.Status)+1)
+		row += metric.Status + strings.Repeat(" ", sizes[3]-len(metric.Status)+1)
 
-		if len(metric.State) > 14 {
-			metric.State = metric.State[:14]
+		if len(metric.State) >= sizes[4] {
+			metric.State = metric.State[:sizes[4]]
 		}
-		row += metric.State + strings.Repeat(" ", 15-len(metric.State)+1)
+		row += metric.State + strings.Repeat(" ", sizes[4]-len(metric.State)+1)
 
 		cpu := fmt.Sprintf("%.1f%%", metric.Cpu)
-		if len(cpu) > 9 {
-			cpu = cpu[:9]
+		if len(cpu) >= sizes[5] {
+			cpu = cpu[:sizes[5]]
 		}
-		row += cpu + strings.Repeat(" ", 10-len(cpu)+1)
+		row += cpu + strings.Repeat(" ", sizes[5]-len(cpu)+1)
 
 		mem := fmt.Sprintf("%.1f%%", metric.Mem)
-		if len(mem) > 9 {
-			mem = mem[:9]
+		if len(mem) >= sizes[6] {
+			mem = mem[:sizes[6]]
 		}
-		row += mem + strings.Repeat(" ", 10-len(mem)+1)
+		row += mem + strings.Repeat(" ", sizes[6]-len(mem)+1)
 
 		netVals, units := utils.RoundValues(metric.Net.Rx, metric.Net.Tx, true)
 		units = strings.Trim(units, " \n\r")
 		net := fmt.Sprintf("%.1f%s/%.1f%s", netVals[0], units, netVals[1], units)
-		if len(net) > 16 {
-			net = net[:16]
+		if len(net) >= sizes[7] {
+			net = net[:sizes[7]]
 		}
-		row += net + strings.Repeat(" ", 17-len(net)+1)
+		row += net + strings.Repeat(" ", sizes[7]-len(net)+1)
 
 		blkVals, units := utils.RoundValues(float64(metric.Blk.Read), float64(metric.Blk.Write), true)
 		units = strings.Trim(units, " \n\r")
 		blk := fmt.Sprintf("%.2f%s/%.2f%s", blkVals[0], units, blkVals[1], units)
-		if len(blk) > 16 {
-			blk = blk[:16]
+		if len(blk) >= sizes[8] {
+			blk = blk[:sizes[8]]
 		}
-		row += blk + strings.Repeat(" ", 17-len(blk))
+		row += blk
 
 		rows = append(rows, row)
 	}
@@ -212,7 +212,7 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 				myPage.BlkChart.Data = blkVals
 				myPage.BlkChart.Title = " Block I/O " + units
 
-				myPage.BodyList.Rows = getContainers(data.PerContainer)
+				myPage.BodyList.Rows = getContainers(data.PerContainer, myPage.HeadingTable.ColumnWidths)
 
 				on.Do(updateUI)
 			}

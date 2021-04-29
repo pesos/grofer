@@ -98,9 +98,19 @@ func (page *OverallContainerPage) InitOverallContainer() {
 		" Net I/O",
 		" Block I/O ",
 	}}
-	page.HeadingTable.ColumnWidths = []int{15, 16, 20, 15, 15, 10, 10, 17, 17}
+	page.HeadingTable.ColumnWidths = []int{15, 15, 20, 15, 10, 10, 10, 17, 23}
 	page.HeadingTable.TextAlignment = ui.AlignLeft
 	page.HeadingTable.RowSeparator = false
+	page.HeadingTable.ColumnResizer = func() {
+		// First and last 4 columns are of fixed length
+		x := page.HeadingTable.Inner.Dx() - (15 + 10 + 10 + 17 + 23)
+		page.HeadingTable.ColumnWidths = []int{15,
+			utils.MaxInt(15, int(x*3/13)),
+			utils.MaxInt(15, int(x*4/13)),
+			utils.MaxInt(15, int(x*3/13)),
+			utils.MaxInt(15, int(x*3/13)),
+			10, 10, 17, 23}
+	}
 
 	// Initialize List for Conatiner list
 	page.BodyList.TextStyle = ui.NewStyle(ui.ColorClear)
