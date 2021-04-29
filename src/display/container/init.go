@@ -100,17 +100,17 @@ func (page *OverallContainerPage) InitOverallContainer() {
 		" Net I/O",
 		" Block I/O ",
 	}}
-	page.HeadingTable.ColumnWidths = []int{15, 15, 20, 15, 10, 10, 10, 17, 23}
+	page.HeadingTable.ColumnWidths = []int{12, 15, 20, 20, 10, 10, 10, 17, 23}
 	page.HeadingTable.TextAlignment = ui.AlignLeft
 	page.HeadingTable.RowSeparator = false
 	page.HeadingTable.ColumnResizer = func() {
 		// First and last 4 columns are of fixed length
-		x := page.HeadingTable.Inner.Dx() - (15 + 10 + 10 + 17 + 23)
-		page.HeadingTable.ColumnWidths = []int{15,
+		x := page.HeadingTable.Inner.Dx() - (12 + 10 + 10 + 17 + 23)
+		page.HeadingTable.ColumnWidths = []int{12,
 			ui.MaxInt(15, int(x*3/13)),
-			ui.MaxInt(15, int(x*4/13)),
-			ui.MaxInt(15, int(x*3/13)),
-			ui.MaxInt(15, int(x*3/13)),
+			ui.MaxInt(20, int(x*4/13)),
+			ui.MaxInt(20, int(x*4/13)),
+			ui.MaxInt(10, int(x*2/13)),
 			10, 10, 17, 23}
 
 		rows := page.BodyList.Rows
