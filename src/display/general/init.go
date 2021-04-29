@@ -221,12 +221,15 @@ func (page *CPUPage) InitCPU(numCores int) {
 	page.CPUChart.TextAlignment = ui.AlignCenter
 	page.CPUChart.RowSeparator = true
 
-	columnWidths := []int{}
-	for i := 0; i < numCores; i++ {
-		columnWidths = append(columnWidths, 9)
-	}
+	page.CPUChart.ColumnResizer = func() {
+		columnWidths := []int{}
+		x := page.CPUChart.Inner.Dx()
+		for i := 0; i < numCores; i++ {
+			columnWidths = append(columnWidths, x/numCores)
+		}
 
-	page.CPUChart.ColumnWidths = columnWidths
+		page.CPUChart.ColumnWidths = columnWidths
+	}
 
 	page.Grid.Set(
 		ui.NewRow(0.17,
