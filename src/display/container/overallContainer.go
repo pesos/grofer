@@ -20,40 +20,41 @@ func getContainers(metrics []container.PerContainerMetrics, sizes []int) []strin
 	rows := []string{}
 
 	for _, metric := range metrics {
-		row := metric.ContainerID + strings.Repeat(" ", sizes[0]-len(metric.ContainerID)+2)
+		row := " "
+		row += metric.ContainerID + strings.Repeat(" ", sizes[0]-len(metric.ContainerID)) + " \r"
 
 		if len(metric.Image) >= sizes[1] {
 			metric.Image = metric.Image[:sizes[1]]
 		}
-		row += metric.Image + strings.Repeat(" ", sizes[1]-len(metric.Image)+1)
+		row += metric.Image + strings.Repeat(" ", sizes[1]-len(metric.Image)) + " \r"
 
 		metric.Name = strings.ReplaceAll(metric.Name, "/", "")
 		if len(metric.Name) >= sizes[2] {
 			metric.Name = metric.Name[:sizes[2]]
 		}
-		row += metric.Name + strings.Repeat(" ", sizes[2]-len(metric.Name)+1)
+		row += metric.Name + strings.Repeat(" ", sizes[2]-len(metric.Name)) + " \r"
 
 		if len(metric.Status) >= sizes[3] {
 			metric.Status = metric.Status[:sizes[3]]
 		}
-		row += metric.Status + strings.Repeat(" ", sizes[3]-len(metric.Status)+1)
+		row += metric.Status + strings.Repeat(" ", sizes[3]-len(metric.Status)) + " \r"
 
 		if len(metric.State) >= sizes[4] {
 			metric.State = metric.State[:sizes[4]]
 		}
-		row += metric.State + strings.Repeat(" ", sizes[4]-len(metric.State)+1)
+		row += metric.State + strings.Repeat(" ", sizes[4]-len(metric.State)) + " \r"
 
 		cpu := fmt.Sprintf("%.1f%%", metric.Cpu)
 		if len(cpu) >= sizes[5] {
 			cpu = cpu[:sizes[5]]
 		}
-		row += cpu + strings.Repeat(" ", sizes[5]-len(cpu)+1)
+		row += cpu + strings.Repeat(" ", sizes[5]-len(cpu)) + " \r"
 
 		mem := fmt.Sprintf("%.1f%%", metric.Mem)
 		if len(mem) >= sizes[6] {
 			mem = mem[:sizes[6]]
 		}
-		row += mem + strings.Repeat(" ", sizes[6]-len(mem)+1)
+		row += mem + strings.Repeat(" ", sizes[6]-len(mem)) + " \r"
 
 		netVals, units := utils.RoundValues(metric.Net.Rx, metric.Net.Tx, true)
 		units = strings.Trim(units, " \n\r")
@@ -61,7 +62,7 @@ func getContainers(metrics []container.PerContainerMetrics, sizes []int) []strin
 		if len(net) >= sizes[7] {
 			net = net[:sizes[7]]
 		}
-		row += net + strings.Repeat(" ", sizes[7]-len(net)+1)
+		row += net + strings.Repeat(" ", sizes[7]-len(net)) + " \r"
 
 		blkVals, units := utils.RoundValues(float64(metric.Blk.Read), float64(metric.Blk.Write), true)
 		units = strings.Trim(units, " \n\r")

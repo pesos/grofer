@@ -17,6 +17,8 @@ limitations under the License.
 package container
 
 import (
+	"strings"
+
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 	"github.com/pesos/grofer/src/utils"
@@ -110,6 +112,23 @@ func (page *OverallContainerPage) InitOverallContainer() {
 			ui.MaxInt(15, int(x*3/13)),
 			ui.MaxInt(15, int(x*3/13)),
 			10, 10, 17, 23}
+
+		rows := page.BodyList.Rows
+		widths := page.HeadingTable.ColumnWidths
+
+		// Resize row content
+		for i, row := range rows {
+			if row != "" {
+				values := strings.Split(row, " \r")
+				newRow := " "
+				for j, value := range values[:len(values)-1] {
+					value = strings.Trim(value, " \r\n\t")
+					newRow += value + strings.Repeat(" ", ui.MaxInt(0, widths[j]-len(value))) + " \r"
+				}
+				newRow += values[len(values)-1]
+				page.BodyList.Rows[i] = newRow
+			}
+		}
 	}
 
 	// Initialize List for Conatiner list
