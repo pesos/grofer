@@ -130,7 +130,7 @@ func GetContainerMetrics(cid string) (PerContainerMetrics, error) {
 		cpuDelta := float64(usage) - float64(data.PreCPUStats.CPUUsage.PercpuUsage[i])
 
 		if cpuDelta > 0.0 && systemDelta > 0.0 {
-			perCpuPercent = (cpuDelta / systemDelta) * 100.0
+			perCpuPercent = (cpuDelta / systemDelta) * float64(numCPUs) * 100.0
 		}
 		perCpuPercents[i] = perCpuPercent
 	}
