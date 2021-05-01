@@ -40,6 +40,7 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 
 	defer ui.Close()
 
+	var selectedTable *utils.Table
 	var on sync.Once
 
 	var help *h.HelpMenu = h.NewHelpMenu()
@@ -94,6 +95,36 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 				updateUI()
 			case "?":
 				helpVisible = !helpVisible
+			case "0":
+				if selectedTable != nil {
+					selectedTable.ShowCursor = false
+					selectedTable = nil
+				}
+			case "1":
+				if selectedTable != nil {
+					selectedTable.ShowCursor = false
+				}
+				selectedTable = myPage.MountTable
+			case "2":
+				if selectedTable != nil {
+					selectedTable.ShowCursor = false
+				}
+				selectedTable = myPage.NetworkTable
+			case "3":
+				if selectedTable != nil {
+					selectedTable.ShowCursor = false
+				}
+				selectedTable = myPage.CPUUsageTable
+			case "4":
+				if selectedTable != nil {
+					selectedTable.ShowCursor = false
+				}
+				selectedTable = myPage.PortMapTable
+			case "5":
+				if selectedTable != nil {
+					selectedTable.ShowCursor = false
+				}
+				selectedTable = myPage.ProcTable
 			}
 			if helpVisible {
 				switch e.ID {
@@ -109,32 +140,42 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 					help.List.ScrollUp()
 					ui.Render(help)
 				}
+			} else if selectedTable != nil {
+				selectedTable.ShowCursor = true
+				switch e.ID {
+				case "j", "<Down>":
+					selectedTable.ScrollDown()
+				case "k", "<Up>":
+					selectedTable.ScrollUp()
+				case "<C-d>":
+					selectedTable.ScrollHalfPageDown()
+				case "<C-u>":
+					selectedTable.ScrollHalfPageUp()
+				case "<C-f>":
+					selectedTable.ScrollPageDown()
+				case "<C-b>":
+					selectedTable.ScrollPageUp()
+				case "g":
+					if previousKey == "g" {
+						selectedTable.ScrollTop()
+					}
+				case "<Home>":
+					selectedTable.ScrollTop()
+				case "G", "<End>":
+					selectedTable.ScrollBottom()
+				}
+				ui.Render(myPage.Grid)
+				if previousKey == "g" {
+					previousKey = ""
+				} else {
+					previousKey = e.ID
+				}
 			} else {
 				switch e.ID {
 				case "?":
 					updateUI()
 				case "s": //s to pause
 					pause()
-					// case "j", "<Down>":
-					// 	myPage.BodyList.ScrollDown()
-					// case "k", "<Up>":
-					// 	myPage.BodyList.ScrollUp()
-					// case "<C-d>":
-					// 	myPage.BodyList.ScrollHalfPageDown()
-					// case "<C-u>":
-					// 	myPage.BodyList.ScrollHalfPageUp()
-					// case "<C-f>":
-					// 	myPage.BodyList.ScrollPageDown()
-					// case "<C-b>":
-					// 	myPage.BodyList.ScrollPageUp()
-					// case "g":
-					// 	if previousKey == "g" {
-					// 		myPage.BodyList.ScrollTop()
-					// 	}
-					// case "<Home>":
-					// 	myPage.BodyList.ScrollTop()
-					// case "G", "<End>":
-					// 	myPage.BodyList.ScrollBottom()
 				}
 
 				ui.Render(myPage.Grid)
