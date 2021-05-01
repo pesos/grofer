@@ -35,7 +35,6 @@ func TickUntilDone(ctx context.Context, refreshRate int64, action func() error) 
 		case <-ctx.Done():
 			return ctx.Err() // Stop execution if end signal received
 		case <-ticker.C:
-			break
 		}
 	}
 }
