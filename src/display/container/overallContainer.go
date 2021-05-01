@@ -37,14 +37,14 @@ func getContainers(metrics []container.PerContainerMetrics, sizes []int) []strin
 
 	for _, metric := range metrics {
 		row := " "
-		row += metric.ContainerID + strings.Repeat(" ", sizes[0]-len(metric.ContainerID)) + " \r"
+		row += metric.ID + strings.Repeat(" ", sizes[0]-len(metric.ID)) + " \r"
 
 		if len(metric.Image) >= sizes[1] {
 			metric.Image = metric.Image[:sizes[1]]
 		}
 		row += metric.Image + strings.Repeat(" ", sizes[1]-len(metric.Image)) + " \r"
 
-		metric.Name = strings.ReplaceAll(metric.Name, "/", "")
+		metric.Name = strings.TrimLeft(metric.Name, "/")
 		if len(metric.Name) >= sizes[2] {
 			metric.Name = metric.Name[:sizes[2]]
 		}
@@ -108,7 +108,7 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 	var on sync.Once
 
 	var help *h.HelpMenu = h.NewHelpMenu()
-	h.SelectHelpMenu("proc")
+	h.SelectHelpMenu("cont")
 
 	// Create new page
 	myPage := NewOverallContainerPage()

@@ -21,7 +21,7 @@ import (
 	"github.com/pesos/grofer/src/utils"
 )
 
-// Serve serves data on a per process basis
+// Serve serves overall container metrics
 func Serve(dataChannel chan ContainerMetrics, ctx context.Context, refreshRate int64) error {
 	return utils.TickUntilDone(ctx, refreshRate, func() error {
 		metrics := GetOverallMetrics()
@@ -31,13 +31,15 @@ func Serve(dataChannel chan ContainerMetrics, ctx context.Context, refreshRate i
 	})
 }
 
-// func ServeProcs(dataChannel chan []*proc.Process, ctx context.Context, refreshRate int64) error {
-// 	return utils.TickUntilDone(ctx, refreshRate, func() error {
-// 		procs, err := proc.Processes()
-// 		if err == nil {
-// 			dataChannel <- procs
-// 		}
+// ServeContainer serves data on a per container basis
+func ServeContainer(cid string, dataChannel chan PerContainerMetrics, ctx context.Context, refreshRate int64) error {
+	return utils.TickUntilDone(ctx, refreshRate, func() error {
+		metrics, err := GetContainerMetrics(cid)
+		if err != nil {
+			return err
+		}
+		dataChannel <- metrics
 
-// 		return nil
-// 	})
-// }
+		return nil
+	})
+}

@@ -32,28 +32,6 @@ type ContainerMetrics struct {
 	PerContainer []PerContainerMetrics
 }
 
-type PerContainerMetrics struct {
-	ContainerID string
-	Image       string
-	Name        string
-	Status      string
-	State       string
-	Cpu         float64
-	Mem         float64
-	Net         netStat
-	Blk         blkStat
-}
-
-type netStat struct {
-	Rx float64
-	Tx float64
-}
-
-type blkStat struct {
-	Read  uint64
-	Write uint64
-}
-
 func GetOverallMetrics() ContainerMetrics {
 	metrics := ContainerMetrics{}
 
@@ -126,6 +104,9 @@ func getMetrics(cli *client.Client, ctx context.Context, c types.Container, ch c
 		cpuPercent = (cpuDelta / systemDelta) * float64(len(data.CPUStats.CPUUsage.PercpuUsage)) * 100.0
 	}
 
+	// Calculate Memory
+	memPercent := float64(data.MemoryStats.Usage) / float64(data.MemoryStats.Limit) * 100
+
 	// Calculate blk IO
 	var blkRead, blkWrite uint64
 	for _, bioEntry := range data.BlkioStats.IoServiceBytesRecursive {
@@ -145,19 +126,16 @@ func getMetrics(cli *client.Client, ctx context.Context, c types.Container, ch c
 		tx += float64(v.TxBytes)
 	}
 
-	// Calculate Memory
-	memPercent := float64(data.MemoryStats.Usage) / float64(data.MemoryStats.Limit) * 100
-
 	metrics := PerContainerMetrics{
-		ContainerID: c.ID[:10],
-		Image:       c.Image,
-		Name:        strings.Join(c.Names, ","),
-		Status:      c.Status,
-		State:       c.State,
-		Cpu:         cpuPercent,
-		Mem:         memPercent,
-		Net:         netStat{Rx: rx, Tx: tx},
-		Blk:         blkStat{Read: blkRead, Write: blkWrite},
+		ID:     c.ID[:10],
+		Image:  c.Image,
+		Name:   strings.Join(c.Names, ","),
+		Status: c.Status,
+		State:  c.State,
+		Cpu:    cpuPercent,
+		Mem:    memPercent,
+		Net:    netStat{Rx: rx, Tx: tx},
+		Blk:    blkStat{Read: blkRead, Write: blkWrite},
 	}
 
 	// Send back metrics

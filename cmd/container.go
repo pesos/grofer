@@ -51,7 +51,22 @@ var containerCmd = &cobra.Command{
 		}
 
 		if cid != defaultCid {
+			dataChannel := make(chan container.PerContainerMetrics, 1)
 
+			eg, ctx := errgroup.WithContext(context.Background())
+
+			eg.Go(func() error {
+				return container.ServeContainer(cid, dataChannel, ctx, int64(containerRefreshRate))
+			})
+			eg.Go(func() error {
+				return containerGraph.ContainerVisuals(ctx, dataChannel, containerRefreshRate)
+			})
+
+			if err := eg.Wait(); err != nil {
+				if err != general.ErrCanceledByUser {
+					fmt.Printf("Error: %v\n", err)
+				}
+			}
 		} else {
 			dataChannel := make(chan container.ContainerMetrics, 1)
 
