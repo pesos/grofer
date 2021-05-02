@@ -17,8 +17,6 @@ limitations under the License.
 package container
 
 import (
-	"strings"
-
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 	"github.com/pesos/grofer/src/utils"
@@ -30,8 +28,7 @@ type OverallContainerPage struct {
 	MemChart     *widgets.Gauge
 	NetChart     *utils.BarChart
 	BlkChart     *utils.BarChart
-	HeadingTable *widgets.Table
-	BodyList     *widgets.List
+	DetailsTable *utils.Table
 }
 
 // NewOverallContainerPage initializes a new page from the OverallContainerPage struct and returns it
@@ -42,8 +39,7 @@ func NewOverallContainerPage() *OverallContainerPage {
 		MemChart:     widgets.NewGauge(),
 		NetChart:     utils.NewBarChart(),
 		BlkChart:     utils.NewBarChart(),
-		HeadingTable: widgets.NewTable(),
-		BodyList:     widgets.NewList(),
+		DetailsTable: utils.NewTable(),
 	}
 	page.InitOverallContainer()
 	return page
@@ -88,54 +84,23 @@ func (page *OverallContainerPage) InitOverallContainer() {
 	page.BlkChart.NumStyles = []ui.Style{ui.NewStyle(ui.ColorBlack)}
 
 	// Initialize Table for Container Details Table
-	page.HeadingTable.TextStyle = ui.NewStyle(ui.ColorClear)
-	page.HeadingTable.Rows = [][]string{{
-		" ID",
-		" Image",
-		" Name",
-		" Status",
-		" State",
-		" CPU",
-		" Memory",
-		" Net I/O",
-		" Block I/O ",
-	}}
-	page.HeadingTable.ColumnWidths = []int{12, 15, 20, 20, 10, 10, 10, 17, 23}
-	page.HeadingTable.TextAlignment = ui.AlignLeft
-	page.HeadingTable.RowSeparator = false
-	page.HeadingTable.ColumnResizer = func() {
-		// First and last 4 columns are of fixed length
-		x := page.HeadingTable.Inner.Dx() - (12 + 10 + 10 + 17 + 23)
-		page.HeadingTable.ColumnWidths = []int{12,
+	page.DetailsTable.Title = " Details "
+	page.DetailsTable.BorderStyle.Fg = ui.ColorCyan
+	page.DetailsTable.TitleStyle.Fg = ui.ColorClear
+	page.DetailsTable.ColResizer = func() {
+		x := page.DetailsTable.Inner.Dx() - (12 + 10 + 10 + 17 + 23)
+		page.DetailsTable.ColWidths = []int{
+			12,
 			ui.MaxInt(15, int(x*3/13)),
 			ui.MaxInt(20, int(x*4/13)),
 			ui.MaxInt(20, int(x*4/13)),
 			ui.MaxInt(10, int(x*2/13)),
-			10, 10, 17, 23}
-
-		rows := page.BodyList.Rows
-		widths := page.HeadingTable.ColumnWidths
-
-		// Resize row content
-		for i, row := range rows {
-			if row != "" {
-				values := strings.Split(row, " \r")
-				newRow := " "
-				for j, value := range values[:len(values)-1] {
-					value = strings.Trim(value, " \r\n\t")
-					newRow += value + strings.Repeat(" ", ui.MaxInt(0, widths[j]-len(value))) + " \r"
-				}
-				newRow += values[len(values)-1]
-				page.BodyList.Rows[i] = newRow
-			}
+			10, 10, 17, 23,
 		}
 	}
-
-	// Initialize List for Conatiner list
-	page.BodyList.TextStyle = ui.NewStyle(ui.ColorClear)
-	page.BodyList.TextStyle.Fg = ui.ColorClear
-	page.BodyList.TitleStyle.Fg = ui.ColorClear
-	page.BodyList.BorderStyle.Fg = ui.ColorCyan
+	page.DetailsTable.Header = []string{"ID", "Image", "Name", "Status", "State", "CPU", "Memory", "Net I/O", "Block I/O "}
+	page.DetailsTable.ShowCursor = true
+	page.DetailsTable.CursorColor = ui.ColorCyan
 
 	// Initialize Grid layout
 	page.Grid.Set(
@@ -147,10 +112,7 @@ func (page *OverallContainerPage) InitOverallContainer() {
 			ui.NewCol(0.25, page.NetChart),
 			ui.NewCol(0.25, page.BlkChart),
 		),
-		ui.NewRow(0.6,
-			ui.NewRow(0.2, page.HeadingTable),
-			ui.NewRow(0.8, page.BodyList),
-		),
+		ui.NewRow(0.6, page.DetailsTable),
 	)
 
 	w, h := ui.TerminalDimensions()
@@ -254,6 +216,7 @@ func (page *PerContainerPage) InitPerContainer() {
 		}
 	}
 	page.MountTable.Header = []string{"SRC", "DST", "Mode"}
+	page.MountTable.CursorColor = ui.ColorCyan
 
 	// Initialize Table for Network Table
 	page.NetworkTable.Title = " Networks "
@@ -270,6 +233,7 @@ func (page *PerContainerPage) InitPerContainer() {
 		}
 	}
 	page.NetworkTable.Header = []string{"Name", "Driver", "IP", "Ingress"}
+	page.NetworkTable.CursorColor = ui.ColorCyan
 
 	// Initialize Table for CPU Usage Table
 	page.CPUUsageTable.Title = " Per CPU "
@@ -283,6 +247,7 @@ func (page *PerContainerPage) InitPerContainer() {
 		}
 	}
 	page.CPUUsageTable.Header = []string{"CPU", "Usage"}
+	page.CPUUsageTable.CursorColor = ui.ColorCyan
 
 	// Initialize Table for Port Map Table
 	page.PortMapTable.Title = " Port Mappings "
@@ -298,6 +263,7 @@ func (page *PerContainerPage) InitPerContainer() {
 		}
 	}
 	page.PortMapTable.Header = []string{"Host", "Container", "Type"}
+	page.PortMapTable.CursorColor = ui.ColorCyan
 
 	// Initialize Table for procs Table
 	page.ProcTable.Title = " Processes "
@@ -312,6 +278,7 @@ func (page *PerContainerPage) InitPerContainer() {
 		}
 	}
 	page.ProcTable.Header = []string{"PID", "UID", "CMD"}
+	page.ProcTable.CursorColor = ui.ColorCyan
 
 	// Initialize Grid layout
 	page.Grid.Set(

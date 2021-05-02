@@ -130,7 +130,7 @@ func getMetrics(cli *client.Client, ctx context.Context, c types.Container, ch c
 	metrics := PerContainerMetrics{
 		ID:     c.ID[:10],
 		Image:  c.Image,
-		Name:   strings.Join(c.Names, ","),
+		Name:   strings.TrimLeft(strings.Join(c.Names, ","), "/"),
 		Status: c.Status,
 		State:  c.State,
 		Cpu:    cpuPercent,
