@@ -82,6 +82,7 @@ type procInfo struct {
 	CMD string
 }
 
+// GetContainerMetrics provides per container metrics in the form of PerContainerMetrics Structs
 func GetContainerMetrics(cid string) (PerContainerMetrics, error) {
 
 	ctx := context.Background()

@@ -97,6 +97,7 @@ func getContainers(metrics []container.PerContainerMetrics, sizes []int) []strin
 var runProc = true
 var helpVisible = false
 
+// OverallVisuals provides the UI for overall container metrics
 func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMetrics, refreshRate uint64) error {
 
 	if err := ui.Init(); err != nil {

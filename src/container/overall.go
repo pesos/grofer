@@ -32,6 +32,7 @@ type ContainerMetrics struct {
 	PerContainer []PerContainerMetrics
 }
 
+// GetOverallMetrics provides metrics about all running containers in the form of ContainerMetrics structs
 func GetOverallMetrics() ContainerMetrics {
 	metrics := ContainerMetrics{}
 

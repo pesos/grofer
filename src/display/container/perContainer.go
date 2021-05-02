@@ -32,6 +32,7 @@ import (
 	"github.com/pesos/grofer/src/utils"
 )
 
+// ContainerVisuals provides the UI for per container metrics
 func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContainerMetrics, refreshRate uint64) error {
 
 	if err := ui.Init(); err != nil {
@@ -42,12 +43,20 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 
 	var selectedTable *utils.Table
 	var on sync.Once
-
 	var help *h.HelpMenu = h.NewHelpMenu()
-	h.SelectHelpMenu("cont")
+	h.SelectHelpMenu("cont_cid")
 
 	// Create new page
 	myPage := NewPerContainerPage()
+
+	tableMap := map[string]*utils.Table{
+		"0": nil,
+		"1": myPage.MountTable,
+		"2": myPage.NetworkTable,
+		"3": myPage.CPUUsageTable,
+		"4": myPage.PortMapTable,
+		"5": myPage.ProcTable,
+	}
 
 	pause := func() {
 		runProc = !runProc
@@ -83,7 +92,6 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 	tick := t.C
 
 	previousKey := ""
-	// selectedStyle := ui.NewStyle(ui.ColorYellow, ui.ColorClear, ui.ModifierBold)
 
 	for {
 		select {
@@ -95,36 +103,13 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 				updateUI()
 			case "?":
 				helpVisible = !helpVisible
-			case "0":
-				if selectedTable != nil {
-					selectedTable.ShowCursor = false
-					selectedTable = nil
+			case "0", "1", "2", "3", "4", "5":
+				if !helpVisible {
+					if selectedTable != nil {
+						selectedTable.ShowCursor = false
+					}
+					selectedTable = tableMap[e.ID]
 				}
-			case "1":
-				if selectedTable != nil {
-					selectedTable.ShowCursor = false
-				}
-				selectedTable = myPage.MountTable
-			case "2":
-				if selectedTable != nil {
-					selectedTable.ShowCursor = false
-				}
-				selectedTable = myPage.NetworkTable
-			case "3":
-				if selectedTable != nil {
-					selectedTable.ShowCursor = false
-				}
-				selectedTable = myPage.CPUUsageTable
-			case "4":
-				if selectedTable != nil {
-					selectedTable.ShowCursor = false
-				}
-				selectedTable = myPage.PortMapTable
-			case "5":
-				if selectedTable != nil {
-					selectedTable.ShowCursor = false
-				}
-				selectedTable = myPage.ProcTable
 			}
 			if helpVisible {
 				switch e.ID {
