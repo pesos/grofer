@@ -22,7 +22,7 @@ import (
 )
 
 // Serve serves overall container metrics
-func Serve(dataChannel chan ContainerMetrics, ctx context.Context, refreshRate int64) error {
+func Serve(ctx context.Context, dataChannel chan ContainerMetrics, refreshRate int64) error {
 	return utils.TickUntilDone(ctx, refreshRate, func() error {
 		metrics := GetOverallMetrics()
 		dataChannel <- metrics
@@ -32,7 +32,7 @@ func Serve(dataChannel chan ContainerMetrics, ctx context.Context, refreshRate i
 }
 
 // ServeContainer serves data on a per container basis
-func ServeContainer(cid string, dataChannel chan PerContainerMetrics, ctx context.Context, refreshRate int64) error {
+func ServeContainer(ctx context.Context, cid string, dataChannel chan PerContainerMetrics, refreshRate int64) error {
 	return utils.TickUntilDone(ctx, refreshRate, func() error {
 		metrics, err := GetContainerMetrics(cid)
 		if err != nil {

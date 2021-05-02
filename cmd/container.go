@@ -18,8 +18,10 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"log"
 
 	containerGraph "github.com/pesos/grofer/src/display/container"
+	"github.com/pesos/grofer/src/utils"
 
 	"github.com/pesos/grofer/src/container"
 	"github.com/pesos/grofer/src/general"
@@ -56,15 +58,18 @@ var containerCmd = &cobra.Command{
 			eg, ctx := errgroup.WithContext(context.Background())
 
 			eg.Go(func() error {
-				return container.ServeContainer(cid, dataChannel, ctx, int64(containerRefreshRate))
+				return container.ServeContainer(ctx, cid, dataChannel, int64(containerRefreshRate))
 			})
 			eg.Go(func() error {
 				return containerGraph.ContainerVisuals(ctx, dataChannel, containerRefreshRate)
 			})
 
 			if err := eg.Wait(); err != nil {
+				if err == general.ErrInvalidContainer {
+					utils.ErrorMsg("cid")
+				}
 				if err != general.ErrCanceledByUser {
-					fmt.Printf("Error: %v\n", err)
+					log.Fatalf("Error: %v\n", err)
 				}
 			}
 		} else {
@@ -73,7 +78,7 @@ var containerCmd = &cobra.Command{
 			eg, ctx := errgroup.WithContext(context.Background())
 
 			eg.Go(func() error {
-				return container.Serve(dataChannel, ctx, int64(containerRefreshRate))
+				return container.Serve(ctx, dataChannel, int64(containerRefreshRate))
 			})
 			eg.Go(func() error {
 				return containerGraph.OverallVisuals(ctx, dataChannel, containerRefreshRate)

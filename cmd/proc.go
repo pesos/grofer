@@ -67,7 +67,7 @@ Syntax:
 
 			proc, err := process.NewProcess(pid)
 			if err != nil {
-				utils.ErrorMsg()
+				utils.ErrorMsg("pid")
 				return fmt.Errorf("invalid pid")
 			}
 

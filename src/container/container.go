@@ -25,6 +25,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
+	"github.com/pesos/grofer/src/general"
 )
 
 type PerContainerMetrics struct {
@@ -106,8 +107,10 @@ func GetContainerMetrics(cid string) (PerContainerMetrics, error) {
 		return metrics, err
 	}
 
-	if len(containers) != 1 {
+	if len(containers) > 1 {
 		return metrics, fmt.Errorf("multiple containers with same ID exist")
+	} else if len(containers) < 1 {
+		return metrics, general.ErrInvalidContainer
 	}
 
 	c := containers[0]
