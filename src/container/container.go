@@ -123,7 +123,7 @@ func GetContainerMetrics(cid string) (PerContainerMetrics, error) {
 	}
 
 	// Get Container Stats
-	stats, _ := cli.ContainerStatsOneShot(ctx, cid)
+	stats, _ := cli.ContainerStats(ctx, cid, false)
 	data := types.StatsJSON{}
 	err = json.NewDecoder(stats.Body).Decode(&data)
 	if err != nil {
