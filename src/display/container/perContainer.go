@@ -230,7 +230,7 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 				for i, c := range data.PerCPU {
 					cpuData = append(cpuData, []string{
 						fmt.Sprintf("CPU %d", i),
-						fmt.Sprintf("%.2f%%", c),
+						c,
 					})
 				}
 				myPage.CPUUsageTable.Rows = cpuData

@@ -25,6 +25,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
+	ui "github.com/gizak/termui/v3"
 	"github.com/pesos/grofer/src/general"
 )
 
@@ -42,7 +43,7 @@ type PerContainerMetrics struct {
 	// Metrics specific to per container
 	Pid     string
 	NetInfo []netInfo
-	PerCPU  []float64
+	PerCPU  []string
 	PortMap []portMap
 	Mounts  []mountInfo
 	Procs   []procInfo
@@ -142,17 +143,28 @@ func GetContainerMetrics(cid string) (PerContainerMetrics, error) {
 	}
 
 	// Get Per CPU utilizations
-	perCpuPercents := make([]float64, numCPUs)
+	preLen := len(data.PreCPUStats.CPUUsage.PercpuUsage)
+	postLen := len(data.CPUStats.CPUUsage.PercpuUsage)
+	numCPUs = ui.MaxInt(preLen, postLen)
 
-	for i, usage := range data.CPUStats.CPUUsage.PercpuUsage {
-		perCpuPercent := 0.0
+	perCpuPercents := make([]string, numCPUs)
 
-		cpuDelta := float64(usage) - float64(data.PreCPUStats.CPUUsage.PercpuUsage[i])
-
-		if cpuDelta > 0.0 && systemDelta > 0.0 {
-			perCpuPercent = (cpuDelta / systemDelta) * float64(numCPUs) * 100.0
+	// If first run, skip percpu metrics
+	if preLen != postLen {
+		for i := range perCpuPercents {
+			perCpuPercents[i] = "NA"
 		}
-		perCpuPercents[i] = perCpuPercent
+	} else {
+		for i, usage := range data.CPUStats.CPUUsage.PercpuUsage {
+			perCpuPercent := 0.0
+
+			cpuDelta := float64(usage) - float64(data.PreCPUStats.CPUUsage.PercpuUsage[i])
+
+			if cpuDelta > 0.0 && systemDelta > 0.0 {
+				perCpuPercent = (cpuDelta / systemDelta) * float64(numCPUs) * 100.0
+			}
+			perCpuPercents[i] = fmt.Sprintf("%.2f%%", perCpuPercent)
+		}
 	}
 
 	// Calculate Memory usage
