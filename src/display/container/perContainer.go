@@ -239,6 +239,7 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 				portData := [][]string{}
 				for _, p := range data.PortMap {
 					portData = append(portData, []string{
+						p.IP,
 						fmt.Sprintf("%d", p.Host),
 						fmt.Sprintf("%d", p.Container),
 						p.Protocol,

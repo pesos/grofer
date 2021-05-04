@@ -73,6 +73,7 @@ type mountInfo struct {
 }
 
 type portMap struct {
+	IP        string
 	Host      int
 	Container int
 	Protocol  string
@@ -212,6 +213,7 @@ func GetContainerMetrics(cid string) (PerContainerMetrics, error) {
 	portData := []portMap{}
 	for _, port := range c.Ports {
 		p := portMap{
+			IP:        port.IP,
 			Host:      int(port.PublicPort),
 			Container: int(port.PrivatePort),
 			Protocol:  port.Type,

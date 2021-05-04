@@ -253,16 +253,16 @@ func (page *PerContainerPage) InitPerContainer() {
 	page.PortMapTable.Title = " Port Mappings "
 	page.PortMapTable.BorderStyle.Fg = ui.ColorCyan
 	page.PortMapTable.TitleStyle.Fg = ui.ColorClear
-	page.PortMapTable.ColGap = 1
 	page.PortMapTable.ColResizer = func() {
 		x := page.PortMapTable.Inner.Dx()
 		page.PortMapTable.ColWidths = []int{
 			3 * x / 10,
-			3 * x / 10,
-			3 * x / 10,
+			2 * x / 10,
+			2 * x / 10,
+			2 * x / 10,
 		}
 	}
-	page.PortMapTable.Header = []string{"Host", "Container", "Type"}
+	page.PortMapTable.Header = []string{"IP", "Host", "Container", "Type"}
 	page.PortMapTable.CursorColor = ui.ColorCyan
 
 	// Initialize Table for procs Table

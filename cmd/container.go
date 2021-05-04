@@ -86,7 +86,7 @@ var containerCmd = &cobra.Command{
 
 			if err := eg.Wait(); err != nil {
 				if err != general.ErrCanceledByUser {
-					fmt.Printf("Error: %v\n", err)
+					log.Fatalf("Error: %v\n", err)
 				}
 			}
 		}
