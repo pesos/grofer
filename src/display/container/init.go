@@ -262,7 +262,7 @@ func (page *PerContainerPage) InitPerContainer() {
 			2 * x / 10,
 		}
 	}
-	page.PortMapTable.Header = []string{"IP", "Host", "Container", "Type"}
+	page.PortMapTable.Header = []string{"HostIP", "Host", "Container", "Type"}
 	page.PortMapTable.CursorColor = ui.ColorCyan
 
 	// Initialize Table for procs Table

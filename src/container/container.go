@@ -85,6 +85,48 @@ type procInfo struct {
 	CMD string
 }
 
+func getCPUPercent(data *types.StatsJSON) float64 {
+	cpuPercent := 0.0
+	numCPUs := len(data.CPUStats.CPUUsage.PercpuUsage)
+
+	cpuDelta := float64(data.CPUStats.CPUUsage.TotalUsage) - float64(data.PreCPUStats.CPUUsage.TotalUsage)
+
+	systemDelta := float64(data.CPUStats.SystemUsage) - float64(data.PreCPUStats.SystemUsage)
+
+	if cpuDelta > 0.0 && systemDelta > 0.0 {
+		cpuPercent = (cpuDelta / systemDelta) * float64(numCPUs) * 100.0
+	}
+	return cpuPercent
+}
+
+func getPerCPUPercents(data *types.StatsJSON) []string {
+	preLen := len(data.PreCPUStats.CPUUsage.PercpuUsage)
+	postLen := len(data.CPUStats.CPUUsage.PercpuUsage)
+	numCPUs := ui.MaxInt(preLen, postLen)
+
+	perCpuPercents := make([]string, numCPUs)
+	systemDelta := float64(data.CPUStats.SystemUsage) - float64(data.PreCPUStats.SystemUsage)
+
+	// If first run, skip percpu metrics
+	if preLen != postLen {
+		for i := range perCpuPercents {
+			perCpuPercents[i] = "NA"
+		}
+	} else {
+		for i, usage := range data.CPUStats.CPUUsage.PercpuUsage {
+			perCpuPercent := 0.0
+
+			cpuDelta := float64(usage) - float64(data.PreCPUStats.CPUUsage.PercpuUsage[i])
+
+			if cpuDelta > 0.0 && systemDelta > 0.0 {
+				perCpuPercent = (cpuDelta / systemDelta) * float64(numCPUs) * 100.0
+			}
+			perCpuPercents[i] = fmt.Sprintf("%.2f%%", perCpuPercent)
+		}
+	}
+	return perCpuPercents
+}
+
 // GetContainerMetrics provides per container metrics in the form of PerContainerMetrics Structs
 func GetContainerMetrics(cid string) (PerContainerMetrics, error) {
 
@@ -131,42 +173,11 @@ func GetContainerMetrics(cid string) (PerContainerMetrics, error) {
 		return metrics, err
 	}
 
-	// Calculate CPU  and per CPU percent
-	cpuPercent := 0.0
-	numCPUs := len(data.CPUStats.CPUUsage.PercpuUsage)
-
-	cpuDelta := float64(data.CPUStats.CPUUsage.TotalUsage) - float64(data.PreCPUStats.CPUUsage.TotalUsage)
-
-	systemDelta := float64(data.CPUStats.SystemUsage) - float64(data.PreCPUStats.SystemUsage)
-
-	if cpuDelta > 0.0 && systemDelta > 0.0 {
-		cpuPercent = (cpuDelta / systemDelta) * float64(numCPUs) * 100.0
-	}
+	// Calculate CPU percent
+	cpuPercent := getCPUPercent(&data)
 
 	// Get Per CPU utilizations
-	preLen := len(data.PreCPUStats.CPUUsage.PercpuUsage)
-	postLen := len(data.CPUStats.CPUUsage.PercpuUsage)
-	numCPUs = ui.MaxInt(preLen, postLen)
-
-	perCpuPercents := make([]string, numCPUs)
-
-	// If first run, skip percpu metrics
-	if preLen != postLen {
-		for i := range perCpuPercents {
-			perCpuPercents[i] = "NA"
-		}
-	} else {
-		for i, usage := range data.CPUStats.CPUUsage.PercpuUsage {
-			perCpuPercent := 0.0
-
-			cpuDelta := float64(usage) - float64(data.PreCPUStats.CPUUsage.PercpuUsage[i])
-
-			if cpuDelta > 0.0 && systemDelta > 0.0 {
-				perCpuPercent = (cpuDelta / systemDelta) * float64(numCPUs) * 100.0
-			}
-			perCpuPercents[i] = fmt.Sprintf("%.2f%%", perCpuPercent)
-		}
-	}
+	perCpuPercents := getPerCPUPercents(&data)
 
 	// Calculate Memory usage
 	memPercent := float64(data.MemoryStats.Usage) / float64(data.MemoryStats.Limit) * 100
