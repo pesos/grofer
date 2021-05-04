@@ -39,7 +39,7 @@ var containerCmd = &cobra.Command{
 	Use:     "container",
 	Short:   "container command is used to get information related to docker containers",
 	Long:    `container command is used to get information related to docker containers. It provides both overall and per container metrics.`,
-	Aliases: []string{"containers"},
+	Aliases: []string{"containers", "docker"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) > 0 {
 			return fmt.Errorf("the container command should have no arguments, see grofer container --help for further info")
