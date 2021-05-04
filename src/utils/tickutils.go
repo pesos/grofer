@@ -26,6 +26,7 @@ func TickUntilDone(ctx context.Context, refreshRate int64, action func() error) 
 	defer ticker.Stop()
 
 	for {
+		// Run action
 		err := action()
 		if err != nil {
 			return err
@@ -33,8 +34,10 @@ func TickUntilDone(ctx context.Context, refreshRate int64, action func() error) 
 
 		select {
 		case <-ctx.Done():
-			return ctx.Err() // Stop execution if end signal received
+			// Stop execution if context is cancelled
+			return ctx.Err()
 		case <-ticker.C:
+			// Break out of blocking select for every tick
 		}
 	}
 }
