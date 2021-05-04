@@ -103,15 +103,7 @@ func getMetrics(cli *client.Client, ctx context.Context, c types.Container, ch c
 	}
 
 	// Calculate CPU percent
-	cpuPercent := 0.0
-
-	cpuDelta := float64(data.CPUStats.CPUUsage.TotalUsage) - float64(data.PreCPUStats.CPUUsage.TotalUsage)
-
-	systemDelta := float64(data.CPUStats.SystemUsage) - float64(data.PreCPUStats.SystemUsage)
-
-	if cpuDelta > 0.0 && systemDelta > 0.0 {
-		cpuPercent = (cpuDelta / systemDelta) * float64(len(data.CPUStats.CPUUsage.PercpuUsage)) * 100.0
-	}
+	cpuPercent := getCPUPercent(&data)
 
 	// Calculate Memory
 	memPercent := float64(data.MemoryStats.Usage) / float64(data.MemoryStats.Limit) * 100
