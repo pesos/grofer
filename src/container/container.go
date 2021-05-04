@@ -87,13 +87,13 @@ type procInfo struct {
 // GetContainerMetrics provides per container metrics in the form of PerContainerMetrics Structs
 func GetContainerMetrics(cid string) (PerContainerMetrics, error) {
 
+	metrics := PerContainerMetrics{}
+
 	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		panic(err)
+		return metrics, err
 	}
-
-	metrics := PerContainerMetrics{}
 
 	// Get container using a filter
 	args := filters.NewArgs(

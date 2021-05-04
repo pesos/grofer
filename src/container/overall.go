@@ -33,19 +33,19 @@ type ContainerMetrics struct {
 }
 
 // GetOverallMetrics provides metrics about all running containers in the form of ContainerMetrics structs
-func GetOverallMetrics() ContainerMetrics {
+func GetOverallMetrics() (ContainerMetrics, error) {
 	metrics := ContainerMetrics{}
 
 	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		panic(err)
+		return metrics, err
 	}
 
 	// Get list of containers
 	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
 	if err != nil {
-		panic(err)
+		return metrics, err
 	}
 
 	metrcisChan := make(chan PerContainerMetrics, len(containers))
@@ -81,16 +81,24 @@ func GetOverallMetrics() ContainerMetrics {
 	metrics.TotalNet = totalNet
 	metrics.TotalBlk = totalBlk
 
-	return metrics
+	return metrics, nil
 }
 
 func getMetrics(cli *client.Client, ctx context.Context, c types.Container, ch chan PerContainerMetrics) {
 
-	stats, _ := cli.ContainerStatsOneShot(ctx, c.ID)
-	data := types.StatsJSON{}
-	err := json.NewDecoder(stats.Body).Decode(&data)
+	// Send back metrics
+	metrics := PerContainerMetrics{}
+	defer func() {
+		ch <- metrics
+	}()
+
+	stats, err := cli.ContainerStats(ctx, c.ID, false)
 	if err != nil {
-		ch <- PerContainerMetrics{}
+		return
+	}
+	data := types.StatsJSON{}
+	err = json.NewDecoder(stats.Body).Decode(&data)
+	if err != nil {
 		return
 	}
 
@@ -127,7 +135,7 @@ func getMetrics(cli *client.Client, ctx context.Context, c types.Container, ch c
 		tx += float64(v.TxBytes)
 	}
 
-	metrics := PerContainerMetrics{
+	metrics = PerContainerMetrics{
 		ID:     c.ID[:10],
 		Image:  c.Image,
 		Name:   strings.TrimLeft(strings.Join(c.Names, ","), "/"),
@@ -138,7 +146,4 @@ func getMetrics(cli *client.Client, ctx context.Context, c types.Container, ch c
 		Net:    netStat{Rx: rx, Tx: tx},
 		Blk:    blkStat{Read: blkRead, Write: blkWrite},
 	}
-
-	// Send back metrics
-	ch <- metrics
 }
