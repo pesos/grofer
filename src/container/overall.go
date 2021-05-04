@@ -24,6 +24,7 @@ import (
 	"github.com/docker/docker/client"
 )
 
+// Holds metrics for all exisitng conatiners
 type ContainerMetrics struct {
 	TotalCPU     float64
 	TotalMem     float64

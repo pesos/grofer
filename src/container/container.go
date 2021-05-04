@@ -29,6 +29,7 @@ import (
 	"github.com/pesos/grofer/src/general"
 )
 
+// Holds metrics for a given container
 type PerContainerMetrics struct {
 	// Metrics common for Overall and per container
 	ID     string
