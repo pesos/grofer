@@ -140,9 +140,9 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 	tick := t.C
 
 	previousKey := ""
-	// selectedStyle := ui.NewStyle(ui.ColorYellow, ui.ColorClear, ui.ModifierBold)
-	// killingStyle := ui.NewStyle(ui.ColorWhite, ui.ColorMagenta, ui.ModifierBold)
-	// errorStyle := ui.NewStyle(ui.ColorBlack, ui.ColorRed, ui.ModifierBold)
+	selectedStyle := ui.ColorCyan
+	killingStyle := ui.ColorMagenta
+	errorStyle := ui.ColorRed
 
 	// updates process list immediately
 	updateProcs := func() {
@@ -191,7 +191,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 					if killSelected {
 						runAllProc = true
 						killSelected = false
-						// myPage.ProcTable.SelectedRowStyle = selectedStyle
+						myPage.ProcTable.CursorColor = selectedStyle
 					}
 				case "s": //s to pause
 					if !killSelected {
@@ -246,18 +246,18 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 						if !killSelected {
 							runAllProc = false
 							killSelected = true
-							// myPage.ProcTable.SelectedRowStyle = killingStyle
+							myPage.ProcTable.CursorColor = killingStyle
 						} else {
 							// get process and kill it
 							procToKill, err := proc.NewProcess(pidToKill)
-							// myPage.ProcTable.SelectedRowStyle = selectedStyle
+							myPage.ProcTable.CursorColor = selectedStyle
 							if err == nil {
 								err = procToKill.Kill()
 								if err != nil {
-									// myPage.ProcTable.SelectedRowStyle = errorStyle
+									myPage.ProcTable.CursorColor = errorStyle
 								}
 							} else {
-								// myPage.ProcTable.SelectedRowStyle = errorStyle
+								myPage.ProcTable.CursorColor = errorStyle
 							}
 							runAllProc = true
 							killSelected = false
@@ -275,7 +275,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 
 		case data := <-dataChannel:
 			if runAllProc {
-				// myPage.ProcTable.SelectedRowStyle = selectedStyle
+				myPage.ProcTable.CursorColor = selectedStyle
 				procData := getData(data)
 				myPage.ProcTable.Rows = procData
 
@@ -288,11 +288,11 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 				if !exists {
 					runAllProc = true
 					killSelected = false
-					// myPage.ProcTable.SelectedRowStyle = selectedStyle
+					myPage.ProcTable.CursorColor = selectedStyle
 					updateProcs()
 				}
 			} else {
-				// myPage.ProcTable.SelectedRowStyle = selectedStyle
+				myPage.ProcTable.CursorColor = selectedStyle
 			}
 			if !helpVisible {
 				ui.Render(myPage.Grid)
