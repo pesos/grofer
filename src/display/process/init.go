@@ -136,17 +136,15 @@ func (page *PerProcPage) InitPerProc() {
 
 // AllProcPage struct holds the ui elements rendered by the grofer proc command
 type AllProcPage struct {
-	Grid         *ui.Grid
-	HeadingTable *widgets.Table
-	BodyList     *widgets.List
+	Grid      *ui.Grid
+	ProcTable *utils.Table
 }
 
 // NewAllProcsPage initializes a new page from the AllProcPage struct and returns it
 func NewAllProcsPage() *AllProcPage {
 	page := &AllProcPage{
-		Grid:         ui.NewGrid(),
-		HeadingTable: widgets.NewTable(),
-		BodyList:     widgets.NewList(),
+		Grid:      ui.NewGrid(),
+		ProcTable: utils.NewTable(),
 	}
 	page.InitAllProc()
 	return page
@@ -154,26 +152,35 @@ func NewAllProcsPage() *AllProcPage {
 
 // InitAllProc initializes and sets the ui and grid for grofer proc
 func (page *AllProcPage) InitAllProc() {
-	page.HeadingTable.TextStyle = ui.NewStyle(ui.ColorClear)
-	page.HeadingTable.Rows = [][]string{{" PID",
-		" Command",
-		" CPU",
-		" Memory",
-		" Status",
-		" Foreground",
-		" Creation Time",
-		" Thread Count",
-	}}
-	page.HeadingTable.ColumnWidths = []int{10, 40, 10, 10, 8, 12, 23, 15}
-	page.HeadingTable.TextAlignment = ui.AlignLeft
-	page.HeadingTable.RowSeparator = false
-
-	page.BodyList.TextStyle = ui.NewStyle(ui.ColorClear)
-	page.BodyList.TitleStyle.Fg = ui.ColorCyan
+	page.ProcTable.Header = []string{" PID",
+		"Command",
+		"CPU",
+		"Memory",
+		"Status",
+		"Foreground",
+		"Creation Time",
+		"Thread Count",
+	}
+	page.ProcTable.ColWidths = []int{10, 40, 10, 10, 8, 12, 25, 15}
+	page.ProcTable.ColResizer = func() {
+		x := page.ProcTable.Inner.Dx() - (10 + 10 + 10 + 8 + 12 + 25 + 15)
+		page.ProcTable.ColWidths = []int{
+			10,
+			ui.MaxInt(40, x),
+			10,
+			10,
+			8,
+			12,
+			25,
+			15,
+		}
+	}
+	page.ProcTable.ShowCursor = true
+	page.ProcTable.CursorColor = ui.ColorCyan
+	page.ProcTable.BorderStyle.Fg = ui.ColorCyan
 
 	page.Grid.Set(
-		ui.NewRow(0.12, page.HeadingTable),
-		ui.NewRow(0.88, page.BodyList),
+		ui.NewRow(1.0, page.ProcTable),
 	)
 
 	w, h := ui.TerminalDimensions()
