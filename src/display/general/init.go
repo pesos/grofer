@@ -31,6 +31,7 @@ type MainPage struct {
 	NetworkChart *utils.LineGraph
 	NetTable     *widgets.Table
 	CPUCharts    []*widgets.Gauge
+	CPUTable     *utils.Table
 }
 
 type CPUPage struct {
@@ -55,6 +56,7 @@ func NewPage(numCores int) *MainPage {
 		NetworkChart: utils.NewLineGraph(),
 		CPUCharts:    make([]*widgets.Gauge, 0),
 		NetTable:     widgets.NewTable(),
+		CPUTable:     utils.NewTable(),
 	}
 	page.InitGeneral(numCores)
 	return page
@@ -122,28 +124,59 @@ func (page *MainPage) InitGeneral(numCores int) {
 	page.NetworkChart.Data["RX"] = []float64{0}
 	page.NetworkChart.Data["TX"] = []float64{0}
 
-	// Initialize Gauges for each CPU Core usage
-	for i := 0; i < numCores; i++ {
-		tempGauge := widgets.NewGauge()
-		tempGauge.Title = " CPU " + strconv.Itoa(i) + " "
-		tempGauge.Percent = 0
-		tempGauge.BarColor = ui.ColorBlue
-		tempGauge.BorderStyle.Fg = ui.ColorCyan
-		tempGauge.TitleStyle.Fg = ui.ColorWhite
-		tempGauge.LabelStyle.Fg = ui.ColorWhite
-		page.CPUCharts = append(page.CPUCharts, tempGauge)
+	if numCores > 8 {
+		page.CPUTable.Title = " CPU Usage "
+		page.CPUTable.BorderStyle.Fg = ui.ColorCyan
+		page.CPUTable.TitleStyle.Fg = ui.ColorClear
+		page.CPUTable.ColResizer = func() {
+			x := page.CPUTable.Inner.Dx()
+			page.CPUTable.ColWidths = []int{
+				x / 2,
+				x / 2,
+			}
+		}
+		page.CPUTable.Header = []string{"CPU", "Usage"}
+		page.CPUTable.ShowCursor = true
+		page.CPUTable.CursorColor = ui.ColorCyan
+	} else {
+		// Initialize Gauges for each CPU Core usage
+		for i := 0; i < numCores; i++ {
+			tempGauge := widgets.NewGauge()
+			tempGauge.Title = " CPU " + strconv.Itoa(i) + " "
+			tempGauge.Percent = 0
+			tempGauge.BarColor = ui.ColorBlue
+			tempGauge.BorderStyle.Fg = ui.ColorCyan
+			tempGauge.TitleStyle.Fg = ui.ColorWhite
+			tempGauge.LabelStyle.Fg = ui.ColorWhite
+			page.CPUCharts = append(page.CPUCharts, tempGauge)
+		}
 	}
 
 	// Initialize Grid layout
-	page.Grid.Set(
-		ui.NewRow(0.34, page.MemoryChart),
-		ui.NewRow(0.34, page.NetworkChart),
-		ui.NewRow(0.34, page.DiskChart),
-	)
-
-	// Get Terminal Dimensions
 	w, h := ui.TerminalDimensions()
-	page.Grid.SetRect(w/2, 0, w, h)
+	if numCores > 8 {
+		page.Grid.Set(
+			ui.NewCol(0.3, page.CPUTable),
+			ui.NewCol(0.7,
+				ui.NewRow(0.34, page.MemoryChart),
+				ui.NewRow(0.34, page.NetworkChart),
+				ui.NewRow(0.34, page.DiskChart),
+			),
+		)
+
+		// Get Terminal Dimensions
+		page.Grid.SetRect(0, 0, w, h)
+	} else {
+		page.Grid.Set(
+			ui.NewRow(0.34, page.MemoryChart),
+			ui.NewRow(0.34, page.NetworkChart),
+			ui.NewRow(0.34, page.DiskChart),
+		)
+
+		// Get Terminal Dimensions
+		page.Grid.SetRect(w/2, 0, w, h)
+	}
+
 }
 
 func (page *CPUPage) InitCPU(numCores int) {

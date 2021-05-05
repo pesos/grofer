@@ -77,13 +77,17 @@ func RenderCharts(ctx context.Context,
 
 		// Adjust CPU Gauge dimensions
 		if isCPUSet {
-			for i := 0; i < numCores; i++ {
-				myPage.CPUCharts[i].SetRect(0, i*height, w/2, (i+1)*height)
+			if numCores > 8 {
+				// Adjust Grid dimensions
+				myPage.Grid.SetRect(0, 0, w, h)
+			} else {
+				for i := 0; i < numCores; i++ {
+					myPage.CPUCharts[i].SetRect(0, i*height, w/2, (i+1)*height)
+				}
+				// Adjust Grid dimensions
+				myPage.Grid.SetRect(w/2, 0, w, h-heightOffset)
 			}
 		}
-
-		// Adjust Grid dimensions
-		myPage.Grid.SetRect(w/2, 0, w, h-heightOffset)
 
 		help.Resize(w, h)
 
@@ -92,8 +96,10 @@ func RenderCharts(ctx context.Context,
 			ui.Render(help)
 		} else {
 			ui.Render(myPage.Grid)
-			for i := 0; i < numCores; i++ {
-				ui.Render(myPage.CPUCharts[i])
+			if numCores <= 8 {
+				for i := 0; i < numCores; i++ {
+					ui.Render(myPage.CPUCharts[i])
+				}
 			}
 		}
 	}
@@ -140,6 +146,16 @@ func RenderCharts(ctx context.Context,
 				case "s": //s to pause
 					pause()
 				}
+				if numCores > 8 {
+					switch e.ID {
+					case "j", "<Down>":
+						myPage.CPUTable.ScrollDown()
+						ui.Render(myPage.Grid)
+					case "k", "<Up>":
+						myPage.CPUTable.ScrollUp()
+						ui.Render(myPage.Grid)
+					}
+				}
 			}
 
 		case data := <-dataChannel:
@@ -147,9 +163,20 @@ func RenderCharts(ctx context.Context,
 				switch data.FieldSet {
 
 				case "CPU": // Update CPU stats
-					for index, rate := range data.CpuStats {
-						myPage.CPUCharts[index].Title = " CPU " + strconv.Itoa(index) + " "
-						myPage.CPUCharts[index].Percent = int(rate)
+					if numCores > 8 {
+						rows := [][]string{}
+						for index, rate := range data.CpuStats {
+							rows = append(rows, []string{
+								"CPU " + strconv.Itoa(index),
+								fmt.Sprintf("%.2f%%", rate),
+							})
+						}
+						myPage.CPUTable.Rows = rows
+					} else {
+						for index, rate := range data.CpuStats {
+							myPage.CPUCharts[index].Title = " CPU " + strconv.Itoa(index) + " "
+							myPage.CPUCharts[index].Percent = int(rate)
+						}
 					}
 
 				case "MEM": // Update Memory stats
@@ -198,8 +225,10 @@ func RenderCharts(ctx context.Context,
 		case <-tick: // Update page with new values
 			if !helpVisible {
 				ui.Render(myPage.Grid)
-				for i := 0; i < numCores; i++ {
-					ui.Render(myPage.CPUCharts[i])
+				if numCores <= 8 {
+					for i := 0; i < numCores; i++ {
+						ui.Render(myPage.CPUCharts[i])
+					}
 				}
 			}
 		}
