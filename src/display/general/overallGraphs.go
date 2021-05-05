@@ -58,10 +58,6 @@ func RenderCharts(ctx context.Context,
 	// Create new page
 	myPage := NewPage(numCores)
 
-	// Initialize slices for Network Data
-	ipData := make([]float64, 40)
-	opData := make([]float64, 40)
-
 	// Pause to pause updating data
 	pause := func() {
 		run = !run
@@ -183,33 +179,17 @@ func RenderCharts(ctx context.Context,
 							recentBytesSent = 0
 						}
 
-						ipData = ipData[1:]
-						opData = opData[1:]
-
-						ipData = append(ipData, recentBytesRecv)
-						opData = append(opData, recentBytesSent)
+						myPage.NetworkChart.Data["RX"] = append(myPage.NetworkChart.Data["RX"], recentBytesRecv)
+						myPage.NetworkChart.Data["TX"] = append(myPage.NetworkChart.Data["TX"], recentBytesSent)
 					}
 
 					totalBytesRecv = curBytesRecv
 					totalBytesSent = curBytesSent
 
-					titles := make([]string, 2)
+					totalData, units := utils.RoundValues(totalBytesRecv, totalBytesSent, true)
 
-					for i := 0; i < 2; i++ {
-						if i == 0 {
-							titles[i] = fmt.Sprintf("[Total RX](fg:red): %5.1f %s\n", totalBytesRecv/1024, "mB")
-						} else {
-							titles[i] = fmt.Sprintf("\n[Total TX](fg:green): %5.1f %s", totalBytesSent/1024, "mB")
-						}
-
-					}
-
-					myPage.NetPara.Text = titles[0] + titles[1]
-
-					temp := [][]float64{}
-					temp = append(temp, ipData)
-					temp = append(temp, opData)
-					myPage.NetworkChart.Data = temp
+					myPage.NetworkChart.Labels["RX"] = fmt.Sprintf("Total: %5.1f %s\n", totalData[0], units)
+					myPage.NetworkChart.Labels["TX"] = fmt.Sprintf("Total: %5.1f %s\n", totalData[1], units)
 
 				}
 				on.Do(updateUI)

@@ -20,6 +20,7 @@ import (
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
+	"github.com/pesos/grofer/src/utils"
 )
 
 // MainPage contains the ui widgets for the ui rendered by the grofer command
@@ -27,8 +28,8 @@ type MainPage struct {
 	Grid         *ui.Grid
 	MemoryChart  *widgets.BarChart
 	DiskChart    *widgets.Table
-	NetworkChart *widgets.Plot
-	NetPara      *widgets.Paragraph
+	NetworkChart *utils.LineGraph
+	NetTable     *widgets.Table
 	CPUCharts    []*widgets.Gauge
 }
 
@@ -51,9 +52,9 @@ func NewPage(numCores int) *MainPage {
 		Grid:         ui.NewGrid(),
 		MemoryChart:  widgets.NewBarChart(),
 		DiskChart:    widgets.NewTable(),
-		NetworkChart: widgets.NewPlot(),
+		NetworkChart: utils.NewLineGraph(),
 		CPUCharts:    make([]*widgets.Gauge, 0),
-		NetPara:      widgets.NewParagraph(),
+		NetTable:     widgets.NewTable(),
 	}
 	page.InitGeneral(numCores)
 	return page
@@ -112,23 +113,14 @@ func (page *MainPage) InitGeneral(numCores int) {
 	}
 
 	// Initialize Plot for Network Chart
-	page.NetworkChart.Title = " Network data(in mB) "
+	page.NetworkChart.Title = " Network data "
 	page.NetworkChart.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.NetworkChart.HorizontalScale = 1
-	page.NetworkChart.AxesColor = ui.ColorCyan
-	page.NetworkChart.LineColors[0] = ui.ColorRed
-	page.NetworkChart.LineColors[1] = ui.ColorGreen
-	page.NetworkChart.DrawDirection = widgets.DrawLeft
+	page.NetworkChart.LineColors["RX"] = ui.ColorRed
+	page.NetworkChart.LineColors["TX"] = ui.ColorGreen
 	page.NetworkChart.BorderStyle.Fg = ui.ColorCyan
-	page.NetworkChart.DataLabels = []string{"ip kB", "op kB"} //refer issue #214 for details
-
-	// Initialize paragraph for NetPara
-	page.NetPara.Text = "[Total RX](fg:red): 0\n\n[Total TX](fg:green): 0"
-	page.NetPara.TextStyle = ui.NewStyle(ui.ColorClear)
-	page.NetPara.Border = true
-	page.NetPara.BorderStyle.Fg = ui.ColorCyan
-	page.NetPara.Title = " RX/TX "
-	page.NetPara.TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.NetworkChart.Data["RX"] = []float64{0}
+	page.NetworkChart.Data["TX"] = []float64{0}
 
 	// Initialize Gauges for each CPU Core usage
 	for i := 0; i < numCores; i++ {
@@ -137,18 +129,15 @@ func (page *MainPage) InitGeneral(numCores int) {
 		tempGauge.Percent = 0
 		tempGauge.BarColor = ui.ColorBlue
 		tempGauge.BorderStyle.Fg = ui.ColorCyan
-		tempGauge.TitleStyle.Fg = ui.ColorClear
-		tempGauge.LabelStyle.Fg = ui.ColorClear
+		tempGauge.TitleStyle.Fg = ui.ColorWhite
+		tempGauge.LabelStyle.Fg = ui.ColorWhite
 		page.CPUCharts = append(page.CPUCharts, tempGauge)
 	}
 
 	// Initialize Grid layout
 	page.Grid.Set(
 		ui.NewRow(0.34, page.MemoryChart),
-		ui.NewRow(0.34,
-			ui.NewCol(0.25, page.NetPara),
-			ui.NewCol(0.75, page.NetworkChart),
-		),
+		ui.NewRow(0.34, page.NetworkChart),
 		ui.NewRow(0.34, page.DiskChart),
 	)
 
