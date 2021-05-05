@@ -28,31 +28,60 @@ func TestRoundValues(t *testing.T) {
 		expectedUnit        string
 		input               []float64
 		expectedRoundedVals []float64
+		inBytes             bool
 	}{
 		{
-			" ",
-			[]float64{999, 895},
-			[]float64{999, 895},
+			expectedUnit:        " ",
+			input:               []float64{999, 895},
+			expectedRoundedVals: []float64{999, 895},
+			inBytes:             false,
 		},
 		{
-			" per thousand ",
-			[]float64{100000, 1000},
-			[]float64{100, 1},
+			expectedUnit:        " per thousand ",
+			input:               []float64{100000, 1000},
+			expectedRoundedVals: []float64{100, 1},
+			inBytes:             false,
 		},
 		{
-			" per million ",
-			[]float64{10000000, 1000},
-			[]float64{10, 0},
+			expectedUnit:        " per million ",
+			input:               []float64{10000000, 1000},
+			expectedRoundedVals: []float64{10, 0},
+			inBytes:             false,
 		},
 		{
-			" per trillion ",
-			[]float64{100000000, 100000000000},
-			[]float64{0.1, 100},
+			expectedUnit:        " per trillion ",
+			input:               []float64{100000000, 100000000000},
+			expectedRoundedVals: []float64{0.1, 100},
+			inBytes:             false,
+		},
+		{
+			expectedUnit:        " B ",
+			input:               []float64{999, 895},
+			expectedRoundedVals: []float64{999, 895},
+			inBytes:             true,
+		},
+		{
+			expectedUnit:        " kB ",
+			input:               []float64{100000, 1000},
+			expectedRoundedVals: []float64{100, 1},
+			inBytes:             true,
+		},
+		{
+			expectedUnit:        " mB ",
+			input:               []float64{10000000, 1000},
+			expectedRoundedVals: []float64{10, 0},
+			inBytes:             true,
+		},
+		{
+			expectedUnit:        " gB ",
+			input:               []float64{100000000, 100000000000},
+			expectedRoundedVals: []float64{0.1, 100},
+			inBytes:             true,
 		},
 	}
 
 	for _, test := range tests {
-		testRoundedVals, testUnit := utils.RoundValues(test.input[0], test.input[1])
+		testRoundedVals, testUnit := utils.RoundValues(test.input[0], test.input[1], test.inBytes)
 		utils.Equals(t, test.expectedRoundedVals, testRoundedVals)
 		utils.Equals(t, test.expectedUnit, testUnit)
 	}

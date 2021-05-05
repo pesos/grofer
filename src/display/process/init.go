@@ -155,7 +155,7 @@ func NewAllProcsPage() *AllProcPage {
 // InitAllProc initializes and sets the ui and grid for grofer proc
 func (page *AllProcPage) InitAllProc() {
 	page.HeadingTable.TextStyle = ui.NewStyle(ui.ColorClear)
-	page.HeadingTable.Rows = [][]string{[]string{" PID",
+	page.HeadingTable.Rows = [][]string{{" PID",
 		" Command",
 		" CPU",
 		" Memory",

@@ -110,7 +110,8 @@ func ProcVisuals(ctx context.Context,
 	}
 
 	uiEvents := ui.PollEvents()
-	tick := time.Tick(time.Duration(refreshRate) * time.Millisecond)
+	t := time.NewTicker(time.Duration(refreshRate) * time.Millisecond)
+	tick := t.C
 
 	previousKey := ""
 	selectedStyle := ui.NewStyle(ui.ColorYellow, ui.ColorClear, ui.ModifierBold)
@@ -180,7 +181,7 @@ func ProcVisuals(ctx context.Context,
 			myPage.ChildProcsList.SelectedRowStyle = selectedStyle
 			if runProc {
 				// update ctx switches
-				switches, units := utils.RoundValues(float64(data.NumCtxSwitches.Voluntary), float64(data.NumCtxSwitches.Involuntary))
+				switches, units := utils.RoundValues(float64(data.NumCtxSwitches.Voluntary), float64(data.NumCtxSwitches.Involuntary), false)
 
 				myPage.CTXSwitchesChart.Data = switches
 				myPage.CTXSwitchesChart.Title = " CTX Switches" + units
@@ -193,17 +194,17 @@ func ProcVisuals(ctx context.Context,
 
 				// update proc info
 				myPage.PIDTable.Rows = [][]string{
-					[]string{"[Name](fg:yellow)", data.Name},
-					[]string{"[Command](fg:yellow)", data.Exe},
-					[]string{"[Status](fg:yellow)", statusMap[data.Status] + " (" + data.Status + ")"},
-					[]string{"[Background](fg:yellow)", strconv.FormatBool(data.Background)},
-					[]string{"[Foreground](fg:yellow)", strconv.FormatBool(data.Foreground)},
-					[]string{"[Running](fg:yellow)", strconv.FormatBool(data.IsRunning)},
-					[]string{"[Creation Time](fg:yellow)", utils.GetDateFromUnix(data.CreateTime)},
-					[]string{"[Nice value](fg:yellow)", strconv.Itoa(int(data.Nice))},
-					[]string{"[Thread count](fg:yellow)", strconv.Itoa(int(data.NumThreads))},
-					[]string{"[Child process count](fg:yellow)", strconv.Itoa(len(data.Children))},
-					[]string{"[Last Update](fg:yellow)", time.Now().Format("15:04:05")},
+					{"[Name](fg:yellow)", data.Name},
+					{"[Command](fg:yellow)", data.Exe},
+					{"[Status](fg:yellow)", statusMap[data.Status] + " (" + data.Status + ")"},
+					{"[Background](fg:yellow)", strconv.FormatBool(data.Background)},
+					{"[Foreground](fg:yellow)", strconv.FormatBool(data.Foreground)},
+					{"[Running](fg:yellow)", strconv.FormatBool(data.IsRunning)},
+					{"[Creation Time](fg:yellow)", utils.GetDateFromUnix(data.CreateTime)},
+					{"[Nice value](fg:yellow)", strconv.Itoa(int(data.Nice))},
+					{"[Thread count](fg:yellow)", strconv.Itoa(int(data.NumThreads))},
+					{"[Child process count](fg:yellow)", strconv.Itoa(len(data.Children))},
+					{"[Last Update](fg:yellow)", time.Now().Format("15:04:05")},
 				}
 				myPage.PIDTable.Title = " PID: " + strconv.Itoa(int(data.Proc.Pid)) + " "
 
@@ -216,7 +217,7 @@ func ProcVisuals(ctx context.Context,
 				myPage.MemStatsChart.Data = memData
 
 				//update page faults
-				faults, units := utils.RoundValues(float64(data.PageFault.MinorFaults), float64(data.PageFault.MajorFaults))
+				faults, units := utils.RoundValues(float64(data.PageFault.MinorFaults), float64(data.PageFault.MajorFaults), false)
 
 				myPage.PageFaultsChart.Data = faults
 				myPage.PageFaultsChart.Title = " Page Faults" + units

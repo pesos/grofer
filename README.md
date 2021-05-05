@@ -104,6 +104,7 @@ Usage:
 Available Commands:
   about       about is a command that gives information about the project in a cute way
   completion  Generate completion script
+  container   container command is used to get information related to docker containers
   export      Used to export profiled data.
   help        Help about any command
   proc        proc command is used to get per-process information

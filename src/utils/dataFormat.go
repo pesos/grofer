@@ -33,7 +33,7 @@ func roundOffNearestTen(num float64, divisor float64) float64 {
 	return math.Round(x*10) / 10
 }
 
-func RoundValues(num1, num2 float64) ([]float64, string) {
+func RoundValues(num1, num2 float64, inBytes bool) ([]float64, string) {
 	nums := []float64{}
 	var units string
 	var n float64
@@ -63,6 +63,19 @@ func RoundValues(num1, num2 float64) ([]float64, string) {
 		nums = append(nums, roundOffNearestTen(num1, G))
 		nums = append(nums, roundOffNearestTen(num2, G))
 		units = " per trillion "
+	}
+
+	if inBytes {
+		switch units {
+		case " ":
+			units = " B "
+		case " per thousand ":
+			units = " kB "
+		case " per million ":
+			units = " mB "
+		case " per trillion ":
+			units = " gB "
+		}
 	}
 
 	return nums, units

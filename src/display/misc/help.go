@@ -72,12 +72,9 @@ func SelectHelpMenu(page string) {
 		KEYBINDS = PROC_PID_KEYBINDS
 	case "main":
 		KEYBINDS = MAIN_KEYBINDS
+	case "cont":
+		KEYBINDS = CONT_KEYBINDS
+	case "cont_cid":
+		KEYBINDS = CONT_CID_KEYBINDS
 	}
-}
-
-func maxInt(a int, b int) int {
-	if a > b {
-		return a
-	}
-	return b
 }

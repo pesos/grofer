@@ -96,8 +96,20 @@ func (page *MainPage) InitGeneral(numCores int) {
 	page.DiskChart.TextStyle = ui.NewStyle(ui.ColorClear)
 	page.DiskChart.TextAlignment = ui.AlignLeft
 	page.DiskChart.RowSeparator = false
-	page.DiskChart.ColumnWidths = []int{9, 9, 9, 9, 9, 11}
+	page.DiskChart.ColumnWidths = []int{10, 9, 9, 9, 9, 10}
 	page.DiskChart.BorderStyle.Fg = ui.ColorCyan
+	page.DiskChart.ColumnResizer = func() {
+		// Middle 4 columns are of fixed length
+		x := page.DiskChart.Inner.Dx()
+		page.DiskChart.ColumnWidths = []int{
+			x / 6,
+			x / 6,
+			x / 6,
+			x / 6,
+			x / 6,
+			x / 6,
+		}
+	}
 
 	// Initialize Plot for Network Chart
 	page.NetworkChart.Title = " Network data(in mB) "
@@ -209,12 +221,15 @@ func (page *CPUPage) InitCPU(numCores int) {
 	page.CPUChart.TextAlignment = ui.AlignCenter
 	page.CPUChart.RowSeparator = true
 
-	columnWidths := []int{}
-	for i := 0; i < numCores; i++ {
-		columnWidths = append(columnWidths, 9)
-	}
+	page.CPUChart.ColumnResizer = func() {
+		columnWidths := []int{}
+		x := page.CPUChart.Inner.Dx()
+		for i := 0; i < numCores; i++ {
+			columnWidths = append(columnWidths, x/numCores)
+		}
 
-	page.CPUChart.ColumnWidths = columnWidths
+		page.CPUChart.ColumnWidths = columnWidths
+	}
 
 	page.Grid.Set(
 		ui.NewRow(0.17,

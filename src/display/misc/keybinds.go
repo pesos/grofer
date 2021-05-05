@@ -33,6 +33,45 @@ var PROC_KEYBINDS = []string{
 	"  - K and <F9>: Kill process",
 }
 
+var CONT_KEYBINDS = []string{
+	"Quit: q or <C-c>",
+	"",
+	"Container navigation:",
+	"  - k and <Up>: up",
+	"  - j and <Down>: down",
+	"  - <C-u>: half page up",
+	"  - <C-d>: half page down",
+	"  - <C-b>: full page up",
+	"  - <C-f>: full page down",
+	"  - gg and <Home>: jump to top",
+	"  - G and <End>: jump to bottom",
+	"",
+	"Container actions:",
+	"  - K and <F9>: Kill Container",
+}
+
+var CONT_CID_KEYBINDS = []string{
+	"Quit: q or <C-c>",
+	"",
+	"Table Selection",
+	"  - 1: MountTable",
+	"  - 2: NetworkTable",
+	"  - 3: CPUUsageTable",
+	"  - 4: PortMapTable",
+	"  - 5: ProcTable",
+	"",
+	"Table navigation:",
+	"  - k and <Up>: up",
+	"  - j and <Down>: down",
+	"  - <C-u>: half page up",
+	"  - <C-d>: half page down",
+	"  - <C-b>: full page up",
+	"  - <C-f>: full page down",
+	"  - gg and <Home>: jump to top",
+	"  - G and <End>: jump to bottom",
+	"",
+}
+
 var MAIN_KEYBINDS = []string{
 	"Quit: q or <C-c>",
 }
