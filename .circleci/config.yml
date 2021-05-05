@@ -17,3 +17,5 @@ jobs:
       - run: sudo apt install python3 -y
       - run: python3 ./scripts/license_check.py
       - run: go test -v -race $(go list ./src/utils | grep -v vendor)
+      - run: go test ./src/container
+      - run: go test ./src/utils
