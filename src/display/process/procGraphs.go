@@ -110,6 +110,9 @@ func ProcVisuals(ctx context.Context,
 
 	for {
 		select {
+		case <-ctx.Done():
+			return ctx.Err()
+
 		case e := <-uiEvents:
 			switch e.ID {
 			case "q", "<C-c>": //q or Ctrl-C to quit
