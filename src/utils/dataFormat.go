@@ -100,7 +100,7 @@ func GetInMB(bytes uint64, precision int) float64 {
 
 // GetDateFromUnix gets a date and time in RFC822 format from a unix epoch
 func GetDateFromUnix(createTime int64) string {
-	t := time.Unix(createTime, 0)
+	t := time.Unix(createTime/1000, 0)
 	date := t.Format(time.RFC822)
 	return date
 }
