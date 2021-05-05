@@ -309,6 +309,16 @@ func RenderCPUinfo(ctx context.Context,
 				case "s": //s to pause
 					pause()
 				}
+				if numCores > 8 {
+					switch e.ID {
+					case "j", "<Down>":
+						myPage.CPUTable.ScrollDown()
+						ui.Render(myPage.Grid)
+					case "k", "<Up>":
+						myPage.CPUTable.ScrollUp()
+						ui.Render(myPage.Grid)
+					}
+				}
 			}
 
 		case data := <-dataChannel: // Update chart values
@@ -322,7 +332,19 @@ func RenderCPUinfo(ctx context.Context,
 				myPage.StealChart.Percent = data.Steal
 				myPage.IdleChart.Percent = data.Idle
 
-				myPage.CPUChart.Rows = data.CPURates
+				if numCores > 8 {
+					rows := [][]string{}
+					for j := 0; j < len(data.CPURates[0]); j++ {
+						rows = append(rows, []string{
+							data.CPURates[0][j],
+							data.CPURates[1][j],
+						})
+					}
+
+					myPage.CPUTable.Rows = rows
+				} else {
+					myPage.CPUChart.Rows = data.CPURates
+				}
 
 				on.Do(func() {
 					w, h := ui.TerminalDimensions()

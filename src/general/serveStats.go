@@ -93,7 +93,7 @@ func ServeDiskRates(ctx context.Context, dataChannel chan utils.DataStats) error
 		return err
 	}
 
-	rows := [][]string{[]string{"Mount", "Total", "Used %", "Used", "Free", "FS Type"}}
+	rows := [][]string{{"Mount", "Total", "Used %", "Used", "Free", "FS Type"}}
 	for _, value := range partitions {
 		usageVals, _ := disk.Usage(value.Mountpoint)
 
