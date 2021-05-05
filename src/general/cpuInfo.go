@@ -80,7 +80,7 @@ func (c *CPULoad) UpdateCPULoad() error {
 	cpus := []string{}
 	for i, cpuRate := range cpuRates {
 		cpus = append(cpus, "CPU "+strconv.Itoa(i))
-		rate = append(rate, fmt.Sprintf("%.2f", cpuRate))
+		rate = append(rate, fmt.Sprintf("%.2f%%", cpuRate))
 	}
 	rates := [][]string{cpus, rate}
 
