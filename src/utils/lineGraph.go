@@ -38,6 +38,7 @@ type LineGraph struct {
 	DefaultLineColor ui.Color
 }
 
+// NewLineGraph creates and returns a lineGraph instance
 func NewLineGraph() *LineGraph {
 	return &LineGraph{
 		Block: ui.NewBlock(),
