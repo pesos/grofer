@@ -91,11 +91,9 @@ func getData(procs []*proc.Process) [][]string {
 		}
 	}
 
-	// Sort on PIDs
+	// Sort on Timestamp
 	sort.Slice(procData, func(i, j int) bool {
-		x, _ := strconv.Atoi(procData[i][0])
-		y, _ := strconv.Atoi(procData[j][0])
-		return x > y
+		return procData[i][6] > procData[j][6]
 	})
 
 	return procData
