@@ -44,6 +44,45 @@ cd grofer
 go build grofer.go
 ```
 
+### Docker
+
+1. Get docker image using
+   ```
+   TODO: docker image is not uploaded yet
+   ```
+1. Run using
+   ```bash
+   docker run --name grofer --rm -it -v /:/rootfs:ro grofer
+   ```
+
+   Additional command to `grofer` can be passed directly at the end of the above command:
+   ```bash
+   docker run --name grofer --rm -it -v /:/rootfs:ro grofer proc
+   ```
+
+   ```bash
+   docker run --name grofer --rm -it -v /:/rootfs:ro grofer --help
+   ```
+1. (Optional) create an alias for `docker run` to be able to run it using just `grofer`
+   ```zsh
+   alias grofer="docker run --name grofer --rm -it -v /:/rootfs:ro grofer"
+   ```
+
+   Then use `grofer` as normal:
+   ```bash
+   grofer --help
+   ```
+
+   ```bash
+   grofer proc
+   ```
+
+#### Building Docker image
+
+```bash
+docker build -t grofer .
+```
+
 ---
 
 Usage
