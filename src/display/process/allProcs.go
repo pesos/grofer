@@ -20,7 +20,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -90,11 +89,6 @@ func getData(procs []*proc.Process) [][]string {
 			procData = append(procData, r)
 		}
 	}
-
-	// Sort on Timestamp
-	sort.Slice(procData, func(i, j int) bool {
-		return procData[i][6] > procData[j][6]
-	})
 
 	return procData
 }
