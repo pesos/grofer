@@ -58,10 +58,6 @@ func RenderCharts(ctx context.Context,
 	// Create new page
 	myPage := NewPage(numCores)
 
-	// Initialize slices for Network Data
-	ipData := make([]float64, 40)
-	opData := make([]float64, 40)
-
 	// Pause to pause updating data
 	pause := func() {
 		run = !run
@@ -81,13 +77,17 @@ func RenderCharts(ctx context.Context,
 
 		// Adjust CPU Gauge dimensions
 		if isCPUSet {
-			for i := 0; i < numCores; i++ {
-				myPage.CPUCharts[i].SetRect(0, i*height, w/2, (i+1)*height)
+			if numCores > 8 {
+				// Adjust Grid dimensions
+				myPage.Grid.SetRect(0, 0, w, h)
+			} else {
+				for i := 0; i < numCores; i++ {
+					myPage.CPUCharts[i].SetRect(0, i*height, w/2, (i+1)*height)
+				}
+				// Adjust Grid dimensions
+				myPage.Grid.SetRect(w/2, 0, w, h-heightOffset)
 			}
 		}
-
-		// Adjust Grid dimensions
-		myPage.Grid.SetRect(w/2, 0, w, h-heightOffset)
 
 		help.Resize(w, h)
 
@@ -96,8 +96,10 @@ func RenderCharts(ctx context.Context,
 			ui.Render(help)
 		} else {
 			ui.Render(myPage.Grid)
-			for i := 0; i < numCores; i++ {
-				ui.Render(myPage.CPUCharts[i])
+			if numCores <= 8 {
+				for i := 0; i < numCores; i++ {
+					ui.Render(myPage.CPUCharts[i])
+				}
 			}
 		}
 	}
@@ -144,6 +146,16 @@ func RenderCharts(ctx context.Context,
 				case "s": //s to pause
 					pause()
 				}
+				if numCores > 8 {
+					switch e.ID {
+					case "j", "<Down>":
+						myPage.CPUTable.ScrollDown()
+						ui.Render(myPage.Grid)
+					case "k", "<Up>":
+						myPage.CPUTable.ScrollUp()
+						ui.Render(myPage.Grid)
+					}
+				}
 			}
 
 		case data := <-dataChannel:
@@ -151,9 +163,20 @@ func RenderCharts(ctx context.Context,
 				switch data.FieldSet {
 
 				case "CPU": // Update CPU stats
-					for index, rate := range data.CpuStats {
-						myPage.CPUCharts[index].Title = " CPU " + strconv.Itoa(index) + " "
-						myPage.CPUCharts[index].Percent = int(rate)
+					if numCores > 8 {
+						rows := [][]string{}
+						for index, rate := range data.CpuStats {
+							rows = append(rows, []string{
+								"CPU " + strconv.Itoa(index),
+								fmt.Sprintf("%.2f%%", rate),
+							})
+						}
+						myPage.CPUTable.Rows = rows
+					} else {
+						for index, rate := range data.CpuStats {
+							myPage.CPUCharts[index].Title = " CPU " + strconv.Itoa(index) + " "
+							myPage.CPUCharts[index].Percent = int(rate)
+						}
 					}
 
 				case "MEM": // Update Memory stats
@@ -183,33 +206,17 @@ func RenderCharts(ctx context.Context,
 							recentBytesSent = 0
 						}
 
-						ipData = ipData[1:]
-						opData = opData[1:]
-
-						ipData = append(ipData, recentBytesRecv)
-						opData = append(opData, recentBytesSent)
+						myPage.NetworkChart.Data["RX"] = append(myPage.NetworkChart.Data["RX"], recentBytesRecv)
+						myPage.NetworkChart.Data["TX"] = append(myPage.NetworkChart.Data["TX"], recentBytesSent)
 					}
 
 					totalBytesRecv = curBytesRecv
 					totalBytesSent = curBytesSent
 
-					titles := make([]string, 2)
+					totalData, units := utils.RoundValues(totalBytesRecv, totalBytesSent, true)
 
-					for i := 0; i < 2; i++ {
-						if i == 0 {
-							titles[i] = fmt.Sprintf("[Total RX](fg:red): %5.1f %s\n", totalBytesRecv/1024, "mB")
-						} else {
-							titles[i] = fmt.Sprintf("\n[Total TX](fg:green): %5.1f %s", totalBytesSent/1024, "mB")
-						}
-
-					}
-
-					myPage.NetPara.Text = titles[0] + titles[1]
-
-					temp := [][]float64{}
-					temp = append(temp, ipData)
-					temp = append(temp, opData)
-					myPage.NetworkChart.Data = temp
+					myPage.NetworkChart.Labels["RX"] = fmt.Sprintf("Total: %5.1f %s\n", totalData[0], units)
+					myPage.NetworkChart.Labels["TX"] = fmt.Sprintf("Total: %5.1f %s\n", totalData[1], units)
 
 				}
 				on.Do(updateUI)
@@ -218,8 +225,10 @@ func RenderCharts(ctx context.Context,
 		case <-tick: // Update page with new values
 			if !helpVisible {
 				ui.Render(myPage.Grid)
-				for i := 0; i < numCores; i++ {
-					ui.Render(myPage.CPUCharts[i])
+				if numCores <= 8 {
+					for i := 0; i < numCores; i++ {
+						ui.Render(myPage.CPUCharts[i])
+					}
 				}
 			}
 		}
@@ -300,6 +309,16 @@ func RenderCPUinfo(ctx context.Context,
 				case "s": //s to pause
 					pause()
 				}
+				if numCores > 8 {
+					switch e.ID {
+					case "j", "<Down>":
+						myPage.CPUTable.ScrollDown()
+						ui.Render(myPage.Grid)
+					case "k", "<Up>":
+						myPage.CPUTable.ScrollUp()
+						ui.Render(myPage.Grid)
+					}
+				}
 			}
 
 		case data := <-dataChannel: // Update chart values
@@ -313,7 +332,19 @@ func RenderCPUinfo(ctx context.Context,
 				myPage.StealChart.Percent = data.Steal
 				myPage.IdleChart.Percent = data.Idle
 
-				myPage.CPUChart.Rows = data.CPURates
+				if numCores > 8 {
+					rows := [][]string{}
+					for j := 0; j < len(data.CPURates[0]); j++ {
+						rows = append(rows, []string{
+							data.CPURates[0][j],
+							data.CPURates[1][j],
+						})
+					}
+
+					myPage.CPUTable.Rows = rows
+				} else {
+					myPage.CPUChart.Rows = data.CPURates
+				}
 
 				on.Do(func() {
 					w, h := ui.TerminalDimensions()

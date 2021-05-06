@@ -28,7 +28,7 @@ type PerProcPage struct {
 	CPUChart         *widgets.Gauge
 	MemChart         *widgets.Gauge
 	PIDTable         *widgets.Table
-	ChildProcsList   *widgets.List
+	ChildProcsTable  *utils.Table
 	CTXSwitchesChart *utils.BarChart
 	PageFaultsChart  *utils.BarChart
 	MemStatsChart    *utils.BarChart
@@ -41,7 +41,7 @@ func NewPerProcPage() *PerProcPage {
 		CPUChart:         widgets.NewGauge(),
 		MemChart:         widgets.NewGauge(),
 		PIDTable:         widgets.NewTable(),
-		ChildProcsList:   widgets.NewList(),
+		ChildProcsTable:  utils.NewTable(),
 		CTXSwitchesChart: utils.NewBarChart(),
 		PageFaultsChart:  utils.NewBarChart(),
 		MemStatsChart:    utils.NewBarChart(),
@@ -75,10 +75,20 @@ func (page *PerProcPage) InitPerProc() {
 	page.PIDTable.TitleStyle.Fg = ui.ColorClear
 
 	// Initialize List for Child Processes list
-	page.ChildProcsList.Title = " Child Processes "
-	page.ChildProcsList.BorderStyle.Fg = ui.ColorCyan
-	page.ChildProcsList.TitleStyle.Fg = ui.ColorClear
-	page.ChildProcsList.TextStyle.Fg = ui.ColorClear
+	page.ChildProcsTable.Title = " Child Processes "
+	page.ChildProcsTable.BorderStyle.Fg = ui.ColorCyan
+	page.ChildProcsTable.TitleStyle.Fg = ui.ColorClear
+	page.ChildProcsTable.ColWidths = []int{10, 10}
+	page.ChildProcsTable.Header = []string{"PID", "Command"}
+	page.ChildProcsTable.ShowCursor = true
+	page.ChildProcsTable.CursorColor = ui.ColorCyan
+	page.ChildProcsTable.ColResizer = func() {
+		x := page.ChildProcsTable.Inner.Dx() - 10
+		page.ChildProcsTable.ColWidths = []int{
+			10,
+			ui.MaxInt(10, x),
+		}
+	}
 
 	// Initialize Bar Chart for CTX Swicthes Chart
 	page.CTXSwitchesChart.Data = []float64{0, 0}
@@ -119,7 +129,7 @@ func (page *PerProcPage) InitPerProc() {
 			ui.NewRow(0.125, page.CPUChart),
 			ui.NewRow(0.125, page.MemChart),
 			ui.NewRow(0.35, page.PIDTable),
-			ui.NewRow(0.4, page.ChildProcsList),
+			ui.NewRow(0.4, page.ChildProcsTable),
 		),
 		ui.NewCol(0.5,
 			ui.NewRow(0.6,
@@ -136,17 +146,15 @@ func (page *PerProcPage) InitPerProc() {
 
 // AllProcPage struct holds the ui elements rendered by the grofer proc command
 type AllProcPage struct {
-	Grid         *ui.Grid
-	HeadingTable *widgets.Table
-	BodyList     *widgets.List
+	Grid      *ui.Grid
+	ProcTable *utils.Table
 }
 
 // NewAllProcsPage initializes a new page from the AllProcPage struct and returns it
 func NewAllProcsPage() *AllProcPage {
 	page := &AllProcPage{
-		Grid:         ui.NewGrid(),
-		HeadingTable: widgets.NewTable(),
-		BodyList:     widgets.NewList(),
+		Grid:      ui.NewGrid(),
+		ProcTable: utils.NewTable(),
 	}
 	page.InitAllProc()
 	return page
@@ -154,26 +162,35 @@ func NewAllProcsPage() *AllProcPage {
 
 // InitAllProc initializes and sets the ui and grid for grofer proc
 func (page *AllProcPage) InitAllProc() {
-	page.HeadingTable.TextStyle = ui.NewStyle(ui.ColorClear)
-	page.HeadingTable.Rows = [][]string{{" PID",
-		" Command",
-		" CPU",
-		" Memory",
-		" Status",
-		" Foreground",
-		" Creation Time",
-		" Thread Count",
-	}}
-	page.HeadingTable.ColumnWidths = []int{10, 40, 10, 10, 8, 12, 23, 15}
-	page.HeadingTable.TextAlignment = ui.AlignLeft
-	page.HeadingTable.RowSeparator = false
-
-	page.BodyList.TextStyle = ui.NewStyle(ui.ColorClear)
-	page.BodyList.TitleStyle.Fg = ui.ColorCyan
+	page.ProcTable.Header = []string{" PID",
+		"Command",
+		"CPU",
+		"Memory",
+		"Status",
+		"Foreground",
+		"Creation Time",
+		"Thread Count",
+	}
+	page.ProcTable.ColWidths = []int{10, 40, 10, 10, 8, 12, 25, 15}
+	page.ProcTable.ColResizer = func() {
+		x := page.ProcTable.Inner.Dx() - (10 + 10 + 10 + 8 + 12 + 25 + 15)
+		page.ProcTable.ColWidths = []int{
+			10,
+			ui.MaxInt(40, x),
+			10,
+			10,
+			8,
+			12,
+			25,
+			15,
+		}
+	}
+	page.ProcTable.ShowCursor = true
+	page.ProcTable.CursorColor = ui.ColorCyan
+	page.ProcTable.BorderStyle.Fg = ui.ColorCyan
 
 	page.Grid.Set(
-		ui.NewRow(0.12, page.HeadingTable),
-		ui.NewRow(0.88, page.BodyList),
+		ui.NewRow(1.0, page.ProcTable),
 	)
 
 	w, h := ui.TerminalDimensions()

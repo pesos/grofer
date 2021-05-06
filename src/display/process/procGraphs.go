@@ -19,7 +19,6 @@ import (
 	"context"
 	"log"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -32,22 +31,16 @@ import (
 
 var runProc = true
 
-func getChildProcs(proc *process.Process) []string {
-	headerString := "PID" + strings.Repeat(" ", 19) + "Command"
-	childProcs := []string{headerString}
+func getChildProcs(proc *process.Process) [][]string {
+	childProcs := [][]string{}
 	for _, proc := range proc.Children {
-		var processData, spacesForCommandRowData string
-		processPid := strconv.Itoa(int(proc.Pid))
-		// 22 reflects position where row data for "Command" column should start (headerString has 19 spaces + length of ("PID") is 3 i.e. 22)
-		spacesForCommandRowData = strings.Repeat(" ", 22-len(processPid))
-		processData = processPid + spacesForCommandRowData
+		pid := strconv.Itoa(int(proc.Pid))
 		exe, err := proc.Exe()
+		cmd := "NA"
 		if err == nil {
-			processData += "[" + exe + "](fg:green)"
-		} else {
-			processData += "NA"
+			cmd = exe
 		}
-		childProcs = append(childProcs, processData)
+		childProcs = append(childProcs, []string{pid, cmd})
 	}
 	return childProcs
 }
@@ -114,10 +107,12 @@ func ProcVisuals(ctx context.Context,
 	tick := t.C
 
 	previousKey := ""
-	selectedStyle := ui.NewStyle(ui.ColorYellow, ui.ColorClear, ui.ModifierBold)
 
 	for {
 		select {
+		case <-ctx.Done():
+			return ctx.Err()
+
 		case e := <-uiEvents:
 			switch e.ID {
 			case "q", "<C-c>": //q or Ctrl-C to quit
@@ -148,25 +143,25 @@ func ProcVisuals(ctx context.Context,
 				case "s": //s to pause
 					pause()
 				case "j", "<Down>":
-					myPage.ChildProcsList.ScrollDown()
+					myPage.ChildProcsTable.ScrollDown()
 				case "k", "<Up>":
-					myPage.ChildProcsList.ScrollUp()
+					myPage.ChildProcsTable.ScrollUp()
 				case "<C-d>":
-					myPage.ChildProcsList.ScrollHalfPageDown()
+					myPage.ChildProcsTable.ScrollHalfPageDown()
 				case "<C-u>":
-					myPage.ChildProcsList.ScrollHalfPageUp()
+					myPage.ChildProcsTable.ScrollHalfPageUp()
 				case "<C-f>":
-					myPage.ChildProcsList.ScrollPageDown()
+					myPage.ChildProcsTable.ScrollPageDown()
 				case "<C-b>":
-					myPage.ChildProcsList.ScrollPageUp()
+					myPage.ChildProcsTable.ScrollPageUp()
 				case "g":
 					if previousKey == "g" {
-						myPage.ChildProcsList.ScrollTop()
+						myPage.ChildProcsTable.ScrollTop()
 					}
 				case "<Home>":
-					myPage.ChildProcsList.ScrollTop()
+					myPage.ChildProcsTable.ScrollTop()
 				case "G", "<End>":
-					myPage.ChildProcsList.ScrollBottom()
+					myPage.ChildProcsTable.ScrollBottom()
 				}
 
 				ui.Render(myPage.Grid)
@@ -178,7 +173,6 @@ func ProcVisuals(ctx context.Context,
 			}
 
 		case data := <-dataChannel:
-			myPage.ChildProcsList.SelectedRowStyle = selectedStyle
 			if runProc {
 				// update ctx switches
 				switches, units := utils.RoundValues(float64(data.NumCtxSwitches.Voluntary), float64(data.NumCtxSwitches.Involuntary), false)
@@ -221,7 +215,7 @@ func ProcVisuals(ctx context.Context,
 
 				myPage.PageFaultsChart.Data = faults
 				myPage.PageFaultsChart.Title = " Page Faults" + units
-				myPage.ChildProcsList.Rows = getChildProcs(data)
+				myPage.ChildProcsTable.Rows = getChildProcs(data)
 
 				on.Do(updateUI)
 			}
