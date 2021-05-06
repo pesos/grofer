@@ -122,10 +122,10 @@ func TestGetDateFromUnix(t *testing.T) {
 		expectedVal string
 		inputVal    int64
 	}{
-		{date1, 10000000},
+		{date1, 10000000000},
 		{date2, 0},
-		{date3, 1596652055},
-		{date4, 9999999999},
+		{date3, 1596652055000},
+		{date4, 9999999999000},
 	}
 
 	for _, test := range tests {
