@@ -45,54 +45,6 @@ go build grofer.go
 
 ---
 
-Shell Completions
-=================
-
-`grofer` includes a subcommand to generate shell completion scripts to get autocompletion for subcommands and flags
-
-Bash
-----
-
-To get completions for current session only,
-
-```sh
-source <(grofer completion bash)
-```
-
-To load completions for each session, the generated script must be moved to the completions directory. Take a look at the third question [here](https://github.com/scop/bash-completion/blob/master/README.md#faq) to find out the right place to put the script
-
-Zsh
----
-
-If shell completion is not already enabled in your environment you will need to enable it. You can execute the following once:
-
-```sh
-echo "autoload -U compinit; compinit" >> ~/.zshrc
-```
-
-To load completions for each session, the generated script must be placed in a directory in your [fpath](http://zsh.sourceforge.net/Doc/Release/Functions.html). For a quick-and-dirty solution, run once:
-
-```sh
-grofer completion zsh > "${fpath[1]}/_grofer"
-```
-
-You will need to start a new shell for this setup to take effect.
-
-Fish
-----
-
-To get completions for current session only,
-
-```sh
-grofer completion fish | source
-```
-
-To load completions for each session, the generated script must be moved to the completions directory
-
-```sh
-grofer completion fish > ~/.config/fish/completions/grofer.fish
-```
-
 Usage
 =====
 
@@ -229,7 +181,8 @@ Information provided:
 - Idle : % of time CPU was idle.  
 - Nice : % of time spent by CPU executing user level processes with a nice priority.  
 - Iowait: % of time spent by CPU waiting for an outstanding disk I/O.  
-- Soft : % of time spent by the CPU servicing software interrupts. - Steal : % of time spent in involuntary waiting by logical CPUs.
+- Soft : % of time spent by the CPU servicing software interrupts.  
+- Steal : % of time spent in involuntary waiting by logical CPUs.
 
 ---
 
@@ -297,12 +250,11 @@ Information provided:
 
 -	Attached Networks
 
-- Block and Network I/O
+-	Block and Network I/O
 
-- Metadata (Image, Name, ID, Status, State, PID)
+-	Metadata (Image, Name, ID, Status, State, PID)
 
 ---
-
 
 ```
 grofer export -i 1 -p 1
@@ -311,3 +263,53 @@ grofer export -i 1 -p 1
 This allows exporting of profiled data either of system usage or data particular to that of a process. Data format is JSON by default.
 
 ![grofer-export](images/README/grofer-export.png)
+
+---
+
+Shell Completions
+=================
+
+`grofer` includes a subcommand to generate shell completion scripts to get autocompletion for subcommands and flags
+
+Bash
+----
+
+To get completions for current session only,
+
+```sh
+source <(grofer completion bash)
+```
+
+To load completions for each session, the generated script must be moved to the completions directory. Take a look at the third question [here](https://github.com/scop/bash-completion/blob/master/README.md#faq) to find out the right place to put the script
+
+Zsh
+---
+
+If shell completion is not already enabled in your environment you will need to enable it. You can execute the following once:
+
+```sh
+echo "autoload -U compinit; compinit" >> ~/.zshrc
+```
+
+To load completions for each session, the generated script must be placed in a directory in your [fpath](http://zsh.sourceforge.net/Doc/Release/Functions.html). For a quick-and-dirty solution, run once:
+
+```sh
+grofer completion zsh > "${fpath[1]}/_grofer"
+```
+
+You will need to start a new shell for this setup to take effect.
+
+Fish
+----
+
+To get completions for current session only,
+
+```sh
+grofer completion fish | source
+```
+
+To load completions for each session, the generated script must be moved to the completions directory
+
+```sh
+grofer completion fish > ~/.config/fish/completions/grofer.fish
+```
