@@ -191,7 +191,7 @@ Optional flags:
 
 -	`-p | --pid INT32`: Specify the PID of the process to profile. If not set, all processes are are measured.
 
--	`-t | --type STRING`: Specify the export file format. Defaults to JSON.
+-	`-t | --type STRING`: Specify the export file format. Defaults to LJSON.
 
 -	`-f | --filename STRING`: Specify the file to store the exported data in. Defaults to `grofer_profile`.
 

@@ -29,7 +29,6 @@ type MainPage struct {
 	MemoryChart  *widgets.BarChart
 	DiskChart    *widgets.Table
 	NetworkChart *utils.LineGraph
-	NetTable     *widgets.Table
 	CPUCharts    []*widgets.Gauge
 	CPUTable     *utils.Table
 }
@@ -56,7 +55,6 @@ func NewPage(numCores int) *MainPage {
 		DiskChart:    widgets.NewTable(),
 		NetworkChart: utils.NewLineGraph(),
 		CPUCharts:    make([]*widgets.Gauge, 0),
-		NetTable:     widgets.NewTable(),
 		CPUTable:     utils.NewTable(),
 	}
 	page.InitGeneral(numCores)
@@ -178,7 +176,6 @@ func (page *MainPage) InitGeneral(numCores int) {
 		// Get Terminal Dimensions
 		page.Grid.SetRect(w/2, 0, w, h)
 	}
-
 }
 
 func (page *CPUPage) InitCPU(numCores int) {
