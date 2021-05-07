@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"log"
 	"sort"
+	"strconv"
 	"sync"
 	"time"
 
@@ -34,6 +35,26 @@ import (
 
 var runProc = true
 var helpVisible = false
+
+var sortIdx = -1
+var sortAsc = false
+
+const (
+	UP_ARROW   = "▲"
+	DOWN_ARROW = "▼"
+)
+
+var header = []string{
+	"ID",
+	"Image",
+	"Name",
+	"Status",
+	"State",
+	"CPU",
+	"Memory",
+	"Net I/O",
+	"Block I/O",
+}
 
 // OverallVisuals provides the UI for overall container metrics
 func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMetrics, refreshRate uint64) error {
@@ -77,6 +98,34 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 		} else {
 			ui.Render(myPage.Grid)
 		}
+	}
+
+	strSort := func(i, j int) bool {
+		if sortAsc {
+			return myPage.DetailsTable.Rows[i][sortIdx] < myPage.DetailsTable.Rows[j][sortIdx]
+		}
+		return myPage.DetailsTable.Rows[i][sortIdx] > myPage.DetailsTable.Rows[j][sortIdx]
+	}
+
+	floatSort := func(i, j int) bool {
+		x1 := myPage.DetailsTable.Rows[i][sortIdx]
+		y1 := myPage.DetailsTable.Rows[j][sortIdx]
+		x, _ := strconv.ParseFloat(x1[:len(x1)-1], 32)
+		y, _ := strconv.ParseFloat(y1[:len(y1)-1], 32)
+		if sortAsc {
+			return x < y
+		}
+		return x > y
+	}
+
+	sortFuncs := map[int]func(i, j int) bool{
+		0: strSort,
+		1: strSort,
+		2: strSort,
+		3: strSort,
+		4: strSort,
+		5: floatSort,
+		6: floatSort,
 	}
 
 	updateUI() // Initialize empty UI
@@ -140,6 +189,29 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 					myPage.DetailsTable.ScrollTop()
 				case "G", "<End>":
 					myPage.DetailsTable.ScrollBottom()
+					// Sort Ascending
+				case "1", "2", "3", "4", "5", "6", "7":
+					myPage.DetailsTable.Header = append([]string{}, header...)
+					idx, _ := strconv.Atoi(e.ID)
+					sortIdx = idx - 1
+					myPage.DetailsTable.Header[sortIdx] = header[sortIdx] + " " + UP_ARROW
+					sortAsc = true
+					sort.Slice(myPage.DetailsTable.Rows, sortFuncs[sortIdx])
+
+				// Sort Descending
+				case "<F1>", "<F2>", "<F3>", "<F4>", "<F5>", "<F6>", "<F7>":
+					myPage.DetailsTable.Header = append([]string{}, header...)
+					idx, _ := strconv.Atoi(e.ID[2:3])
+					sortIdx = idx - 1
+					myPage.DetailsTable.Header[sortIdx] = header[sortIdx] + " " + DOWN_ARROW
+					sortAsc = false
+					sort.Slice(myPage.DetailsTable.Rows, sortFuncs[sortIdx])
+
+				// Disable Sort
+				case "0":
+					myPage.DetailsTable.Header = append([]string{}, header...)
+					sortIdx = -1
+
 				}
 
 				ui.Render(myPage.Grid)

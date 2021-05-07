@@ -98,7 +98,7 @@ func (page *OverallContainerPage) InitOverallContainer() {
 			10, 10, 17, 23,
 		}
 	}
-	page.DetailsTable.Header = []string{"ID", "Image", "Name", "Status", "State", "CPU", "Memory", "Net I/O", "Block I/O "}
+	page.DetailsTable.Header = []string{"ID", "Image", "Name", "Status", "State", "CPU", "Memory", "Net I/O", "Block I/O"}
 	page.DetailsTable.ShowCursor = true
 	page.DetailsTable.CursorColor = ui.ColorCyan
 
