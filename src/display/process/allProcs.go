@@ -235,108 +235,94 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 					ui.Render(help)
 				}
 			} else {
-				switch e.ID {
-				case "?":
-					updateUI()
-				case "<Escape>":
-					if killSelected {
-						runAllProc = true
-						killSelected = false
-						myPage.ProcTable.CursorColor = selectedStyle
-					}
-				case "s": //s to pause
-					if !killSelected {
+				if !killSelected {
+					switch e.ID {
+					case "?":
+						updateUI()
+					case "s": //s to pause
 						pauseProc()
-					}
-				case "j", "<Down>":
-					if !killSelected {
+					case "j", "<Down>":
 						myPage.ProcTable.ScrollDown()
-					}
-				case "k", "<Up>":
-					if !killSelected {
+					case "k", "<Up>":
 						myPage.ProcTable.ScrollUp()
-					}
-				case "<C-d>":
-					if !killSelected {
+					case "<C-d>":
 						myPage.ProcTable.ScrollHalfPageDown()
-					}
-				case "<C-u>":
-					if !killSelected {
+					case "<C-u>":
 						myPage.ProcTable.ScrollHalfPageUp()
-					}
-				case "<C-f>":
-					if !killSelected {
+					case "<C-f>":
 						myPage.ProcTable.ScrollPageDown()
-					}
-				case "<C-b>":
-					if !killSelected {
+					case "<C-b>":
 						myPage.ProcTable.ScrollPageUp()
-					}
-				case "g":
-					if !killSelected && previousKey == "g" {
-						myPage.ProcTable.ScrollTop()
-					}
-				case "<Home>":
-					if !killSelected {
-						myPage.ProcTable.ScrollTop()
-					}
-				case "G", "<End>":
-					if !killSelected {
-						myPage.ProcTable.ScrollBottom()
-					}
-				case "K", "<F9>":
-					if myPage.ProcTable.SelectedRow < len(myPage.ProcTable.Rows) {
-						row := myPage.ProcTable.Rows[myPage.ProcTable.SelectedRow]
-						// get PID from the data
-						pid, err := strconv.Atoi(row[0])
-						if err != nil {
-							return fmt.Errorf("failed to get PID of process: %v", err)
+					case "g":
+						if previousKey == "g" {
+							myPage.ProcTable.ScrollTop()
 						}
-						pidToKill = int32(pid)
+					case "<Home>":
+						myPage.ProcTable.ScrollTop()
+					case "G", "<End>":
+						myPage.ProcTable.ScrollBottom()
+					case "K", "<F9>":
+						if myPage.ProcTable.SelectedRow < len(myPage.ProcTable.Rows) {
+							// get PID from the data
+							row := myPage.ProcTable.Rows[myPage.ProcTable.SelectedRow]
+							pid, err := strconv.Atoi(row[0])
+							if err != nil {
+								return fmt.Errorf("failed to get PID of process: %v", err)
+							}
 
-						if !killSelected {
+							// Set pid to kill
+							pidToKill = int32(pid)
 							runAllProc = false
 							killSelected = true
 							myPage.ProcTable.CursorColor = killingStyle
-						} else {
-							// get process and kill it
-							procToKill, err := proc.NewProcess(pidToKill)
-							myPage.ProcTable.CursorColor = selectedStyle
-							if err == nil {
-								err = procToKill.Kill()
-								if err != nil {
-									myPage.ProcTable.CursorColor = errorStyle
-								}
-							} else {
-								myPage.ProcTable.CursorColor = errorStyle
-							}
+						}
+					// Sort Ascending
+					case "1", "2", "3", "4", "5", "6", "7", "8":
+						myPage.ProcTable.Header = append([]string{}, header...)
+						idx, _ := strconv.Atoi(e.ID)
+						sortIdx = idx - 1
+						myPage.ProcTable.Header[sortIdx] = header[sortIdx] + " " + UP_ARROW
+						sortAsc = true
+						sort.Slice(myPage.ProcTable.Rows, sortFuncs[sortIdx])
+
+					// Sort Descending
+					case "<F1>", "<F2>", "<F3>", "<F4>", "<F5>", "<F6>", "<F7>", "<F8>":
+						myPage.ProcTable.Header = append([]string{}, header...)
+						idx, _ := strconv.Atoi(e.ID[2:3])
+						sortIdx = idx - 1
+						myPage.ProcTable.Header[sortIdx] = header[sortIdx] + " " + DOWN_ARROW
+						sortAsc = false
+						sort.Slice(myPage.ProcTable.Rows, sortFuncs[sortIdx])
+
+					// Disable Sort
+					case "0":
+						myPage.ProcTable.Header = append([]string{}, header...)
+						sortIdx = -1
+					}
+				} else {
+					switch e.ID {
+					case "<Escape>":
+						if killSelected {
 							runAllProc = true
 							killSelected = false
-							updateProcs()
+							myPage.ProcTable.CursorColor = selectedStyle
 						}
+					case "K", "<F9>":
+						// get process and kill it
+						procToKill, err := proc.NewProcess(pidToKill)
+						myPage.ProcTable.CursorColor = selectedStyle
+						if err == nil {
+							err = procToKill.Kill()
+							if err != nil {
+								myPage.ProcTable.CursorColor = errorStyle
+							}
+						} else {
+							myPage.ProcTable.CursorColor = errorStyle
+						}
+						runAllProc = true
+						killSelected = false
+						updateProcs()
 					}
-					// Sort Ascending
-				case "1", "2", "3", "4", "5", "6", "7", "8":
-					myPage.ProcTable.Header = append([]string{}, header...)
-					idx, _ := strconv.Atoi(e.ID)
-					sortIdx = idx - 1
-					myPage.ProcTable.Header[sortIdx] = header[sortIdx] + " " + UP_ARROW
-					sortAsc = true
-					sort.Slice(myPage.ProcTable.Rows, sortFuncs[sortIdx])
-
-				// Sort Descending
-				case "<F1>", "<F2>", "<F3>", "<F4>", "<F5>", "<F6>", "<F7>", "<F8>":
-					myPage.ProcTable.Header = append([]string{}, header...)
-					idx, _ := strconv.Atoi(e.ID[2:3])
-					sortIdx = idx - 1
-					myPage.ProcTable.Header[sortIdx] = header[sortIdx] + " " + DOWN_ARROW
-					sortAsc = false
-					sort.Slice(myPage.ProcTable.Rows, sortFuncs[sortIdx])
-
-				// Disable Sort
-				case "0":
-					myPage.ProcTable.Header = append([]string{}, header...)
-					sortIdx = -1
 				}
 
 				ui.Render(myPage.Grid)
