@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -34,6 +35,23 @@ import (
 
 var runAllProc = true
 var helpVisible = false
+var sortIdx = -1
+var sortAsc = false
+var header = []string{
+	"PID",
+	"Command",
+	"CPU",
+	"Memory",
+	"Status",
+	"Foreground",
+	"Creation Time",
+	"Thread Count",
+}
+
+const (
+	UP_ARROW   = "▲"
+	DOWN_ARROW = "▼"
+)
 
 func getData(procs []*proc.Process) [][]string {
 	procData := [][]string{}
@@ -125,6 +143,44 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 
 	pauseProc := func() {
 		runAllProc = !runAllProc
+	}
+
+	intSort := func(i, j int) bool {
+		x, _ := strconv.Atoi(myPage.ProcTable.Rows[i][sortIdx])
+		y, _ := strconv.Atoi(myPage.ProcTable.Rows[j][sortIdx])
+		if sortAsc {
+			return x < y
+		}
+		return x > y
+	}
+
+	strSort := func(i, j int) bool {
+		if sortAsc {
+			return myPage.ProcTable.Rows[i][sortIdx] < myPage.ProcTable.Rows[j][sortIdx]
+		}
+		return myPage.ProcTable.Rows[i][sortIdx] > myPage.ProcTable.Rows[j][sortIdx]
+	}
+
+	floatSort := func(i, j int) bool {
+		x1 := myPage.ProcTable.Rows[i][sortIdx]
+		y1 := myPage.ProcTable.Rows[j][sortIdx]
+		x, _ := strconv.ParseFloat(x1[:len(x1)-1], 32)
+		y, _ := strconv.ParseFloat(y1[:len(y1)-1], 32)
+		if sortAsc {
+			return x < y
+		}
+		return x > y
+	}
+
+	sortFuncs := map[int]func(i, j int) bool{
+		0: intSort,
+		1: strSort,
+		2: floatSort,
+		3: floatSort,
+		4: strSort,
+		5: strSort,
+		6: strSort,
+		7: intSort,
 	}
 
 	uiEvents := ui.PollEvents()
@@ -259,7 +315,30 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 							updateProcs()
 						}
 					}
+					// Sort Ascending
+				case "1", "2", "3", "4", "5", "6", "7", "8":
+					myPage.ProcTable.Header = append([]string{}, header...)
+					idx, _ := strconv.Atoi(e.ID)
+					sortIdx = idx - 1
+					myPage.ProcTable.Header[sortIdx] = header[sortIdx] + " " + UP_ARROW
+					sortAsc = true
+					sort.Slice(myPage.ProcTable.Rows, sortFuncs[sortIdx])
+
+				// Sort Descending
+				case "<F1>", "<F2>", "<F3>", "<F4>", "<F5>", "<F6>", "<F7>", "<F8>":
+					myPage.ProcTable.Header = append([]string{}, header...)
+					idx, _ := strconv.Atoi(e.ID[2:3])
+					sortIdx = idx - 1
+					myPage.ProcTable.Header[sortIdx] = header[sortIdx] + " " + DOWN_ARROW
+					sortAsc = false
+					sort.Slice(myPage.ProcTable.Rows, sortFuncs[sortIdx])
+
+				// Disable Sort
+				case "0":
+					myPage.ProcTable.Header = append([]string{}, header...)
+					sortIdx = -1
 				}
+
 				ui.Render(myPage.Grid)
 				if previousKey == "g" {
 					previousKey = ""
@@ -273,7 +352,9 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 				myPage.ProcTable.CursorColor = selectedStyle
 				procData := getData(data)
 				myPage.ProcTable.Rows = procData
-
+				if sortIdx != -1 {
+					sort.Slice(myPage.ProcTable.Rows, sortFuncs[sortIdx])
+				}
 				on.Do(updateUI)
 			}
 
