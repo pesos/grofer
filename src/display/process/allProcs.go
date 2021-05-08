@@ -20,7 +20,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -145,44 +144,6 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 		runAllProc = !runAllProc
 	}
 
-	intSort := func(i, j int) bool {
-		x, _ := strconv.Atoi(myPage.ProcTable.Rows[i][sortIdx])
-		y, _ := strconv.Atoi(myPage.ProcTable.Rows[j][sortIdx])
-		if sortAsc {
-			return x < y
-		}
-		return x > y
-	}
-
-	strSort := func(i, j int) bool {
-		if sortAsc {
-			return myPage.ProcTable.Rows[i][sortIdx] < myPage.ProcTable.Rows[j][sortIdx]
-		}
-		return myPage.ProcTable.Rows[i][sortIdx] > myPage.ProcTable.Rows[j][sortIdx]
-	}
-
-	floatSort := func(i, j int) bool {
-		x1 := myPage.ProcTable.Rows[i][sortIdx]
-		y1 := myPage.ProcTable.Rows[j][sortIdx]
-		x, _ := strconv.ParseFloat(x1[:len(x1)-1], 32)
-		y, _ := strconv.ParseFloat(y1[:len(y1)-1], 32)
-		if sortAsc {
-			return x < y
-		}
-		return x > y
-	}
-
-	sortFuncs := map[int]func(i, j int) bool{
-		0: intSort,
-		1: strSort,
-		2: floatSort,
-		3: floatSort,
-		4: strSort,
-		5: strSort,
-		6: strSort,
-		7: intSort,
-	}
-
 	uiEvents := ui.PollEvents()
 	t := time.NewTicker(time.Duration(refreshRate) * time.Millisecond)
 	tick := t.C
@@ -283,7 +244,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 						sortIdx = idx - 1
 						myPage.ProcTable.Header[sortIdx] = header[sortIdx] + " " + UP_ARROW
 						sortAsc = true
-						sort.Slice(myPage.ProcTable.Rows, sortFuncs[sortIdx])
+						utils.SortData(myPage.ProcTable.Rows, sortIdx, sortAsc, "PROCS")
 
 					// Sort Descending
 					case "<F1>", "<F2>", "<F3>", "<F4>", "<F5>", "<F6>", "<F7>", "<F8>":
@@ -292,7 +253,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 						sortIdx = idx - 1
 						myPage.ProcTable.Header[sortIdx] = header[sortIdx] + " " + DOWN_ARROW
 						sortAsc = false
-						sort.Slice(myPage.ProcTable.Rows, sortFuncs[sortIdx])
+						utils.SortData(myPage.ProcTable.Rows, sortIdx, sortAsc, "PROCS")
 
 					// Disable Sort
 					case "0":
@@ -339,7 +300,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 				procData := getData(data)
 				myPage.ProcTable.Rows = procData
 				if sortIdx != -1 {
-					sort.Slice(myPage.ProcTable.Rows, sortFuncs[sortIdx])
+					utils.SortData(myPage.ProcTable.Rows, sortIdx, sortAsc, "PROCS")
 				}
 				on.Do(updateUI)
 			}

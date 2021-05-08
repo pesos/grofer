@@ -100,34 +100,6 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 		}
 	}
 
-	strSort := func(i, j int) bool {
-		if sortAsc {
-			return myPage.DetailsTable.Rows[i][sortIdx] < myPage.DetailsTable.Rows[j][sortIdx]
-		}
-		return myPage.DetailsTable.Rows[i][sortIdx] > myPage.DetailsTable.Rows[j][sortIdx]
-	}
-
-	floatSort := func(i, j int) bool {
-		x1 := myPage.DetailsTable.Rows[i][sortIdx]
-		y1 := myPage.DetailsTable.Rows[j][sortIdx]
-		x, _ := strconv.ParseFloat(x1[:len(x1)-1], 32)
-		y, _ := strconv.ParseFloat(y1[:len(y1)-1], 32)
-		if sortAsc {
-			return x < y
-		}
-		return x > y
-	}
-
-	sortFuncs := map[int]func(i, j int) bool{
-		0: strSort,
-		1: strSort,
-		2: strSort,
-		3: strSort,
-		4: strSort,
-		5: floatSort,
-		6: floatSort,
-	}
-
 	updateUI() // Initialize empty UI
 
 	uiEvents := ui.PollEvents()
@@ -196,7 +168,7 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 					sortIdx = idx - 1
 					myPage.DetailsTable.Header[sortIdx] = header[sortIdx] + " " + UP_ARROW
 					sortAsc = true
-					sort.Slice(myPage.DetailsTable.Rows, sortFuncs[sortIdx])
+					utils.SortData(myPage.DetailsTable.Rows, sortIdx, sortAsc, "CONTAINER")
 
 				// Sort Descending
 				case "<F1>", "<F2>", "<F3>", "<F4>", "<F5>", "<F6>", "<F7>":
@@ -205,13 +177,12 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 					sortIdx = idx - 1
 					myPage.DetailsTable.Header[sortIdx] = header[sortIdx] + " " + DOWN_ARROW
 					sortAsc = false
-					sort.Slice(myPage.DetailsTable.Rows, sortFuncs[sortIdx])
+					utils.SortData(myPage.DetailsTable.Rows, sortIdx, sortAsc, "CONTAINER")
 
 				// Disable Sort
 				case "0":
 					myPage.DetailsTable.Header = append([]string{}, header...)
 					sortIdx = -1
-
 				}
 
 				ui.Render(myPage.Grid)
@@ -265,6 +236,10 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 				}
 
 				myPage.DetailsTable.Rows = containerData
+
+				if sortIdx != -1 {
+					utils.SortData(myPage.DetailsTable.Rows, sortIdx, sortAsc, "CONTAINER")
+				}
 
 				on.Do(updateUI)
 			}
