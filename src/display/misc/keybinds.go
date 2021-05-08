@@ -36,6 +36,7 @@ var PROC_KEYBINDS = []string{
 	"  - 0: Disable Sort",
 	"",
 	"[Process actions](fg:white)",
+	"[Requires confirmation, press key again to confirm](fg:white)",
 	"  - K and <F9>: Kill process",
 }
 
