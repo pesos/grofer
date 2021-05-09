@@ -25,6 +25,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/docker/docker/client"
 	ui "github.com/gizak/termui/v3"
 	h "github.com/pesos/grofer/src/display/misc"
 	info "github.com/pesos/grofer/src/general"
@@ -108,6 +109,18 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 
 	previousKey := ""
 
+	selectedStyle := ui.ColorCyan
+	actionStyle := ui.ColorMagenta
+	errorStyle := ui.ColorRed
+
+	actionSelected := ""
+	cid := ""
+
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return err
+	}
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -136,53 +149,118 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 					ui.Render(help)
 				}
 			} else {
-				switch e.ID {
-				case "?":
-					updateUI()
-				case "s": //s to pause
-					pause()
-				case "j", "<Down>":
-					myPage.DetailsTable.ScrollDown()
-				case "k", "<Up>":
-					myPage.DetailsTable.ScrollUp()
-				case "<C-d>":
-					myPage.DetailsTable.ScrollHalfPageDown()
-				case "<C-u>":
-					myPage.DetailsTable.ScrollHalfPageUp()
-				case "<C-f>":
-					myPage.DetailsTable.ScrollPageDown()
-				case "<C-b>":
-					myPage.DetailsTable.ScrollPageUp()
-				case "g":
-					if previousKey == "g" {
+				if actionSelected == "" {
+					switch e.ID {
+					case "?":
+						updateUI()
+					case "s": //s to pause
+						pause()
+					case "j", "<Down>":
+						myPage.DetailsTable.ScrollDown()
+					case "k", "<Up>":
+						myPage.DetailsTable.ScrollUp()
+					case "<C-d>":
+						myPage.DetailsTable.ScrollHalfPageDown()
+					case "<C-u>":
+						myPage.DetailsTable.ScrollHalfPageUp()
+					case "<C-f>":
+						myPage.DetailsTable.ScrollPageDown()
+					case "<C-b>":
+						myPage.DetailsTable.ScrollPageUp()
+					case "g":
+						if previousKey == "g" {
+							myPage.DetailsTable.ScrollTop()
+						}
+					case "<Home>":
 						myPage.DetailsTable.ScrollTop()
-					}
-				case "<Home>":
-					myPage.DetailsTable.ScrollTop()
-				case "G", "<End>":
-					myPage.DetailsTable.ScrollBottom()
+					case "G", "<End>":
+						myPage.DetailsTable.ScrollBottom()
+
 					// Sort Ascending
-				case "1", "2", "3", "4", "5", "6", "7":
-					myPage.DetailsTable.Header = append([]string{}, header...)
-					idx, _ := strconv.Atoi(e.ID)
-					sortIdx = idx - 1
-					myPage.DetailsTable.Header[sortIdx] = header[sortIdx] + " " + UP_ARROW
-					sortAsc = true
-					utils.SortData(myPage.DetailsTable.Rows, sortIdx, sortAsc, "CONTAINER")
+					case "1", "2", "3", "4", "5", "6", "7":
+						myPage.DetailsTable.Header = append([]string{}, header...)
+						idx, _ := strconv.Atoi(e.ID)
+						sortIdx = idx - 1
+						myPage.DetailsTable.Header[sortIdx] = header[sortIdx] + " " + UP_ARROW
+						sortAsc = true
+						utils.SortData(myPage.DetailsTable.Rows, sortIdx, sortAsc, "CONTAINER")
 
-				// Sort Descending
-				case "<F1>", "<F2>", "<F3>", "<F4>", "<F5>", "<F6>", "<F7>":
-					myPage.DetailsTable.Header = append([]string{}, header...)
-					idx, _ := strconv.Atoi(e.ID[2:3])
-					sortIdx = idx - 1
-					myPage.DetailsTable.Header[sortIdx] = header[sortIdx] + " " + DOWN_ARROW
-					sortAsc = false
-					utils.SortData(myPage.DetailsTable.Rows, sortIdx, sortAsc, "CONTAINER")
+					// Sort Descending
+					case "<F1>", "<F2>", "<F3>", "<F4>", "<F5>", "<F6>", "<F7>":
+						myPage.DetailsTable.Header = append([]string{}, header...)
+						idx, _ := strconv.Atoi(e.ID[2:3])
+						sortIdx = idx - 1
+						myPage.DetailsTable.Header[sortIdx] = header[sortIdx] + " " + DOWN_ARROW
+						sortAsc = false
+						utils.SortData(myPage.DetailsTable.Rows, sortIdx, sortAsc, "CONTAINER")
 
-				// Disable Sort
-				case "0":
-					myPage.DetailsTable.Header = append([]string{}, header...)
-					sortIdx = -1
+					// Disable Sort
+					case "0":
+						myPage.DetailsTable.Header = append([]string{}, header...)
+						sortIdx = -1
+
+					// Pause Selction
+					case "P":
+						if myPage.DetailsTable.SelectedRow < len(myPage.DetailsTable.Rows) {
+							cid = myPage.DetailsTable.Rows[myPage.DetailsTable.SelectedRow][0]
+
+							runProc = false
+							actionSelected = "pause"
+							myPage.DetailsTable.CursorColor = actionStyle
+						}
+
+					// Unpause Selection
+					case "U":
+						if myPage.DetailsTable.SelectedRow < len(myPage.DetailsTable.Rows) {
+							cid = myPage.DetailsTable.Rows[myPage.DetailsTable.SelectedRow][0]
+
+							runProc = false
+							actionSelected = "unpause"
+							myPage.DetailsTable.CursorColor = actionStyle
+						}
+
+					}
+				} else {
+					switch e.ID {
+					case "<Escape>":
+						if actionSelected != "" {
+							runProc = true
+							actionSelected = ""
+							myPage.DetailsTable.CursorColor = selectedStyle
+						}
+
+					// Pause Action
+					case "P":
+						if actionSelected == "pause" {
+
+							err = cli.ContainerPause(ctx, cid)
+
+							if err != nil {
+								myPage.DetailsTable.CursorColor = errorStyle
+							} else {
+								myPage.DetailsTable.CursorColor = selectedStyle
+							}
+
+							runProc = true
+							actionSelected = ""
+						}
+
+					// Unpause Action
+					case "U":
+						if actionSelected == "unpause" {
+
+							err = cli.ContainerUnpause(ctx, cid)
+
+							if err != nil {
+								myPage.DetailsTable.CursorColor = errorStyle
+							} else {
+								myPage.DetailsTable.CursorColor = selectedStyle
+							}
+
+							runProc = true
+							actionSelected = ""
+						}
+					}
 				}
 
 				ui.Render(myPage.Grid)

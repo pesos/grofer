@@ -58,9 +58,10 @@ var CONT_KEYBINDS = []string{
 	"  - Use <F-column number> to sort descending.",
 	"  - Eg: 1 to sort ascedning on 1st Col and F1 for descending",
 	"  - 0: Disable Sort",
-	// "",
-	// "[Container actions](fg:white)",
-	// "  - K and <F9>: Kill Container",
+	"",
+	"[Container actions](fg:white)",
+	"  - P: Pause a Container",
+	"  - U: Unpause a Container",
 }
 
 var CONT_CID_KEYBINDS = []string{
