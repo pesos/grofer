@@ -17,14 +17,16 @@ package container
 
 import (
 	"context"
+	"sync"
 
+	"github.com/docker/docker/client"
 	"github.com/pesos/grofer/src/utils"
 )
 
 // Serve serves overall container metrics
-func Serve(ctx context.Context, dataChannel chan ContainerMetrics, refreshRate int64) error {
+func Serve(ctx context.Context, cli *client.Client, dataChannel chan ContainerMetrics, refreshRate int64, cliMutex *sync.Mutex) error {
 	return utils.TickUntilDone(ctx, refreshRate, func() error {
-		metrics, err := GetOverallMetrics()
+		metrics, err := GetOverallMetrics(ctx, cli, cliMutex)
 		if err != nil {
 			return err
 		}
@@ -35,9 +37,9 @@ func Serve(ctx context.Context, dataChannel chan ContainerMetrics, refreshRate i
 }
 
 // ServeContainer serves data on a per container basis
-func ServeContainer(ctx context.Context, cid string, dataChannel chan PerContainerMetrics, refreshRate int64) error {
+func ServeContainer(ctx context.Context, cli *client.Client, cid string, dataChannel chan PerContainerMetrics, refreshRate int64) error {
 	return utils.TickUntilDone(ctx, refreshRate, func() error {
-		metrics, err := GetContainerMetrics(cid)
+		metrics, err := GetContainerMetrics(ctx, cli, cid)
 		if err != nil {
 			return err
 		}

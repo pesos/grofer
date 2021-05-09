@@ -129,15 +129,9 @@ func getPerCPUPercents(data *types.StatsJSON) []string {
 }
 
 // GetContainerMetrics provides per container metrics in the form of PerContainerMetrics Structs
-func GetContainerMetrics(cid string) (PerContainerMetrics, error) {
+func GetContainerMetrics(ctx context.Context, cli *client.Client, cid string) (PerContainerMetrics, error) {
 
 	metrics := PerContainerMetrics{}
-
-	ctx := context.Background()
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		return metrics, err
-	}
 
 	// Get container using a filter
 	args := filters.NewArgs(

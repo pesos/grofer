@@ -19,6 +19,7 @@ import (
 	"context"
 	"encoding/json"
 	"strings"
+	"sync"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -34,17 +35,13 @@ type ContainerMetrics struct {
 }
 
 // GetOverallMetrics provides metrics about all running containers in the form of ContainerMetrics structs
-func GetOverallMetrics() (ContainerMetrics, error) {
+func GetOverallMetrics(ctx context.Context, cli *client.Client, cliMutex *sync.Mutex) (ContainerMetrics, error) {
 	metrics := ContainerMetrics{}
 
-	ctx := context.Background()
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		return metrics, err
-	}
-
 	// Get list of containers
+	cliMutex.Lock()
 	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
+	cliMutex.Unlock()
 	if err != nil {
 		return metrics, err
 	}
@@ -52,6 +49,7 @@ func GetOverallMetrics() (ContainerMetrics, error) {
 	metrcisChan := make(chan PerContainerMetrics, len(containers))
 
 	// get per container metrics
+	cliMutex.Lock()
 	for _, container := range containers {
 		go getMetrics(cli, ctx, container, metrcisChan)
 	}
@@ -76,6 +74,7 @@ func GetOverallMetrics() (ContainerMetrics, error) {
 
 		metrics.PerContainer = append(metrics.PerContainer, metric)
 	}
+	cliMutex.Unlock()
 
 	metrics.TotalCPU = totalCPU
 	metrics.TotalMem = totalMem
@@ -97,11 +96,13 @@ func getMetrics(cli *client.Client, ctx context.Context, c types.Container, ch c
 	if err != nil {
 		return
 	}
+
 	data := types.StatsJSON{}
 	err = json.NewDecoder(stats.Body).Decode(&data)
 	if err != nil {
 		return
 	}
+	stats.Body.Close()
 
 	// Calculate CPU percent
 	cpuPercent := getCPUPercent(&data)

@@ -20,7 +20,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"sort"
 	"strconv"
 	"sync"
 	"time"
@@ -58,7 +57,7 @@ var header = []string{
 }
 
 // OverallVisuals provides the UI for overall container metrics
-func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMetrics, refreshRate uint64) error {
+func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan container.ContainerMetrics, refreshRate uint64, cliMutex *sync.Mutex) error {
 
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
@@ -113,12 +112,13 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 	actionStyle := ui.ColorMagenta
 	errorStyle := ui.ColorRed
 
-	actionSelected := ""
 	cid := ""
-
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		return err
+	actionSelected := ""
+	actions := map[string]string{
+		"P": "pause",
+		"U": "unpause",
+		"R": "restart",
+		"S": "stop",
 	}
 
 	for {
@@ -199,26 +199,15 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 						myPage.DetailsTable.Header = append([]string{}, header...)
 						sortIdx = -1
 
-					// Pause Selction
-					case "P":
+					// Container Selction
+					case "P", "U", "S", "R":
 						if myPage.DetailsTable.SelectedRow < len(myPage.DetailsTable.Rows) {
 							cid = myPage.DetailsTable.Rows[myPage.DetailsTable.SelectedRow][0]
 
 							runProc = false
-							actionSelected = "pause"
+							actionSelected = actions[e.ID]
 							myPage.DetailsTable.CursorColor = actionStyle
 						}
-
-					// Unpause Selection
-					case "U":
-						if myPage.DetailsTable.SelectedRow < len(myPage.DetailsTable.Rows) {
-							cid = myPage.DetailsTable.Rows[myPage.DetailsTable.SelectedRow][0]
-
-							runProc = false
-							actionSelected = "unpause"
-							myPage.DetailsTable.CursorColor = actionStyle
-						}
-
 					}
 				} else {
 					switch e.ID {
@@ -232,9 +221,9 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 					// Pause Action
 					case "P":
 						if actionSelected == "pause" {
-
-							err = cli.ContainerPause(ctx, cid)
-
+							cliMutex.Lock()
+							err := cli.ContainerPause(ctx, cid)
+							cliMutex.Unlock()
 							if err != nil {
 								myPage.DetailsTable.CursorColor = errorStyle
 							} else {
@@ -248,9 +237,9 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 					// Unpause Action
 					case "U":
 						if actionSelected == "unpause" {
-
-							err = cli.ContainerUnpause(ctx, cid)
-
+							cliMutex.Lock()
+							err := cli.ContainerUnpause(ctx, cid)
+							cliMutex.Unlock()
 							if err != nil {
 								myPage.DetailsTable.CursorColor = errorStyle
 							} else {
@@ -259,6 +248,22 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 
 							runProc = true
 							actionSelected = ""
+						}
+
+					case "R":
+						if actionSelected == "restart" {
+							cliMutex.Lock()
+							err := cli.ContainerRestart(ctx, cid, nil)
+							cliMutex.Unlock()
+							if err != nil {
+								myPage.DetailsTable.CursorColor = errorStyle
+							} else {
+								myPage.DetailsTable.CursorColor = selectedStyle
+							}
+
+							runProc = true
+							actionSelected = ""
+
 						}
 					}
 				}
@@ -288,9 +293,6 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 				blkVals, units := utils.RoundValues(float64(data.TotalBlk.Read), float64(data.TotalBlk.Write), true)
 				myPage.BlkChart.Data = blkVals
 				myPage.BlkChart.Title = " Block I/O " + units
-
-				// Sort container data
-				sort.Slice(data.PerContainer, func(i, j int) bool { return data.PerContainer[i].ID > data.PerContainer[j].ID })
 
 				// update container details table
 				containerData := [][]string{}
