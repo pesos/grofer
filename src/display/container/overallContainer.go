@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"log"
 	"sort"
+	"strconv"
 	"sync"
 	"time"
 
@@ -34,6 +35,26 @@ import (
 
 var runProc = true
 var helpVisible = false
+
+var sortIdx = -1
+var sortAsc = false
+
+const (
+	UP_ARROW   = "▲"
+	DOWN_ARROW = "▼"
+)
+
+var header = []string{
+	"ID",
+	"Image",
+	"Name",
+	"Status",
+	"State",
+	"CPU",
+	"Memory",
+	"Net I/O",
+	"Block I/O",
+}
 
 // OverallVisuals provides the UI for overall container metrics
 func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMetrics, refreshRate uint64) error {
@@ -140,6 +161,28 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 					myPage.DetailsTable.ScrollTop()
 				case "G", "<End>":
 					myPage.DetailsTable.ScrollBottom()
+					// Sort Ascending
+				case "1", "2", "3", "4", "5", "6", "7":
+					myPage.DetailsTable.Header = append([]string{}, header...)
+					idx, _ := strconv.Atoi(e.ID)
+					sortIdx = idx - 1
+					myPage.DetailsTable.Header[sortIdx] = header[sortIdx] + " " + UP_ARROW
+					sortAsc = true
+					utils.SortData(myPage.DetailsTable.Rows, sortIdx, sortAsc, "CONTAINER")
+
+				// Sort Descending
+				case "<F1>", "<F2>", "<F3>", "<F4>", "<F5>", "<F6>", "<F7>":
+					myPage.DetailsTable.Header = append([]string{}, header...)
+					idx, _ := strconv.Atoi(e.ID[2:3])
+					sortIdx = idx - 1
+					myPage.DetailsTable.Header[sortIdx] = header[sortIdx] + " " + DOWN_ARROW
+					sortAsc = false
+					utils.SortData(myPage.DetailsTable.Rows, sortIdx, sortAsc, "CONTAINER")
+
+				// Disable Sort
+				case "0":
+					myPage.DetailsTable.Header = append([]string{}, header...)
+					sortIdx = -1
 				}
 
 				ui.Render(myPage.Grid)
@@ -193,6 +236,10 @@ func OverallVisuals(ctx context.Context, dataChannel chan container.ContainerMet
 				}
 
 				myPage.DetailsTable.Rows = containerData
+
+				if sortIdx != -1 {
+					utils.SortData(myPage.DetailsTable.Rows, sortIdx, sortAsc, "CONTAINER")
+				}
 
 				on.Do(updateUI)
 			}

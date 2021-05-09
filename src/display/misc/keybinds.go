@@ -19,7 +19,7 @@ package help
 var PROC_KEYBINDS = []string{
 	"Quit: q or <C-c>",
 	"",
-	"Process navigation:",
+	"[Process navigation](fg:white)",
 	"  - k and <Up>: up",
 	"  - j and <Down>: down",
 	"  - <C-u>: half page up",
@@ -29,14 +29,21 @@ var PROC_KEYBINDS = []string{
 	"  - gg and <Home>: jump to top",
 	"  - G and <End>: jump to bottom",
 	"",
-	"Process actions:",
+	"[Sorting](fg:white)",
+	"  - Use column number to sort ascending.",
+	"  - Use <F-column number> to sort descending.",
+	"  - Eg: 1 to sort ascedning on 1st Col and F1 for descending",
+	"  - 0: Disable Sort",
+	"",
+	"[Process actions](fg:white)",
+	"[Requires confirmation, press key again to confirm](fg:white)",
 	"  - K and <F9>: Kill process",
 }
 
 var CONT_KEYBINDS = []string{
 	"Quit: q or <C-c>",
 	"",
-	"Container navigation:",
+	"[Container navigation](fg:white)",
 	"  - k and <Up>: up",
 	"  - j and <Down>: down",
 	"  - <C-u>: half page up",
@@ -46,21 +53,27 @@ var CONT_KEYBINDS = []string{
 	"  - gg and <Home>: jump to top",
 	"  - G and <End>: jump to bottom",
 	"",
-	"Container actions:",
-	"  - K and <F9>: Kill Container",
+	"[Sorting](fg:white)",
+	"  - Use column number to sort ascending.",
+	"  - Use <F-column number> to sort descending.",
+	"  - Eg: 1 to sort ascedning on 1st Col and F1 for descending",
+	"  - 0: Disable Sort",
+	// "",
+	// "[Container actions](fg:white)",
+	// "  - K and <F9>: Kill Container",
 }
 
 var CONT_CID_KEYBINDS = []string{
 	"Quit: q or <C-c>",
 	"",
-	"Table Selection",
+	"[Table Selection](fg:white)",
 	"  - 1: MountTable",
 	"  - 2: NetworkTable",
 	"  - 3: CPUUsageTable",
 	"  - 4: PortMapTable",
 	"  - 5: ProcTable",
 	"",
-	"Table navigation:",
+	"[Table navigation](fg:white)",
 	"  - k and <Up>: up",
 	"  - j and <Down>: down",
 	"  - <C-u>: half page up",
@@ -69,7 +82,6 @@ var CONT_CID_KEYBINDS = []string{
 	"  - <C-f>: full page down",
 	"  - gg and <Home>: jump to top",
 	"  - G and <End>: jump to bottom",
-	"",
 }
 
 var MAIN_KEYBINDS = []string{

@@ -162,7 +162,8 @@ func NewAllProcsPage() *AllProcPage {
 
 // InitAllProc initializes and sets the ui and grid for grofer proc
 func (page *AllProcPage) InitAllProc() {
-	page.ProcTable.Header = []string{" PID",
+	page.ProcTable.Header = []string{
+		"PID",
 		"Command",
 		"CPU",
 		"Memory",
