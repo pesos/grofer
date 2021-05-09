@@ -21,7 +21,10 @@ import (
 	"strconv"
 )
 
-// SortData helps sort table rows. It sorts the table based on values given in the sortIdx column and sorts ascending if sortAsc is true. sortCase is set to identify the set of 'less' functions to use to sort the selected column by.
+// SortData helps sort table rows. It sorts the table based on values given
+// in the sortIdx column and sorts ascending if sortAsc is true.
+// sortCase is set to identify the set of 'less' functions to use to
+// sort the selected column by.
 func SortData(data [][]string, sortIdx int, sortAsc bool, sortCase string) {
 
 	// Define less functions
@@ -57,24 +60,24 @@ func SortData(data [][]string, sortIdx int, sortAsc bool, sortCase string) {
 	switch sortCase {
 	case "PROCS":
 		sortFuncs = map[int]func(i, j int) bool{
-			0: intSort,
-			1: strSort,
-			2: floatSort,
-			3: floatSort,
-			4: strSort,
-			5: strSort,
-			6: strSort,
-			7: intSort,
+			0: intSort,   // PID
+			1: strSort,   // Command
+			3: floatSort, // CPU %
+			2: floatSort, // Memory %
+			4: strSort,   // Status
+			5: strSort,   // Foreground
+			6: strSort,   // Creation Time
+			7: intSort,   // Thread Count
 		}
 	case "CONTAINER":
 		sortFuncs = map[int]func(i, j int) bool{
-			0: strSort,
-			1: strSort,
-			2: strSort,
-			3: strSort,
-			4: strSort,
-			5: floatSort,
-			6: floatSort,
+			0: strSort,   // ID
+			1: strSort,   // Image
+			2: strSort,   // Name
+			3: strSort,   // Status
+			4: strSort,   // State
+			5: floatSort, // CPU %
+			6: floatSort, // Memory %
 		}
 
 	default:
