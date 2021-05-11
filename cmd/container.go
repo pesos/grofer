@@ -79,7 +79,7 @@ var containerCmd = &cobra.Command{
 				}
 			}
 		} else {
-			dataChannel := make(chan container.ContainerMetrics, 1)
+			dataChannel := make(chan container.ContainerMetrics)
 
 			allFlag, _ := cmd.Flags().GetBool("all")
 			eg.Go(func() error {

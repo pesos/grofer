@@ -181,6 +181,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 		case e := <-uiEvents:
 			switch e.ID {
 			case "q", "<C-c>": //q or Ctrl-C to quit
+				close(dataChannel)
 				return info.ErrCanceledByUser
 			case "<Resize>":
 				updateUI()
@@ -274,6 +275,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 				} else {
 
 					var err error = nil
+					actionSet := true
 
 					switch e.ID {
 					case "<Escape>":
@@ -281,6 +283,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 							runProc = true
 							actionSelected = ""
 							myPage.DetailsTable.CursorColor = selectedStyle
+							actionSet = false
 						}
 
 					// Pause Action
@@ -353,16 +356,18 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 						}
 					}
 
-					<-dataChannel
-					data := <-dataChannel
-					updateDetails(data)
-					updateUI()
-
-					if err != nil {
-						errorVisible = true
+					if actionSet {
+						<-dataChannel
+						data, _ := container.GetOverallMetrics(ctx, cli, true)
+						updateDetails(data)
 						updateUI()
-					} else {
-						errorVisible = false
+
+						if err != nil {
+							errorVisible = true
+							updateUI()
+						} else {
+							errorVisible = false
+						}
 					}
 
 					myPage.DetailsTable.CursorColor = selectedStyle
@@ -370,6 +375,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 					runProc = true
 					actionSelected = ""
 				}
+
 				if !errorVisible {
 					ui.Render(myPage.Grid)
 				}
