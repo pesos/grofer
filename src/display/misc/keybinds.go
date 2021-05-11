@@ -14,9 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package help
+package misc
 
-var PROC_KEYBINDS = []string{
+// keybindings for:
+//	- help page
+//	- error page
+
+var procKeybindings = []string{
 	"Quit: q or <C-c>",
 	"",
 	"[Process navigation](fg:white)",
@@ -40,7 +44,7 @@ var PROC_KEYBINDS = []string{
 	"  - K and <F9>: Kill process",
 }
 
-var CONT_KEYBINDS = []string{
+var containerKeybindings = []string{
 	"Quit: q or <C-c>",
 	"",
 	"[Container navigation](fg:white)",
@@ -64,7 +68,7 @@ var CONT_KEYBINDS = []string{
 	"  - U: Unpause a Container",
 }
 
-var CONT_CID_KEYBINDS = []string{
+var perContainerKeyBindings = []string{
 	"Quit: q or <C-c>",
 	"",
 	"[Table Selection](fg:white)",
@@ -85,10 +89,14 @@ var CONT_CID_KEYBINDS = []string{
 	"  - G and <End>: jump to bottom",
 }
 
-var MAIN_KEYBINDS = []string{
+var mainKeybindings = []string{
 	"Quit: q or <C-c>",
 }
 
-var PROC_PID_KEYBINDS = []string{
+var perProcKeyBindings = []string{
+	"Quit: q or <C-c>",
+}
+
+var errorKeybindings = []string{
 	"Quit: q or <C-c>",
 }

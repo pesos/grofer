@@ -21,26 +21,28 @@ import (
 	"github.com/gizak/termui/v3/widgets"
 )
 
-var keybindings []string
+// ErrorString contains the error message
+// to display
+var ErrorString string
 
-// HelpMenu is a wrapper widget around a List meant
-// to display the help menu for a command
-type HelpMenu struct {
+// ErrorBox is a wrapper widget around a List
+// meant to display error messages if any
+type ErrorBox struct {
 	*widgets.List
 }
 
-// NewHelpMenu is a constructor for the HelpMenu type
-func NewHelpMenu() *HelpMenu {
-	return &HelpMenu{
+// NewErrorBox is a constructor for the ErrorBox type
+func NewErrorBox() *ErrorBox {
+	return &ErrorBox{
 		List: widgets.NewList(),
 	}
 }
 
 // Resize resizes the widget based on specified width
 // and height
-func (help *HelpMenu) Resize(termWidth, termHeight int) {
+func (errBox *ErrorBox) Resize(termWidth, termHeight int) {
 	textWidth := 50
-	for _, line := range keybindings {
+	for _, line := range errorKeybindings {
 		if textWidth < len(line) {
 			textWidth = len(line) + 2
 		}
@@ -57,33 +59,21 @@ func (help *HelpMenu) Resize(termWidth, termHeight int) {
 		textHeight = termHeight
 	}
 
-	help.List.SetRect(x, y, textWidth+x, textHeight+y)
+	errBox.List.SetRect(x, y, textWidth+x, textHeight+y)
 }
 
 // Draw puts the required text into the widget
-func (help *HelpMenu) Draw(buf *ui.Buffer) {
-	help.List.Title = " Keybindings "
+func (errBox *ErrorBox) Draw(buf *ui.Buffer) {
+	errBox.List.Title = " Error "
 
-	help.List.Rows = keybindings
-	help.List.TextStyle = ui.NewStyle(ui.ColorYellow)
-	help.List.WrapText = false
-	help.List.Draw(buf)
+	errBox.List.Rows = []string{ErrorString, ""}
+	errBox.List.Rows = append(errBox.List.Rows, errorKeybindings...)
+	errBox.List.TextStyle = ui.NewStyle(ui.ColorYellow)
+	errBox.List.WrapText = false
+	errBox.List.Draw(buf)
 }
 
-// SelectHelpMenu selects the appropriate text
-// based on the command for which the help page
-// is needed
-func SelectHelpMenu(page string) {
-	switch page {
-	case "proc":
-		keybindings = procKeybindings
-	case "proc_pid":
-		keybindings = perProcKeyBindings
-	case "main":
-		keybindings = mainKeybindings
-	case "cont":
-		keybindings = containerKeybindings
-	case "cont_cid":
-		keybindings = perContainerKeyBindings
-	}
+// SetErrorString sets the error string to be displayed
+func SetErrorString(errStr string) {
+	ErrorString = errStr
 }
