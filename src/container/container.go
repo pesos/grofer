@@ -181,12 +181,17 @@ func GetContainerMetrics(ctx context.Context, cli *client.Client, cid string) (P
 	}
 
 	// Get Container Stats
-	stats, _ := cli.ContainerStats(ctx, cid, false)
+	stats, err := cli.ContainerStats(ctx, cid, false)
+	if err != nil {
+		return metrics, err
+	}
+
 	data := types.StatsJSON{}
 	err = json.NewDecoder(stats.Body).Decode(&data)
 	if err != nil {
 		return metrics, err
 	}
+	stats.Body.Close()
 
 	// Calculate CPU percent
 	cpuPercent := getCPUPercent(&data)

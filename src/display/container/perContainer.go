@@ -96,7 +96,6 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 	for {
 		select {
 		case <-ctx.Done():
-			close(dataChannel)
 			return ctx.Err()
 		case e := <-uiEvents:
 			switch e.ID {
