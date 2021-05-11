@@ -129,6 +129,7 @@ func getPerCPUPercents(data *types.StatsJSON) []string {
 	return perCpuPercents
 }
 
+// ContainerWait waits for a container of given container id to reach a specified state. If an error is encountered during th wait, it is returned.
 func ContainerWait(ctx context.Context, cli *client.Client, cid, state string) error {
 
 	t := time.NewTicker(100 * time.Millisecond)
