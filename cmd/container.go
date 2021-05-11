@@ -19,7 +19,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"sync"
 
 	"github.com/docker/docker/client"
 	containerGraph "github.com/pesos/grofer/src/display/container"
@@ -59,8 +58,6 @@ var containerCmd = &cobra.Command{
 			return err
 		}
 
-		var cliMutex sync.Mutex
-
 		eg, ctx := errgroup.WithContext(context.Background())
 
 		if cid != defaultCid {
@@ -82,13 +79,13 @@ var containerCmd = &cobra.Command{
 				}
 			}
 		} else {
-			dataChannel := make(chan container.ContainerMetrics, 1)
+			dataChannel := make(chan container.ContainerMetrics, 100)
 
 			eg.Go(func() error {
-				return container.Serve(ctx, cli, dataChannel, int64(containerRefreshRate), &cliMutex)
+				return container.Serve(ctx, cli, dataChannel, int64(containerRefreshRate))
 			})
 			eg.Go(func() error {
-				return containerGraph.OverallVisuals(ctx, cli, dataChannel, containerRefreshRate, &cliMutex)
+				return containerGraph.OverallVisuals(ctx, cli, dataChannel, containerRefreshRate)
 			})
 
 			if err := eg.Wait(); err != nil {

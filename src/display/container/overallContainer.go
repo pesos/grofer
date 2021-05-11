@@ -57,7 +57,7 @@ var header = []string{
 }
 
 // OverallVisuals provides the UI for overall container metrics
-func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan container.ContainerMetrics, refreshRate uint64, cliMutex *sync.Mutex) error {
+func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan container.ContainerMetrics, refreshRate uint64) error {
 
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
@@ -221,9 +221,9 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 					// Pause Action
 					case "P":
 						if actionSelected == "pause" {
-							cliMutex.Lock()
+
 							err := cli.ContainerPause(ctx, cid)
-							cliMutex.Unlock()
+
 							if err != nil {
 								myPage.DetailsTable.CursorColor = errorStyle
 							} else {
@@ -237,9 +237,9 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 					// Unpause Action
 					case "U":
 						if actionSelected == "unpause" {
-							cliMutex.Lock()
+
 							err := cli.ContainerUnpause(ctx, cid)
-							cliMutex.Unlock()
+
 							if err != nil {
 								myPage.DetailsTable.CursorColor = errorStyle
 							} else {
@@ -250,11 +250,12 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 							actionSelected = ""
 						}
 
+					// Restart Action
 					case "R":
 						if actionSelected == "restart" {
-							cliMutex.Lock()
+
 							err := cli.ContainerRestart(ctx, cid, nil)
-							cliMutex.Unlock()
+
 							if err != nil {
 								myPage.DetailsTable.CursorColor = errorStyle
 							} else {
@@ -263,8 +264,24 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 
 							runProc = true
 							actionSelected = ""
-
 						}
+
+					// Stop Action
+					case "S":
+						if actionSelected == "stop" {
+
+							err := cli.ContainerStop(ctx, cid, nil)
+
+							if err != nil {
+								myPage.DetailsTable.CursorColor = errorStyle
+							} else {
+								myPage.DetailsTable.CursorColor = selectedStyle
+							}
+
+							runProc = true
+							actionSelected = ""
+						}
+
 					}
 				}
 
