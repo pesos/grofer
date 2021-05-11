@@ -181,7 +181,6 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 		case e := <-uiEvents:
 			switch e.ID {
 			case "q", "<C-c>": //q or Ctrl-C to quit
-				close(dataChannel)
 				return info.ErrCanceledByUser
 			case "<Resize>":
 				updateUI()

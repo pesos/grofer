@@ -25,13 +25,6 @@ func TickUntilDone(ctx context.Context, refreshRate int64, action func() error) 
 	ticker := time.NewTicker(time.Duration(refreshRate) * time.Millisecond)
 	defer ticker.Stop()
 
-	// Recover from sending data on closed channel
-	defer func() {
-		if recover() != nil {
-			err = nil
-		}
-	}()
-
 	for {
 		// Run action
 		err := action()

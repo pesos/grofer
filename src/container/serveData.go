@@ -29,7 +29,13 @@ func Serve(ctx context.Context, cli *client.Client, all bool, dataChannel chan C
 		if err != nil {
 			return err
 		}
-		dataChannel <- metrics
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case dataChannel <- metrics:
+		}
+
 		return nil
 	})
 }
@@ -41,7 +47,12 @@ func ServeContainer(ctx context.Context, cli *client.Client, cid string, dataCha
 		if err != nil {
 			return err
 		}
-		dataChannel <- metrics
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case dataChannel <- metrics:
+		}
 
 		return nil
 	})
