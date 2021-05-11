@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
@@ -126,6 +127,24 @@ func getPerCPUPercents(data *types.StatsJSON) []string {
 		}
 	}
 	return perCpuPercents
+}
+
+func ContainerWait(ctx context.Context, cli *client.Client, cid, state string) error {
+
+	t := time.NewTicker(100 * time.Millisecond)
+	tick := t.C
+
+	for range tick {
+		data, err := cli.ContainerInspect(ctx, cid)
+		if err != nil {
+			return err
+		}
+		if data.State.Status == state {
+			return nil
+		}
+	}
+
+	return nil
 }
 
 // GetContainerMetrics provides per container metrics in the form of PerContainerMetrics Structs

@@ -100,6 +100,51 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 		}
 	}
 
+	updateDetails := func(data container.ContainerMetrics) {
+		// update cpu %
+		myPage.CPUChart.Percent = int(data.TotalCPU)
+
+		// update mem %
+		myPage.MemChart.Percent = int(data.TotalMem)
+
+		// update Net RX and TX
+		netVals, units := utils.RoundValues(data.TotalNet.Rx, data.TotalNet.Tx, true)
+		myPage.NetChart.Data = netVals
+		myPage.NetChart.Title = " Net I/O " + units
+
+		// update Block IO
+		blkVals, units := utils.RoundValues(float64(data.TotalBlk.Read), float64(data.TotalBlk.Write), true)
+		myPage.BlkChart.Data = blkVals
+		myPage.BlkChart.Title = " Block I/O " + units
+
+		// update container details table
+		containerData := [][]string{}
+		for _, c := range data.PerContainer {
+			netVals, units := utils.RoundValues(c.Net.Rx, c.Net.Tx, true)
+			net := fmt.Sprintf("%.1f%s/%.1f%s", netVals[0], units, netVals[1], units)
+
+			blkVals, units := utils.RoundValues(float64(c.Blk.Read), float64(c.Blk.Write), true)
+			blk := fmt.Sprintf("%.2f%s/%.2f%s", blkVals[0], units, blkVals[1], units)
+			containerData = append(containerData, []string{
+				c.ID,
+				c.Image,
+				c.Name,
+				c.Status,
+				c.State,
+				fmt.Sprintf("%.2f%%", c.Cpu),
+				fmt.Sprintf("%.2f%%", c.Mem),
+				net,
+				blk,
+			})
+		}
+
+		myPage.DetailsTable.Rows = containerData
+
+		if sortIdx != -1 {
+			utils.SortData(myPage.DetailsTable.Rows, sortIdx, sortAsc, "CONTAINER")
+		}
+	}
+
 	updateUI() // Initialize empty UI
 
 	uiEvents := ui.PollEvents()
@@ -227,30 +272,45 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 					case "P":
 						if actionSelected == "pause" {
 							err = cli.ContainerPause(ctx, cid)
+							if err == nil {
+								err = container.ContainerWait(ctx, cli, cid, "paused")
+							}
 						}
 
 					// Unpause Action
 					case "U":
 						if actionSelected == "unpause" {
 							err = cli.ContainerUnpause(ctx, cid)
+							if err == nil {
+								err = container.ContainerWait(ctx, cli, cid, "running")
+							}
 						}
 
 					// Restart Action
 					case "R":
 						if actionSelected == "restart" {
 							err = cli.ContainerRestart(ctx, cid, nil)
+							if err == nil {
+								err = container.ContainerWait(ctx, cli, cid, "running")
+							}
 						}
 
 					// Stop Action
 					case "S":
 						if actionSelected == "stop" {
 							err = cli.ContainerStop(ctx, cid, nil)
+							if err == nil {
+								err = container.ContainerWait(ctx, cli, cid, "exited")
+							}
 						}
 
 					// Kill action
 					case "K":
 						if actionSelected == "kill" {
 							err = cli.ContainerKill(ctx, cid, "")
+							if err == nil {
+								err = container.ContainerWait(ctx, cli, cid, "exited")
+							}
 						}
 
 					// Remove action
@@ -260,8 +320,16 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 								RemoveVolumes: true,
 								Force:         true,
 							})
+							if err == nil {
+								container.ContainerWait(ctx, cli, cid, "removed")
+							}
 						}
 					}
+
+					<-dataChannel
+					data := <-dataChannel
+					updateDetails(data)
+					updateUI()
 
 					if err != nil {
 						myPage.DetailsTable.CursorColor = errorStyle
@@ -283,49 +351,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 
 		case data := <-dataChannel:
 			if runProc {
-				// update cpu %
-				myPage.CPUChart.Percent = int(data.TotalCPU)
-
-				// update mem %
-				myPage.MemChart.Percent = int(data.TotalMem)
-
-				// update Net RX and TX
-				netVals, units := utils.RoundValues(data.TotalNet.Rx, data.TotalNet.Tx, true)
-				myPage.NetChart.Data = netVals
-				myPage.NetChart.Title = " Net I/O " + units
-
-				// update Block IO
-				blkVals, units := utils.RoundValues(float64(data.TotalBlk.Read), float64(data.TotalBlk.Write), true)
-				myPage.BlkChart.Data = blkVals
-				myPage.BlkChart.Title = " Block I/O " + units
-
-				// update container details table
-				containerData := [][]string{}
-				for _, c := range data.PerContainer {
-					netVals, units := utils.RoundValues(c.Net.Rx, c.Net.Tx, true)
-					net := fmt.Sprintf("%.1f%s/%.1f%s", netVals[0], units, netVals[1], units)
-
-					blkVals, units := utils.RoundValues(float64(c.Blk.Read), float64(c.Blk.Write), true)
-					blk := fmt.Sprintf("%.2f%s/%.2f%s", blkVals[0], units, blkVals[1], units)
-					containerData = append(containerData, []string{
-						c.ID,
-						c.Image,
-						c.Name,
-						c.Status,
-						c.State,
-						fmt.Sprintf("%.2f%%", c.Cpu),
-						fmt.Sprintf("%.2f%%", c.Mem),
-						net,
-						blk,
-					})
-				}
-
-				myPage.DetailsTable.Rows = containerData
-
-				if sortIdx != -1 {
-					utils.SortData(myPage.DetailsTable.Rows, sortIdx, sortAsc, "CONTAINER")
-				}
-
+				updateDetails(data)
 				on.Do(updateUI)
 			}
 

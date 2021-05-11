@@ -32,7 +32,7 @@ import (
 
 const (
 	defaultCid                  = ""
-	defaultContainerRefreshRate = 3000
+	defaultContainerRefreshRate = 1000
 )
 
 // containerCmd represents the container command
