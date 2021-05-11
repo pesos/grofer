@@ -19,11 +19,11 @@ package container
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"sync"
 	"time"
 
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	ui "github.com/gizak/termui/v3"
 	h "github.com/pesos/grofer/src/display/misc"
@@ -60,7 +60,7 @@ var header = []string{
 func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan container.ContainerMetrics, refreshRate uint64) error {
 
 	if err := ui.Init(); err != nil {
-		log.Fatalf("failed to initialize termui: %v", err)
+		return err
 	}
 
 	defer ui.Close()
@@ -119,6 +119,8 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 		"U": "unpause",
 		"R": "restart",
 		"S": "stop",
+		"K": "kill",
+		"X": "remove",
 	}
 
 	for {
@@ -200,7 +202,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 						sortIdx = -1
 
 					// Container Selction
-					case "P", "U", "S", "R":
+					case "P", "U", "S", "R", "K", "X":
 						if myPage.DetailsTable.SelectedRow < len(myPage.DetailsTable.Rows) {
 							cid = myPage.DetailsTable.Rows[myPage.DetailsTable.SelectedRow][0]
 
@@ -210,6 +212,9 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 						}
 					}
 				} else {
+
+					var err error = nil
+
 					switch e.ID {
 					case "<Escape>":
 						if actionSelected != "" {
@@ -221,68 +226,51 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 					// Pause Action
 					case "P":
 						if actionSelected == "pause" {
-
-							err := cli.ContainerPause(ctx, cid)
-
-							if err != nil {
-								myPage.DetailsTable.CursorColor = errorStyle
-							} else {
-								myPage.DetailsTable.CursorColor = selectedStyle
-							}
-
-							runProc = true
-							actionSelected = ""
+							err = cli.ContainerPause(ctx, cid)
 						}
 
 					// Unpause Action
 					case "U":
 						if actionSelected == "unpause" {
-
-							err := cli.ContainerUnpause(ctx, cid)
-
-							if err != nil {
-								myPage.DetailsTable.CursorColor = errorStyle
-							} else {
-								myPage.DetailsTable.CursorColor = selectedStyle
-							}
-
-							runProc = true
-							actionSelected = ""
+							err = cli.ContainerUnpause(ctx, cid)
 						}
 
 					// Restart Action
 					case "R":
 						if actionSelected == "restart" {
-
-							err := cli.ContainerRestart(ctx, cid, nil)
-
-							if err != nil {
-								myPage.DetailsTable.CursorColor = errorStyle
-							} else {
-								myPage.DetailsTable.CursorColor = selectedStyle
-							}
-
-							runProc = true
-							actionSelected = ""
+							err = cli.ContainerRestart(ctx, cid, nil)
 						}
 
 					// Stop Action
 					case "S":
 						if actionSelected == "stop" {
-
-							err := cli.ContainerStop(ctx, cid, nil)
-
-							if err != nil {
-								myPage.DetailsTable.CursorColor = errorStyle
-							} else {
-								myPage.DetailsTable.CursorColor = selectedStyle
-							}
-
-							runProc = true
-							actionSelected = ""
+							err = cli.ContainerStop(ctx, cid, nil)
 						}
 
+					// Kill action
+					case "K":
+						if actionSelected == "kill" {
+							err = cli.ContainerKill(ctx, cid, "")
+						}
+
+					// Remove action
+					case "X":
+						if actionSelected == "remove" {
+							err = cli.ContainerRemove(ctx, cid, types.ContainerRemoveOptions{
+								RemoveVolumes: true,
+								Force:         true,
+							})
+						}
 					}
+
+					if err != nil {
+						myPage.DetailsTable.CursorColor = errorStyle
+					} else {
+						myPage.DetailsTable.CursorColor = selectedStyle
+					}
+
+					runProc = true
+					actionSelected = ""
 				}
 
 				ui.Render(myPage.Grid)
