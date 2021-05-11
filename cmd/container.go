@@ -79,10 +79,11 @@ var containerCmd = &cobra.Command{
 				}
 			}
 		} else {
-			dataChannel := make(chan container.ContainerMetrics, 100)
+			dataChannel := make(chan container.ContainerMetrics, 1)
 
+			allFlag, _ := cmd.Flags().GetBool("all")
 			eg.Go(func() error {
-				return container.Serve(ctx, cli, dataChannel, int64(containerRefreshRate))
+				return container.Serve(ctx, cli, allFlag, dataChannel, int64(containerRefreshRate))
 			})
 			eg.Go(func() error {
 				return containerGraph.OverallVisuals(ctx, cli, dataChannel, containerRefreshRate)
@@ -114,5 +115,12 @@ func init() {
 		"r",
 		defaultContainerRefreshRate,
 		"Container information UI refreshes rate in milliseconds greater than 1000",
+	)
+
+	containerCmd.Flags().BoolP(
+		"all",
+		"a",
+		false,
+		"Specify to list all containers or only running containers.",
 	)
 }

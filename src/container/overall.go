@@ -34,11 +34,11 @@ type ContainerMetrics struct {
 }
 
 // GetOverallMetrics provides metrics about all running containers in the form of ContainerMetrics structs
-func GetOverallMetrics(ctx context.Context, cli *client.Client) (ContainerMetrics, error) {
+func GetOverallMetrics(ctx context.Context, cli *client.Client, all bool) (ContainerMetrics, error) {
 	metrics := ContainerMetrics{}
 
 	// Get list of containers
-	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{All: true})
+	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{All: all})
 	if err != nil {
 		return metrics, err
 	}

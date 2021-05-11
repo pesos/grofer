@@ -23,9 +23,9 @@ import (
 )
 
 // Serve serves overall container metrics
-func Serve(ctx context.Context, cli *client.Client, dataChannel chan ContainerMetrics, refreshRate int64) error {
+func Serve(ctx context.Context, cli *client.Client, all bool, dataChannel chan ContainerMetrics, refreshRate int64) error {
 	return utils.TickUntilDone(ctx, refreshRate, func() error {
-		metrics, err := GetOverallMetrics(ctx, cli)
+		metrics, err := GetOverallMetrics(ctx, cli, all)
 		if err != nil {
 			return err
 		}
