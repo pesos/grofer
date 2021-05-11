@@ -26,7 +26,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	ui "github.com/gizak/termui/v3"
-	h "github.com/pesos/grofer/src/display/misc"
+	"github.com/pesos/grofer/src/display/misc"
 	info "github.com/pesos/grofer/src/general"
 
 	"github.com/pesos/grofer/src/container"
@@ -35,6 +35,7 @@ import (
 
 var runProc = true
 var helpVisible = false
+var errorVisible = false
 
 var sortIdx = -1
 var sortAsc = false
@@ -67,8 +68,10 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 
 	var on sync.Once
 
-	var help *h.HelpMenu = h.NewHelpMenu()
-	h.SelectHelpMenu("cont")
+	// create widgets for help and error
+	var help *misc.HelpMenu = misc.NewHelpMenu()
+	misc.SelectHelpMenu("cont")
+	var errorBox *misc.ErrorBox = misc.NewErrorBox()
 
 	// Create new page
 	myPage := NewOverallContainerPage()
@@ -92,9 +95,13 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 		myPage.Grid.SetRect(0, 0, w, h)
 
 		help.Resize(w, h)
+		errorBox.Resize(w, h)
 		if helpVisible {
 			ui.Clear()
 			ui.Render(help)
+		} else if errorVisible {
+			ui.Clear()
+			ui.Render(errorBox)
 		} else {
 			ui.Render(myPage.Grid)
 		}
@@ -155,7 +162,6 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 
 	selectedStyle := ui.ColorCyan
 	actionStyle := ui.ColorMagenta
-	errorStyle := ui.ColorRed
 
 	cid := ""
 	actionSelected := ""
@@ -194,6 +200,15 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 				case "k", "<Up>":
 					help.List.ScrollUp()
 					ui.Render(help)
+				}
+			} else if errorVisible {
+				switch e.ID {
+				case "<Escape>":
+					errorVisible = false
+					updateUI()
+				case "?":
+					helpVisible = true
+					updateUI()
 				}
 			} else {
 				if actionSelected == "" {
@@ -274,6 +289,8 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 							err = cli.ContainerPause(ctx, cid)
 							if err == nil {
 								err = container.ContainerWait(ctx, cli, cid, "paused")
+							} else {
+								misc.SetErrorString(fmt.Sprintf("Error pausing container with ID: %s", cid))
 							}
 						}
 
@@ -283,6 +300,8 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 							err = cli.ContainerUnpause(ctx, cid)
 							if err == nil {
 								err = container.ContainerWait(ctx, cli, cid, "running")
+							} else {
+								misc.SetErrorString(fmt.Sprintf("Error un-pausing container with ID: %s", cid))
 							}
 						}
 
@@ -292,6 +311,8 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 							err = cli.ContainerRestart(ctx, cid, nil)
 							if err == nil {
 								err = container.ContainerWait(ctx, cli, cid, "running")
+							} else {
+								misc.SetErrorString(fmt.Sprintf("Error restarting container with ID: %s", cid))
 							}
 						}
 
@@ -301,6 +322,8 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 							err = cli.ContainerStop(ctx, cid, nil)
 							if err == nil {
 								err = container.ContainerWait(ctx, cli, cid, "exited")
+							} else {
+								misc.SetErrorString(fmt.Sprintf("Error stopping container with ID: %s", cid))
 							}
 						}
 
@@ -310,6 +333,8 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 							err = cli.ContainerKill(ctx, cid, "")
 							if err == nil {
 								err = container.ContainerWait(ctx, cli, cid, "exited")
+							} else {
+								misc.SetErrorString(fmt.Sprintf("Error killing container with ID: %s", cid))
 							}
 						}
 
@@ -322,6 +347,8 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 							})
 							if err == nil {
 								container.ContainerWait(ctx, cli, cid, "removed")
+							} else {
+								misc.SetErrorString(fmt.Sprintf("Error removing container with ID: %s", cid))
 							}
 						}
 					}
@@ -332,16 +359,18 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 					updateUI()
 
 					if err != nil {
-						myPage.DetailsTable.CursorColor = errorStyle
+						errorVisible = true
+						updateUI()
 					} else {
-						myPage.DetailsTable.CursorColor = selectedStyle
+						errorVisible = false
 					}
 
 					runProc = true
 					actionSelected = ""
 				}
-
-				ui.Render(myPage.Grid)
+				if !errorVisible {
+					ui.Render(myPage.Grid)
+				}
 				if previousKey == "g" {
 					previousKey = ""
 				} else {
@@ -356,7 +385,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 			}
 
 		case <-tick:
-			if !helpVisible {
+			if !helpVisible && !errorVisible {
 				ui.Render(myPage.Grid)
 			}
 		}
