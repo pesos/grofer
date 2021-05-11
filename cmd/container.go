@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/docker/docker/client"
 	containerGraph "github.com/pesos/grofer/src/display/container"
 	"github.com/pesos/grofer/src/utils"
 
@@ -31,7 +32,7 @@ import (
 
 const (
 	defaultCid                  = ""
-	defaultContainerRefreshRate = 3000
+	defaultContainerRefreshRate = 1000
 )
 
 // containerCmd represents the container command
@@ -52,13 +53,18 @@ var containerCmd = &cobra.Command{
 			return fmt.Errorf("invalid refresh rate: minimum refresh rate is 1000(ms)")
 		}
 
+		cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+		if err != nil {
+			return err
+		}
+
+		eg, ctx := errgroup.WithContext(context.Background())
+
 		if cid != defaultCid {
 			dataChannel := make(chan container.PerContainerMetrics, 1)
 
-			eg, ctx := errgroup.WithContext(context.Background())
-
 			eg.Go(func() error {
-				return container.ServeContainer(ctx, cid, dataChannel, int64(containerRefreshRate))
+				return container.ServeContainer(ctx, cli, cid, dataChannel, int64(containerRefreshRate))
 			})
 			eg.Go(func() error {
 				return containerGraph.ContainerVisuals(ctx, dataChannel, containerRefreshRate)
@@ -73,15 +79,14 @@ var containerCmd = &cobra.Command{
 				}
 			}
 		} else {
-			dataChannel := make(chan container.ContainerMetrics, 1)
+			dataChannel := make(chan container.ContainerMetrics)
 
-			eg, ctx := errgroup.WithContext(context.Background())
-
+			allFlag, _ := cmd.Flags().GetBool("all")
 			eg.Go(func() error {
-				return container.Serve(ctx, dataChannel, int64(containerRefreshRate))
+				return container.Serve(ctx, cli, allFlag, dataChannel, int64(containerRefreshRate))
 			})
 			eg.Go(func() error {
-				return containerGraph.OverallVisuals(ctx, dataChannel, containerRefreshRate)
+				return containerGraph.OverallVisuals(ctx, cli, allFlag, dataChannel, containerRefreshRate)
 			})
 
 			if err := eg.Wait(); err != nil {
@@ -110,5 +115,12 @@ func init() {
 		"r",
 		defaultContainerRefreshRate,
 		"Container information UI refreshes rate in milliseconds greater than 1000",
+	)
+
+	containerCmd.Flags().BoolP(
+		"all",
+		"a",
+		false,
+		"Specify to list all containers or only running containers.",
 	)
 }

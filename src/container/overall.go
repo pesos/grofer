@@ -34,17 +34,11 @@ type ContainerMetrics struct {
 }
 
 // GetOverallMetrics provides metrics about all running containers in the form of ContainerMetrics structs
-func GetOverallMetrics() (ContainerMetrics, error) {
+func GetOverallMetrics(ctx context.Context, cli *client.Client, all bool) (ContainerMetrics, error) {
 	metrics := ContainerMetrics{}
 
-	ctx := context.Background()
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		return metrics, err
-	}
-
 	// Get list of containers
-	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
+	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{All: all})
 	if err != nil {
 		return metrics, err
 	}
@@ -53,7 +47,7 @@ func GetOverallMetrics() (ContainerMetrics, error) {
 
 	// get per container metrics
 	for _, container := range containers {
-		go getMetrics(cli, ctx, container, metrcisChan)
+		go getMetrics(ctx, cli, container, metrcisChan)
 	}
 
 	var totalCPU, totalMem float64
@@ -85,7 +79,7 @@ func GetOverallMetrics() (ContainerMetrics, error) {
 	return metrics, nil
 }
 
-func getMetrics(cli *client.Client, ctx context.Context, c types.Container, ch chan PerContainerMetrics) {
+func getMetrics(ctx context.Context, cli *client.Client, c types.Container, ch chan PerContainerMetrics) {
 
 	// Send back metrics
 	metrics := PerContainerMetrics{}
@@ -97,17 +91,22 @@ func getMetrics(cli *client.Client, ctx context.Context, c types.Container, ch c
 	if err != nil {
 		return
 	}
+
 	data := types.StatsJSON{}
 	err = json.NewDecoder(stats.Body).Decode(&data)
 	if err != nil {
 		return
 	}
+	stats.Body.Close()
 
 	// Calculate CPU percent
 	cpuPercent := getCPUPercent(&data)
 
 	// Calculate Memory
-	memPercent := float64(data.MemoryStats.Usage) / float64(data.MemoryStats.Limit) * 100
+	memPercent := 0.0
+	if data.MemoryStats.Limit > 0 {
+		memPercent = float64(data.MemoryStats.Usage) / float64(data.MemoryStats.Limit) * 100
+	}
 
 	// Calculate blk IO
 	var blkRead, blkWrite uint64

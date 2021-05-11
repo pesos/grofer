@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
@@ -128,16 +129,29 @@ func getPerCPUPercents(data *types.StatsJSON) []string {
 	return perCpuPercents
 }
 
+// ContainerWait waits for a container of given container id to reach a specified state. If an error is encountered during th wait, it is returned.
+func ContainerWait(ctx context.Context, cli *client.Client, cid, state string) error {
+
+	t := time.NewTicker(100 * time.Millisecond)
+	tick := t.C
+
+	for range tick {
+		data, err := cli.ContainerInspect(ctx, cid)
+		if err != nil {
+			return err
+		}
+		if data.State.Status == state {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 // GetContainerMetrics provides per container metrics in the form of PerContainerMetrics Structs
-func GetContainerMetrics(cid string) (PerContainerMetrics, error) {
+func GetContainerMetrics(ctx context.Context, cli *client.Client, cid string) (PerContainerMetrics, error) {
 
 	metrics := PerContainerMetrics{}
-
-	ctx := context.Background()
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		return metrics, err
-	}
 
 	// Get container using a filter
 	args := filters.NewArgs(
@@ -167,12 +181,17 @@ func GetContainerMetrics(cid string) (PerContainerMetrics, error) {
 	}
 
 	// Get Container Stats
-	stats, _ := cli.ContainerStats(ctx, cid, false)
+	stats, err := cli.ContainerStats(ctx, cid, false)
+	if err != nil {
+		return metrics, err
+	}
+
 	data := types.StatsJSON{}
 	err = json.NewDecoder(stats.Body).Decode(&data)
 	if err != nil {
 		return metrics, err
 	}
+	stats.Body.Close()
 
 	// Calculate CPU percent
 	cpuPercent := getCPUPercent(&data)

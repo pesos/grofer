@@ -18,30 +18,41 @@ package container
 import (
 	"context"
 
+	"github.com/docker/docker/client"
 	"github.com/pesos/grofer/src/utils"
 )
 
 // Serve serves overall container metrics
-func Serve(ctx context.Context, dataChannel chan ContainerMetrics, refreshRate int64) error {
+func Serve(ctx context.Context, cli *client.Client, all bool, dataChannel chan ContainerMetrics, refreshRate int64) error {
 	return utils.TickUntilDone(ctx, refreshRate, func() error {
-		metrics, err := GetOverallMetrics()
+		metrics, err := GetOverallMetrics(ctx, cli, all)
 		if err != nil {
 			return err
 		}
-		dataChannel <- metrics
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case dataChannel <- metrics:
+		}
 
 		return nil
 	})
 }
 
 // ServeContainer serves data on a per container basis
-func ServeContainer(ctx context.Context, cid string, dataChannel chan PerContainerMetrics, refreshRate int64) error {
+func ServeContainer(ctx context.Context, cli *client.Client, cid string, dataChannel chan PerContainerMetrics, refreshRate int64) error {
 	return utils.TickUntilDone(ctx, refreshRate, func() error {
-		metrics, err := GetContainerMetrics(cid)
+		metrics, err := GetContainerMetrics(ctx, cli, cid)
 		if err != nil {
 			return err
 		}
-		dataChannel <- metrics
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case dataChannel <- metrics:
+		}
 
 		return nil
 	})

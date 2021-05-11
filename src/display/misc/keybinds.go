@@ -14,9 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package help
+package misc
 
-var PROC_KEYBINDS = []string{
+// keybindings for:
+//	- help page
+//	- error page
+
+var procKeybindings = []string{
 	"Quit: q or <C-c>",
 	"",
 	"[Process navigation](fg:white)",
@@ -38,9 +42,11 @@ var PROC_KEYBINDS = []string{
 	"[Process actions](fg:white)",
 	"[Requires confirmation, press key again to confirm](fg:white)",
 	"  - K and <F9>: Kill process",
+	"",
+	"[To close this prompt: <Esc>](fg:white)",
 }
 
-var CONT_KEYBINDS = []string{
+var containerKeybindings = []string{
 	"Quit: q or <C-c>",
 	"",
 	"[Container navigation](fg:white)",
@@ -58,12 +64,19 @@ var CONT_KEYBINDS = []string{
 	"  - Use <F-column number> to sort descending.",
 	"  - Eg: 1 to sort ascedning on 1st Col and F1 for descending",
 	"  - 0: Disable Sort",
-	// "",
-	// "[Container actions](fg:white)",
-	// "  - K and <F9>: Kill Container",
+	"",
+	"[Container actions](fg:white)",
+	"  - P: pause a container",
+	"  - U: unpause a container",
+	"  - R: restart a container",
+	"  - S: stop a container",
+	"  - K: kill a container",
+	"  - X: remove a container (removes links & volumes)",
+	"",
+	"[To close this prompt: <Esc>](fg:white)",
 }
 
-var CONT_CID_KEYBINDS = []string{
+var perContainerKeyBindings = []string{
 	"Quit: q or <C-c>",
 	"",
 	"[Table Selection](fg:white)",
@@ -82,12 +95,23 @@ var CONT_CID_KEYBINDS = []string{
 	"  - <C-f>: full page down",
 	"  - gg and <Home>: jump to top",
 	"  - G and <End>: jump to bottom",
+	"",
+	"[To close this prompt: <Esc>](fg:white)",
 }
 
-var MAIN_KEYBINDS = []string{
+var mainKeybindings = []string{
 	"Quit: q or <C-c>",
+	"",
+	"[To close this prompt: <Esc>](fg:white)",
 }
 
-var PROC_PID_KEYBINDS = []string{
+var perProcKeyBindings = []string{
 	"Quit: q or <C-c>",
+	"",
+	"[To close this prompt: <Esc>](fg:white)",
+}
+
+var errorKeybindings = []string{
+	"",
+	"[To close this prompt: <Esc>](fg:white)",
 }
