@@ -58,7 +58,7 @@ var header = []string{
 }
 
 // OverallVisuals provides the UI for overall container metrics
-func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan container.ContainerMetrics, refreshRate uint64) error {
+func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChannel chan container.ContainerMetrics, refreshRate uint64) error {
 
 	if err := ui.Init(); err != nil {
 		return err
@@ -358,7 +358,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 
 					if actionSet {
 						<-dataChannel
-						data, _ := container.GetOverallMetrics(ctx, cli, true)
+						data, _ := container.GetOverallMetrics(ctx, cli, all)
 						updateDetails(data)
 						updateUI()
 

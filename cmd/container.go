@@ -86,7 +86,7 @@ var containerCmd = &cobra.Command{
 				return container.Serve(ctx, cli, allFlag, dataChannel, int64(containerRefreshRate))
 			})
 			eg.Go(func() error {
-				return containerGraph.OverallVisuals(ctx, cli, dataChannel, containerRefreshRate)
+				return containerGraph.OverallVisuals(ctx, cli, allFlag, dataChannel, containerRefreshRate)
 			})
 
 			if err := eg.Wait(); err != nil {
