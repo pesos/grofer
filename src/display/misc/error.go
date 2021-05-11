@@ -47,7 +47,7 @@ func (errBox *ErrorBox) Resize(termWidth, termHeight int) {
 			textWidth = len(line) + 2
 		}
 	}
-	textHeight := len(keybindings) + 3
+	textHeight := len(errorKeybindings) + 5
 	x := (termWidth - textWidth) / 2
 	y := (termHeight - textHeight) / 2
 	if x < 0 {

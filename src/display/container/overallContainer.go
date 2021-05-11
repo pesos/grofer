@@ -365,6 +365,8 @@ func OverallVisuals(ctx context.Context, cli *client.Client, dataChannel chan co
 						errorVisible = false
 					}
 
+					myPage.DetailsTable.CursorColor = selectedStyle
+
 					runProc = true
 					actionSelected = ""
 				}

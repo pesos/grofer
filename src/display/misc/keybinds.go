@@ -42,6 +42,7 @@ var procKeybindings = []string{
 	"[Process actions](fg:white)",
 	"[Requires confirmation, press key again to confirm](fg:white)",
 	"  - K and <F9>: Kill process",
+	"To close this prompt: <Esc>",
 }
 
 var containerKeybindings = []string{
@@ -66,6 +67,7 @@ var containerKeybindings = []string{
 	"[Container actions](fg:white)",
 	"  - P: Pause a Container",
 	"  - U: Unpause a Container",
+	"To close this prompt: <Esc>",
 }
 
 var perContainerKeyBindings = []string{
@@ -87,16 +89,20 @@ var perContainerKeyBindings = []string{
 	"  - <C-f>: full page down",
 	"  - gg and <Home>: jump to top",
 	"  - G and <End>: jump to bottom",
+	"To close this prompt: <Esc>",
 }
 
 var mainKeybindings = []string{
 	"Quit: q or <C-c>",
+	"To close this prompt: <Esc>",
 }
 
 var perProcKeyBindings = []string{
 	"Quit: q or <C-c>",
+	"To close this prompt: <Esc>",
 }
 
 var errorKeybindings = []string{
 	"Quit: q or <C-c>",
+	"To close this prompt: <Esc>",
 }
