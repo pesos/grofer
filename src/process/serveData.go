@@ -26,7 +26,12 @@ import (
 func Serve(process *Process, dataChannel chan *Process, ctx context.Context, refreshRate int64) error {
 	return utils.TickUntilDone(ctx, refreshRate, func() error {
 		process.UpdateProcInfo()
-		dataChannel <- process
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case dataChannel <- process:
+		}
 
 		return nil
 	})
@@ -35,10 +40,16 @@ func Serve(process *Process, dataChannel chan *Process, ctx context.Context, ref
 func ServeProcs(dataChannel chan []*proc.Process, ctx context.Context, refreshRate int64) error {
 	return utils.TickUntilDone(ctx, refreshRate, func() error {
 		procs, err := proc.Processes()
-		if err == nil {
-			dataChannel <- procs
+		if err != nil {
+			return err
 		}
 
-		return nil
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case dataChannel <- procs:
+		}
+
+		return err
 	})
 }
