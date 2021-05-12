@@ -7,10 +7,8 @@ A clean and modern system and resource monitor written purely in golang using [t
 
 Currently compatible with Linux only.
 
-Currently compatible with Linux only.
-
 Installation
-------------
+============
 
 Using go get:
 
@@ -21,7 +19,7 @@ go get -u github.com/pesos/grofer
 As an executable:
 
 ```
-curl -sSL https://github.com/pesos/grofer/releases/download/<version tag>/grofer --output grofer
+curl -sSL https://github.com/pesos/grofer/releases/download/<version tag>/grofer_<architecture> --output grofer
 chmod +x grofer
 ```
 `architecture`: underlying system architecture on which grofer will be run
@@ -29,6 +27,12 @@ chmod +x grofer
 - grofer_amd64
 - grofer_arm
 - grofer_arm64
+
+`architecture`: underlying system architecture on which grofer will be run  
+ - grofer_386  
+ - grofer_amd64  
+ - grofer_arm  
+ - grofer_arm64
 
 For system wide usage, install `grofer` to a location on `$PATH`, e.g. `/usr/local/bin`
 
@@ -46,53 +50,8 @@ go build grofer.go
 
 ---
 
-Shell Completions
------------------
-
-`grofer` includes a subcommand to generate shell completion scripts to get autocompletion for subcommands and flags
-
-### Bash
-
-To get completions for current session only,
-
-```sh
-source <(grofer completion bash)
-```
-
-To load completions for each session, the generated script must be moved to the completions directory. Take a look at the third question [here](https://github.com/scop/bash-completion/blob/master/README.md#faq) to find out the right place to put the script
-
-### Zsh
-
-If shell completion is not already enabled in your environment you will need to enable it. You can execute the following once:
-
-```sh
-echo "autoload -U compinit; compinit" >> ~/.zshrc
-```
-
-To load completions for each session, the generated script must be placed in a directory in your [fpath](http://zsh.sourceforge.net/Doc/Release/Functions.html). For a quick-and-dirty solution, run once:
-
-```sh
-grofer completion zsh > "${fpath[1]}/_grofer"
-```
-
-You will need to start a new shell for this setup to take effect.
-
-### Fish
-
-To get completions for current session only,
-
-```sh
-grofer completion fish | source
-```
-
-To load completions for each session, the generated script must be moved to the completions directory
-
-```sh
-grofer completion fish > ~/.config/fish/completions/grofer.fish
-```
-
 Usage
------
+=====
 
 ```
 grofer is a system and resource monitor written in golang.
@@ -106,6 +65,7 @@ Usage:
 Available Commands:
   about       about is a command that gives information about the project in a cute way
   completion  Generate completion script
+  container   container command is used to get information related to docker containers
   export      Used to export profiled data.
   help        Help about any command
   proc        proc command is used to get per-process information
@@ -115,21 +75,91 @@ Flags:
   -c, --cpuinfo         Info about the CPU Load over all CPUs
   -h, --help            help for grofer
   -r, --refresh uint    Overall stats UI refreshes rate in milliseconds greater than 1000 (default 1000)
-  -t, --toggle          Help message for toggle
 
 Use "grofer [command] --help" for more information about a command.
 
 ```
 
----
+Display Overall Metrics
+-----------------------
+
+```sh
+grofer [FLAGS]
+```
+
+The command displays the default root page which provides verall CPU, Memory, Network and Disk Metrics.
+
+Optional flags:
+
+-	`-c | --cpuinfo`: Enabling this flag provides detailed information about CPU loads.
+
+-	`-h | --help`: Provides help information about grofer.
+
+-	`-r | --refresh UINT`: Sets the UI refresh rate in milliseconds. The number (UINT) provided must be greater than 1000
+
+Display Process Metrics
+-----------------------
+
+```sh
+grofer proc [FLAGS]
+```
+
+This command displays a table with information about all running processes. Additionally, it can be used to kill a running process too. Key-bindings for navigation and available process actions can be found by pressing `?` in the UI.
+
+Optional flags:
+
+-	`-h | --help`: Provides help details for `grofer proc`.
+
+-	`-p | --pid INT32`: Provides in depth metrics about process identified by given PID.
+
+-	`-r | --refresh UINT`: Sets the UI refresh rate in milliseconds. Much like the root command, this value must be greater than 1000.
+
+Display Container Metrics
+-------------------------
+
+```sh
+grofer container [FLAGS]
+```
+
+This command displays information about all existing containers. Key-bindings for navigation and available container actions can be found by pressing `?` in the UI.
+
+Optional flags:
+
+-	`-h | --help`: Provides help details for `grofer container`.
+
+-	`-c | --container-id STRING`: Provides in depth metrics about the container identified by given ID.
+
+-	`-r | --refresh UINT`: Sets the UI refresh rate in milliseconds. Much like the root command, this value must be greater than 1000.
+
+Export Metrics
+--------------
+
+```sh
+grofer export [FLAGS]
+```
+
+This command exports collected information to a specifc file format.
+
+Optional flags:
+
+-	`-h | --help`: Provides help details for `grofer export`.
+
+-	`-i | --iter UINT32`: Set the number of iterations to fetch data.
+
+-	`-p | --pid INT32`: Specify the PID of the process to profile. If not set, all processes are are measured.
+
+-	`-t | --type STRING`: Specify the export file format. Defaults to LJSON.
+
+-	`-f | --filename STRING`: Specify the file to store the exported data in. Defaults to `grofer_profile`.
+
+-	`-r | --refresh UINT`: Specify frequency of data fetch in milliseconds. default value taken as 1000.
 
 Examples
---------
+========
 
-`grofer [-r refreshRate] [-c]`
-------------------------------
-
-This gives overall utilization stats refreshed every `refreshRate` milliseconds. Default and minimum value of the refresh rate is `1000 ms`.
+```
+grofer
+```
 
 ![grofer](images/README/grofer.png)
 
@@ -138,6 +168,12 @@ Information provided:
 - Memory (RAM) usage  
 - Network usage  
 - Disk storage
+
+---
+
+```
+grofer --cpuinfo
+```
 
 The `-c, --cpuinfo` flag displays finer details about the CPU load such as percentage of the time spent servicing software interrupts, hardware interrupts, etc.
 
@@ -150,17 +186,14 @@ Information provided:
 - Idle : % of time CPU was idle.  
 - Nice : % of time spent by CPU executing user level processes with a nice priority.  
 - Iowait: % of time spent by CPU waiting for an outstanding disk I/O.  
-- Soft : % of time spent by the CPU servicing software interrupts.
--	Steal : % of time spent in involuntary waiting by logical CPUs.  
+- Soft : % of time spent by the CPU servicing software interrupts.  
+- Steal : % of time spent in involuntary waiting by logical CPUs.
 
 ---
 
-`grofer proc [-p PID] [-r refreshRate]`
----------------------------------------
-
-If the `-r` flag is specified then the UI will refresh and display new information every `refreshRate` milliseconds. The minimum and default value for `refreshRate` is `1000 ms`.
-
-### `grofer proc`
+```
+grofer proc
+```
 
 This lists all running processes and relevant information.
 
@@ -168,7 +201,9 @@ This lists all running processes and relevant information.
 
 ---
 
-### `grofer proc -p PID`
+```
+grofer proc -p PID
+```
 
 This gives information specific to a process, specified by a valid PID.
 
@@ -188,20 +223,98 @@ Information provided:
 
 -	Memory usage (RSS, Data, Stack, Swap)
 
-### `grofer export [-i Iterations] [-f File] [-r refreshRate] [-t type] [-p PID]`
+---
 
-This allows exporting of profiled data either of system usage or data particular to that of a process. Data format is JSON by default, but XML support exists too!
+```
+grofer container
+```
 
-The flags are explained as follows:
+This provides overall container metrics.
 
--	`-i, --iter`: Number of iterations to profile for.
+![grofer-container](Images/../images/README/grofer-container.png)
 
--	`-f, --filename`: Name of output file (exported data).
+---
 
--	`-r, --refresh`: Refresh rate, time interval between iterations (in milliseconds).
+```
+grofer container -c CID
+```
 
--	`-t, --type`: Specify the output data format (JSON by default). Types supported are:
+This provides per container metrics.
 
-	-	JSON: Specifically, LJSON, where each line consists of one JSON object which contain nested fields and values.
+![grofer-container-cid](Images/../images/README/grofer-container-cid.png)
 
--	`-p, --pid`: Specify PID of process to profile.
+Information provided:
+
+-	CPU and Per CPU utilization %
+
+-	Memory utilization %
+
+-	Container processes
+
+-	Volume Mounts
+
+-	Attached Networks
+
+-	Block and Network I/O
+
+-	Metadata (Image, Name, ID, Status, State, PID)
+
+---
+
+```
+grofer export -i 1 -p 1
+```
+
+This allows exporting of profiled data either of system usage or data particular to that of a process. Data format is JSON by default.
+
+![grofer-export](images/README/grofer-export.png)
+
+---
+
+Shell Completions
+=================
+
+`grofer` includes a subcommand to generate shell completion scripts to get autocompletion for subcommands and flags
+
+Bash
+----
+
+To get completions for current session only,
+
+```sh
+source <(grofer completion bash)
+```
+
+To load completions for each session, the generated script must be moved to the completions directory. Take a look at the third question [here](https://github.com/scop/bash-completion/blob/master/README.md#faq) to find out the right place to put the script
+
+Zsh
+---
+
+If shell completion is not already enabled in your environment you will need to enable it. You can execute the following once:
+
+```sh
+echo "autoload -U compinit; compinit" >> ~/.zshrc
+```
+
+To load completions for each session, the generated script must be placed in a directory in your [fpath](http://zsh.sourceforge.net/Doc/Release/Functions.html). For a quick-and-dirty solution, run once:
+
+```sh
+grofer completion zsh > "${fpath[1]}/_grofer"
+```
+
+You will need to start a new shell for this setup to take effect.
+
+Fish
+----
+
+To get completions for current session only,
+
+```sh
+grofer completion fish | source
+```
+
+To load completions for each session, the generated script must be moved to the completions directory
+
+```sh
+grofer completion fish > ~/.config/fish/completions/grofer.fish
+```

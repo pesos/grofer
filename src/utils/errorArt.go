@@ -19,11 +19,21 @@ package utils
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 )
 
-//ErrorMsg displays cute error ASCI Art for PID Errors
-func ErrorMsg() {
+var errorId = "PID"
+
+// ErrorMsg displays cute error ASCI Art for PID Errors
+func ErrorMsg(id string) {
+	switch id {
+	case "cid":
+		errorId = "CID"
+	case "cname":
+		errorId = "CNAME"
+
+	}
 	rand.Seed(time.Now().UnixNano())
 	num := rand.Intn(7) //gives a pseudorandom number in the range [0, n) (n not included).
 	switch num {
@@ -46,7 +56,7 @@ func ErrorMsg() {
 
 func errorDoggo() {
 	dog := `
-	pid no exist, done doggo a sad
+	ID no exist, done doggo a sad
 		\
 		 \
 		/^-----^\
@@ -58,26 +68,26 @@ func errorDoggo() {
 		  |     \     )
 		  || (___\====
 	`
-	fmt.Println(dog)
+	fmt.Println(strings.ReplaceAll(dog, "ID", errorId))
 }
 
 func errorOwl() {
 	goobes := `
 
    /\_/\  The council of wise owls are confused!  /\_/\
-  ((@v@))      Please provide a valid PID!       ((@v@))
+  ((@v@))      Please provide a valid ID!       ((@v@))
  ():::::()                                      ():::::()
    VV-VV          /\_/\         /\_/\             VV-VV
                  ((@v@))       ((@v@))
                 ():::::()     ():::::()
                   VV-VV         VV-VV
   `
-	fmt.Println(goobes)
+	fmt.Println(strings.ReplaceAll(goobes, "ID", errorId))
 }
 
 func errorCatto() {
 	cat := `
-Catto says PID is invalid, plis give valid PID
+Catto says ID is invalid, plis give valid ID
     \
      \
   　██░▀██████████████▀░██
@@ -98,7 +108,7 @@ Catto says PID is invalid, plis give valid PID
 　　█▒░▀▀▀░░║░░║░░║░░█████
 　　██▄▄▄▄▀▀┴┴╚╧╧╝╧╧╝┴┴███
 　　██████████████████████`
-	fmt.Println(cat)
+	fmt.Println(strings.ReplaceAll(cat, "ID", errorId))
 }
 
 func errorDolphy() {
@@ -111,13 +121,13 @@ func errorDolphy() {
             /. . . . '~~             ,-'
            /. . . . .             ,-'
           ; . . . .  - .        ,'
-         : . . . .      \_     /       PID did Dolphy a daze,
-        . . . . .          \-.:        Please enter valid PID
+         : . . . .      \_     /       ID did Dolphy a daze,
+        . . . . .          \-.:        Please enter valid ID
        . . . ./  - .          )
       .  . . |  _____..---.._/ _____________
 ~---~~~~----~~~~             ~~
 `
-	fmt.Println(dolphy)
+	fmt.Println(strings.ReplaceAll(dolphy, "ID", errorId))
 }
 
 func errorBunny() {
@@ -136,14 +146,14 @@ func errorBunny() {
      /| ;-"~ _  l
     / l/ ,-"~    \
     \//\/      .- \
-     Y        /    Y     Bunny couldn't recognise that PID.
+     Y        /    Y     Bunny couldn't recognise that ID.
      l       I     !      Done bunny a confuse.
-     ]\      _\    /"\     Please give bunny a valid PID.
+     ]\      _\    /"\     Please give bunny a valid ID.
     (" ~----( ~   Y.  )
 ~~~~~~~~~~~~~~~~~~~~~~~~~
   `
 
-	fmt.Println(bunny)
+	fmt.Println(strings.ReplaceAll(bunny, "ID", errorId))
 }
 
 func errorBeaver() {
@@ -159,10 +169,10 @@ func errorBeaver() {
         /o)  (o/\ \_
         \_____/ /
           \____/
-  Whoooopsssss, invalid PID. 
-  Please enter a valid PID.
+  Whoooopsssss, invalid ID. 
+  Please enter a valid ID.
   `
-	fmt.Println(beaver)
+	fmt.Println(strings.ReplaceAll(beaver, "ID", errorId))
 }
 
 func errorElephant() {
@@ -177,7 +187,7 @@ func errorElephant() {
      |    |       |    |/ '._.'
      )   @).____\|  @ |
  .  /    /       (    |           Pawoo. Pawoo. Pawoo!
-\|, '_:::\  . ..  '_:::\ ..\).    Plz give Elephant a valid PID.
+\|, '_:::\  . ..  '_:::\ ..\).    Plz give Elephant a valid ID.
   `
-	fmt.Println(elephant)
+	fmt.Println(strings.ReplaceAll(elephant, "ID", errorId))
 }

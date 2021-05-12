@@ -25,34 +25,63 @@ import (
 
 func TestRoundValues(t *testing.T) {
 	tests := []struct {
+		expectedUnit        string
 		input               []float64
 		expectedRoundedVals []float64
-		expectedUnit        string
+		inBytes             bool
 	}{
 		{
-			[]float64{999, 895},
-			[]float64{999, 895},
-			" ",
+			expectedUnit:        " ",
+			input:               []float64{999, 895},
+			expectedRoundedVals: []float64{999, 895},
+			inBytes:             false,
 		},
 		{
-			[]float64{100000, 1000},
-			[]float64{100, 1},
-			" per thousand ",
+			expectedUnit:        " per thousand ",
+			input:               []float64{100000, 1000},
+			expectedRoundedVals: []float64{100, 1},
+			inBytes:             false,
 		},
 		{
-			[]float64{10000000, 1000},
-			[]float64{10, 0},
-			" per million ",
+			expectedUnit:        " per million ",
+			input:               []float64{10000000, 1000},
+			expectedRoundedVals: []float64{10, 0},
+			inBytes:             false,
 		},
 		{
-			[]float64{100000000, 100000000000},
-			[]float64{0.1, 100},
-			" per trillion ",
+			expectedUnit:        " per trillion ",
+			input:               []float64{100000000, 100000000000},
+			expectedRoundedVals: []float64{0.1, 100},
+			inBytes:             false,
+		},
+		{
+			expectedUnit:        " B ",
+			input:               []float64{999, 895},
+			expectedRoundedVals: []float64{999, 895},
+			inBytes:             true,
+		},
+		{
+			expectedUnit:        " kB ",
+			input:               []float64{100000, 1000},
+			expectedRoundedVals: []float64{100, 1},
+			inBytes:             true,
+		},
+		{
+			expectedUnit:        " mB ",
+			input:               []float64{10000000, 1000},
+			expectedRoundedVals: []float64{10, 0},
+			inBytes:             true,
+		},
+		{
+			expectedUnit:        " gB ",
+			input:               []float64{100000000, 100000000000},
+			expectedRoundedVals: []float64{0.1, 100},
+			inBytes:             true,
 		},
 	}
 
 	for _, test := range tests {
-		testRoundedVals, testUnit := utils.RoundValues(test.input[0], test.input[1])
+		testRoundedVals, testUnit := utils.RoundValues(test.input[0], test.input[1], test.inBytes)
 		utils.Equals(t, test.expectedRoundedVals, testRoundedVals)
 		utils.Equals(t, test.expectedUnit, testUnit)
 	}
@@ -90,13 +119,13 @@ func TestGetDateFromUnix(t *testing.T) {
 	date4 := t4.Format(time.RFC822)
 
 	tests := []struct {
-		inputVal    int64
 		expectedVal string
+		inputVal    int64
 	}{
-		{10000000, date1},
-		{0, date2},
-		{1596652055, date3},
-		{9999999999, date4},
+		{date1, 10000000000},
+		{date2, 0},
+		{date3, 1596652055000},
+		{date4, 9999999999000},
 	}
 
 	for _, test := range tests {

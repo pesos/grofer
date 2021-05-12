@@ -22,83 +22,83 @@ import (
 
 	rw "github.com/mattn/go-runewidth"
 
-	. "github.com/gizak/termui/v3"
+	ui "github.com/gizak/termui/v3"
 )
 
 type BarChart struct {
-	Block
-	BarColors    []Color
-	LabelStyles  []Style
-	NumStyles    []Style // only Fg and Modifier are used
 	NumFormatter func(float64) string
-	Data         []float64
 	Labels       []string
-	BarWidth     int
-	BarGap       int
-	MaxVal       float64
+	BarColors    []ui.Color
+	LabelStyles  []ui.Style
+	NumStyles    []ui.Style
+	Data         []float64
+	ui.Block
+	BarWidth int
+	BarGap   int
+	MaxVal   float64
 }
 
 func NewBarChart() *BarChart {
 	return &BarChart{
-		Block:        *NewBlock(),
-		BarColors:    Theme.BarChart.Bars,
-		NumStyles:    Theme.BarChart.Nums,
-		LabelStyles:  Theme.BarChart.Labels,
+		Block:        *ui.NewBlock(),
+		BarColors:    ui.Theme.BarChart.Bars,
+		NumStyles:    ui.Theme.BarChart.Nums,
+		LabelStyles:  ui.Theme.BarChart.Labels,
 		NumFormatter: func(n float64) string { return fmt.Sprint(n) },
 		BarGap:       1,
 		BarWidth:     3,
 	}
 }
 
-func (self *BarChart) Draw(buf *Buffer) {
-	self.Block.Draw(buf)
+func (b *BarChart) Draw(buf *ui.Buffer) {
+	b.Block.Draw(buf)
 
-	maxVal := self.MaxVal
+	maxVal := b.MaxVal
 	if maxVal == 0 {
-		maxVal, _ = GetMaxFloat64FromSlice(self.Data)
+		maxVal, _ = ui.GetMaxFloat64FromSlice(b.Data)
 		if maxVal == 0 {
 			maxVal = 1
 		}
 	}
 
-	barXCoordinate := self.Inner.Min.X
+	barXCoordinate := b.Inner.Min.X
 
-	for i, data := range self.Data {
+	for i, data := range b.Data {
 		// draw bar
-		height := int((data / maxVal) * float64(self.Inner.Dy()-1))
-		for x := barXCoordinate; x < MinInt(barXCoordinate+self.BarWidth, self.Inner.Max.X); x++ {
-			for y := self.Inner.Max.Y - 2; y > (self.Inner.Max.Y-2)-height; y-- {
-				c := NewCell(' ', NewStyle(ColorClear, SelectColor(self.BarColors, i)))
+		height := int((data / maxVal) * float64(b.Inner.Dy()-1))
+		for x := barXCoordinate; x < ui.MinInt(barXCoordinate+b.BarWidth, b.Inner.Max.X); x++ {
+			for y := b.Inner.Max.Y - 2; y > (b.Inner.Max.Y-2)-height; y-- {
+				c := ui.NewCell(' ', ui.NewStyle(ui.ColorClear, ui.SelectColor(b.BarColors, i)))
 				buf.SetCell(c, image.Pt(x, y))
 			}
 		}
 
 		// draw label
-		if i < len(self.Labels) {
+		if i < len(b.Labels) {
 			labelXCoordinate := barXCoordinate +
-				int((float64(self.BarWidth) / 2)) -
-				int((float64(rw.StringWidth(self.Labels[i])) / 2))
+				int((float64(b.BarWidth) / 2)) -
+				int((float64(rw.StringWidth(b.Labels[i])) / 2))
 			buf.SetString(
-				self.Labels[i],
-				SelectStyle(self.LabelStyles, i),
-				image.Pt(labelXCoordinate, self.Inner.Max.Y-1),
+				b.Labels[i],
+				ui.SelectStyle(b.LabelStyles, i),
+				image.Pt(labelXCoordinate, b.Inner.Max.Y-1),
 			)
 		}
 
 		// draw number
-		numberXCoordinate := barXCoordinate + int((float64(self.BarWidth) / 2))
-		if numberXCoordinate <= self.Inner.Max.X {
+		numberXCoordinate := barXCoordinate + int((float64(b.BarWidth) / 2))
+		if numberXCoordinate <= b.Inner.Max.X {
 			buf.SetString(
-				self.NumFormatter(data),
-				NewStyle(
-					SelectStyle(self.NumStyles, i+1).Fg,
-					SelectColor(self.BarColors, i),
-					SelectStyle(self.NumStyles, i+1).Modifier,
+				b.NumFormatter(data),
+				ui.NewStyle(
+					ui.SelectStyle(b.NumStyles, i+1).Fg,
+					ui.SelectColor(b.BarColors, i),
+					ui.SelectStyle(b.NumStyles, i+1).Modifier,
 				),
-				image.Pt(numberXCoordinate, self.Inner.Max.Y-2),
+				image.Pt(numberXCoordinate, b.Inner.Max.Y-2),
 			)
 		}
 
-		barXCoordinate += (self.BarWidth + self.BarGap)
+		barXCoordinate += (b.BarWidth + b.BarGap)
 	}
 }

@@ -58,13 +58,13 @@ type ProcDetails struct {
 }
 
 type PidStats struct {
-	Cpu         float64         `json:"cpu"`
-	Mem         float64         `json:"mem"`
+	ChildProcs  map[int]string  `json:"childProcs"`
 	PidDetails  ProcDetails     `json:"pid"`
+	MemStats    memPidStats     `json:"memStats"`
 	CtxSwitches contextSwitches `json:"ctxSwitches"`
 	PageFaults  pageFaults      `json:"pageFaults"`
-	MemStats    memPidStats     `json:"memStats"`
-	ChildProcs  map[int]string  `json:"childProcs"`
+	Mem         float64         `json:"mem"`
+	Cpu         float64         `json:"cpu"`
 }
 
 var statusMap map[string]string = map[string]string{

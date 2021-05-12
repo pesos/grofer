@@ -20,6 +20,7 @@ import (
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
+	"github.com/pesos/grofer/src/utils"
 )
 
 // MainPage contains the ui widgets for the ui rendered by the grofer command
@@ -27,9 +28,9 @@ type MainPage struct {
 	Grid         *ui.Grid
 	MemoryChart  *widgets.BarChart
 	DiskChart    *widgets.Table
-	NetworkChart *widgets.Plot
+	NetworkChart *utils.LineGraph
 	CPUCharts    []*widgets.Gauge
-	NetPara      *widgets.Paragraph
+	CPUTable     *utils.Table
 }
 
 type CPUPage struct {
@@ -43,6 +44,7 @@ type CPUPage struct {
 	IdleChart   *widgets.Gauge
 	StealChart  *widgets.Gauge
 	CPUChart    *widgets.Table
+	CPUTable    *utils.Table
 }
 
 // NewPage returns a new page initialized from the MainPage struct
@@ -51,9 +53,9 @@ func NewPage(numCores int) *MainPage {
 		Grid:         ui.NewGrid(),
 		MemoryChart:  widgets.NewBarChart(),
 		DiskChart:    widgets.NewTable(),
-		NetworkChart: widgets.NewPlot(),
+		NetworkChart: utils.NewLineGraph(),
 		CPUCharts:    make([]*widgets.Gauge, 0),
-		NetPara:      widgets.NewParagraph(),
+		CPUTable:     utils.NewTable(),
 	}
 	page.InitGeneral(numCores)
 	return page
@@ -71,6 +73,7 @@ func NewCPUPage(numCores int) *CPUPage {
 		IdleChart:   widgets.NewGauge(),
 		StealChart:  widgets.NewGauge(),
 		CPUChart:    widgets.NewTable(),
+		CPUTable:    utils.NewTable(),
 	}
 	page.InitCPU(numCores)
 	return page
@@ -96,53 +99,83 @@ func (page *MainPage) InitGeneral(numCores int) {
 	page.DiskChart.TextStyle = ui.NewStyle(ui.ColorClear)
 	page.DiskChart.TextAlignment = ui.AlignLeft
 	page.DiskChart.RowSeparator = false
-	page.DiskChart.ColumnWidths = []int{9, 9, 9, 9, 9, 11}
+	page.DiskChart.ColumnWidths = []int{10, 9, 9, 9, 9, 10}
 	page.DiskChart.BorderStyle.Fg = ui.ColorCyan
+	page.DiskChart.ColumnResizer = func() {
+		// Middle 4 columns are of fixed length
+		x := page.DiskChart.Inner.Dx()
+		page.DiskChart.ColumnWidths = []int{
+			x / 6,
+			x / 6,
+			x / 6,
+			x / 6,
+			x / 6,
+			x / 6,
+		}
+	}
 
 	// Initialize Plot for Network Chart
-	page.NetworkChart.Title = " Network data(in mB) "
+	page.NetworkChart.Title = " Network data "
 	page.NetworkChart.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.NetworkChart.HorizontalScale = 1
-	page.NetworkChart.AxesColor = ui.ColorCyan
-	page.NetworkChart.LineColors[0] = ui.ColorRed
-	page.NetworkChart.LineColors[1] = ui.ColorGreen
-	page.NetworkChart.DrawDirection = widgets.DrawLeft
+	page.NetworkChart.LineColors["RX"] = ui.ColorRed
+	page.NetworkChart.LineColors["TX"] = ui.ColorGreen
 	page.NetworkChart.BorderStyle.Fg = ui.ColorCyan
-	page.NetworkChart.DataLabels = []string{"ip kB", "op kB"} //refer issue #214 for details
+	page.NetworkChart.Data["RX"] = []float64{0}
+	page.NetworkChart.Data["TX"] = []float64{0}
 
-	// Initialize paragraph for NetPara
-	page.NetPara.Text = "[Total RX](fg:red): 0\n\n[Total TX](fg:green): 0"
-	page.NetPara.TextStyle = ui.NewStyle(ui.ColorClear)
-	page.NetPara.Border = true
-	page.NetPara.BorderStyle.Fg = ui.ColorCyan
-	page.NetPara.Title = " RX/TX "
-	page.NetPara.TitleStyle = ui.NewStyle(ui.ColorClear)
-
-	// Initialize Gauges for each CPU Core usage
-	for i := 0; i < numCores; i++ {
-		tempGauge := widgets.NewGauge()
-		tempGauge.Title = " CPU " + strconv.Itoa(i) + " "
-		tempGauge.Percent = 0
-		tempGauge.BarColor = ui.ColorBlue
-		tempGauge.BorderStyle.Fg = ui.ColorCyan
-		tempGauge.TitleStyle.Fg = ui.ColorClear
-		tempGauge.LabelStyle.Fg = ui.ColorClear
-		page.CPUCharts = append(page.CPUCharts, tempGauge)
+	if numCores > 8 {
+		page.CPUTable.Title = " CPU Usage "
+		page.CPUTable.BorderStyle.Fg = ui.ColorCyan
+		page.CPUTable.TitleStyle.Fg = ui.ColorClear
+		page.CPUTable.ColResizer = func() {
+			x := page.CPUTable.Inner.Dx()
+			page.CPUTable.ColWidths = []int{
+				x / 2,
+				x / 2,
+			}
+		}
+		page.CPUTable.Header = []string{"CPU", "Usage"}
+		page.CPUTable.ShowCursor = true
+		page.CPUTable.CursorColor = ui.ColorCyan
+	} else {
+		// Initialize Gauges for each CPU Core usage
+		for i := 0; i < numCores; i++ {
+			tempGauge := widgets.NewGauge()
+			tempGauge.Title = " CPU " + strconv.Itoa(i) + " "
+			tempGauge.Percent = 0
+			tempGauge.BarColor = ui.ColorBlue
+			tempGauge.BorderStyle.Fg = ui.ColorCyan
+			tempGauge.TitleStyle.Fg = ui.ColorWhite
+			tempGauge.LabelStyle.Fg = ui.ColorWhite
+			page.CPUCharts = append(page.CPUCharts, tempGauge)
+		}
 	}
 
 	// Initialize Grid layout
-	page.Grid.Set(
-		ui.NewRow(0.34, page.MemoryChart),
-		ui.NewRow(0.34,
-			ui.NewCol(0.25, page.NetPara),
-			ui.NewCol(0.75, page.NetworkChart),
-		),
-		ui.NewRow(0.34, page.DiskChart),
-	)
-
-	// Get Terminal Dimensions
 	w, h := ui.TerminalDimensions()
-	page.Grid.SetRect(w/2, 0, w, h)
+	if numCores > 8 {
+		page.Grid.Set(
+			ui.NewCol(0.3, page.CPUTable),
+			ui.NewCol(0.7,
+				ui.NewRow(0.34, page.MemoryChart),
+				ui.NewRow(0.34, page.NetworkChart),
+				ui.NewRow(0.34, page.DiskChart),
+			),
+		)
+
+		// Get Terminal Dimensions
+		page.Grid.SetRect(0, 0, w, h)
+	} else {
+		page.Grid.Set(
+			ui.NewRow(0.34, page.MemoryChart),
+			ui.NewRow(0.34, page.NetworkChart),
+			ui.NewRow(0.34, page.DiskChart),
+		)
+
+		// Get Terminal Dimensions
+		page.Grid.SetRect(w/2, 0, w, h)
+	}
 }
 
 func (page *CPUPage) InitCPU(numCores int) {
@@ -202,39 +235,69 @@ func (page *CPUPage) InitCPU(numCores int) {
 	page.StealChart.TitleStyle.Fg = ui.ColorClear
 	page.StealChart.LabelStyle.Fg = ui.ColorClear
 
-	page.CPUChart.Title = " CPU "
+	page.CPUChart.Title = " CPU Usage "
 	page.CPUChart.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.CPUChart.BorderStyle = ui.NewStyle(ui.ColorCyan)
 	page.CPUChart.TextStyle = ui.NewStyle(ui.ColorClear)
 	page.CPUChart.TextAlignment = ui.AlignCenter
 	page.CPUChart.RowSeparator = true
+	page.CPUChart.ColumnResizer = func() {
+		columnWidths := []int{}
+		x := page.CPUChart.Inner.Dx()
+		for i := 0; i < numCores; i++ {
+			columnWidths = append(columnWidths, x/numCores)
+		}
 
-	columnWidths := []int{}
-	for i := 0; i < numCores; i++ {
-		columnWidths = append(columnWidths, 9)
+		page.CPUChart.ColumnWidths = columnWidths
 	}
 
-	page.CPUChart.ColumnWidths = columnWidths
+	page.CPUTable.Title = " CPU Usage "
+	page.CPUTable.TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.CPUTable.BorderStyle = ui.NewStyle(ui.ColorCyan)
+	page.CPUTable.ColResizer = func() {
+		x := page.CPUTable.Inner.Dx()
 
-	page.Grid.Set(
-		ui.NewRow(0.17,
-			ui.NewCol(0.5, page.UsrChart),
-			ui.NewCol(0.5, page.NiceChart),
-		),
-		ui.NewRow(0.17,
-			ui.NewCol(0.5, page.SysChart),
-			ui.NewCol(0.5, page.IowaitChart),
-		),
-		ui.NewRow(0.17,
-			ui.NewCol(0.5, page.IrqChart),
-			ui.NewCol(0.5, page.SoftChart),
-		),
-		ui.NewRow(0.17,
-			ui.NewCol(0.5, page.IdleChart),
-			ui.NewCol(0.5, page.StealChart),
-		),
-		ui.NewRow(0.30, page.CPUChart),
-	)
+		page.CPUTable.ColWidths = []int{x / 2, x / 2}
+	}
+	page.CPUTable.Header = []string{"CPU", "Usage"}
+	page.CPUTable.ShowCursor = true
+	page.CPUTable.CursorColor = ui.ColorCyan
+
+	if numCores > 8 {
+		page.Grid.Set(
+			ui.NewCol(0.3, page.CPUTable),
+			ui.NewCol(0.7,
+				ui.NewRow(0.125, page.UsrChart),
+				ui.NewRow(0.125, page.NiceChart),
+				ui.NewRow(0.125, page.SysChart),
+				ui.NewRow(0.125, page.IowaitChart),
+				ui.NewRow(0.125, page.IrqChart),
+				ui.NewRow(0.125, page.SoftChart),
+				ui.NewRow(0.125, page.IdleChart),
+				ui.NewRow(0.125, page.StealChart),
+			),
+		)
+	} else {
+		page.Grid.Set(
+			ui.NewRow(0.17,
+				ui.NewCol(0.5, page.UsrChart),
+				ui.NewCol(0.5, page.NiceChart),
+			),
+			ui.NewRow(0.17,
+				ui.NewCol(0.5, page.SysChart),
+				ui.NewCol(0.5, page.IowaitChart),
+			),
+			ui.NewRow(0.17,
+				ui.NewCol(0.5, page.IrqChart),
+				ui.NewCol(0.5, page.SoftChart),
+			),
+			ui.NewRow(0.17,
+				ui.NewCol(0.5, page.IdleChart),
+				ui.NewCol(0.5, page.StealChart),
+			),
+			ui.NewRow(0.30, page.CPUChart),
+		)
+	}
 
 	w, h := ui.TerminalDimensions()
 	page.Grid.SetRect(0, 0, w, h)

@@ -33,11 +33,11 @@ import (
 
 type diskStats struct {
 	Path     string  `json:"path"`
+	Fs       string  `json:"fs"`
 	Total    float64 `json:"total"`
 	Used     float64 `json:"used"`
 	UsedPerc float64 `json:"usedPerc"`
 	Free     float64 `json:"free"`
-	Fs       string  `json:"fs"`
 }
 
 type netStats struct {
@@ -54,12 +54,12 @@ type memStats struct {
 
 // OverallStats describes the structure of each exported json object.
 type OverallStats struct {
-	Epoch     uint64              `json:"epoch"`
-	CpuStats  []float64           `json:"cpu"`
-	MemStats  memStats            `json:"mem"`
-	DiskStats []diskStats         `json:"disk"`
 	NetStats  map[string]netStats `json:"net"`
+	CpuStats  []float64           `json:"cpu"`
+	DiskStats []diskStats         `json:"disk"`
 	CpuLoad   cpuInfo.CPULoad     `json:"cpuLoad"`
+	MemStats  memStats            `json:"mem"`
+	Epoch     uint64              `json:"epoch"`
 }
 
 // NewOverallStats returns a pointer to an empty OverallStats struct
@@ -114,8 +114,7 @@ func (data *OverallStats) updateData() error {
 				usedPercent := utils.RoundFloat(usageVals.UsedPercent, "NONE", 2)
 				free := utils.RoundUint(usageVals.Free, "G", 2)
 				fs := usageVals.Fstype
-
-				temp := diskStats{path, total, used, usedPercent, free, fs}
+				temp := diskStats{path, fs, total, used, usedPercent, free}
 				tempParts = append(tempParts, temp)
 			}
 		}

@@ -33,7 +33,7 @@ func roundOffNearestTen(num float64, divisor float64) float64 {
 	return math.Round(x*10) / 10
 }
 
-func RoundValues(num1, num2 float64) ([]float64, string) {
+func RoundValues(num1, num2 float64, inBytes bool) ([]float64, string) {
 	nums := []float64{}
 	var units string
 	var n float64
@@ -65,6 +65,19 @@ func RoundValues(num1, num2 float64) ([]float64, string) {
 		units = " per trillion "
 	}
 
+	if inBytes {
+		switch units {
+		case " ":
+			units = " B "
+		case " per thousand ":
+			units = " kB "
+		case " per million ":
+			units = " mB "
+		case " per trillion ":
+			units = " gB "
+		}
+	}
+
 	return nums, units
 
 }
@@ -87,7 +100,7 @@ func GetInMB(bytes uint64, precision int) float64 {
 
 // GetDateFromUnix gets a date and time in RFC822 format from a unix epoch
 func GetDateFromUnix(createTime int64) string {
-	t := time.Unix(createTime, 0)
+	t := time.Unix(createTime/1000, 0)
 	date := t.Format(time.RFC822)
 	return date
 }

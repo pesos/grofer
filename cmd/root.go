@@ -35,7 +35,6 @@ const (
 	defaultOverallRefreshRate = 1000
 	defaultConfigFileLocation = ""
 	defaultCPUBehavior        = false
-	defaultHelpMessageToggle  = false
 )
 
 var cfgFile string
@@ -125,13 +124,6 @@ func init() {
 		"c",
 		defaultCPUBehavior,
 		"Info about the CPU Load over all CPUs",
-	)
-
-	rootCmd.Flags().BoolP(
-		"toggle",
-		"t",
-		defaultHelpMessageToggle,
-		"Help message for toggle",
 	)
 }
 

@@ -34,78 +34,80 @@ import (
 
 var runAllProc = true
 var helpVisible = false
+var sortIdx = -1
+var sortAsc = false
+var header = []string{
+	"PID",
+	"Command",
+	"CPU",
+	"Memory",
+	"Status",
+	"Foreground",
+	"Creation Time",
+	"Thread Count",
+}
 
-func getData(procs []*proc.Process) []string {
-	var data []string
-	for _, info := range procs {
-		exe, err := info.Exe()
+const (
+	UP_ARROW   = "▲"
+	DOWN_ARROW = "▼"
+)
+
+func getData(procs []*proc.Process) [][]string {
+	procData := [][]string{}
+	for _, p := range procs {
+		// Get command
+		cmd := ""
+		exe, err := p.Exe()
 		if err == nil {
-			temp := strconv.Itoa(int(info.Pid))
+			cmds := strings.Split(exe, "/")
+			cmd = cmds[len(cmds)-1]
 
-			for i := 0; i < 12-len(strconv.Itoa(int(info.Pid))); i++ {
-				temp = temp + " "
-			}
-
-			commands := strings.Split(exe, "/")
-			command := commands[len(commands)-1]
-
-			if len(command) > 40 {
-				command = command[:40]
-			} else {
-				temp = temp + "[" + command + "](fg:green)" + strings.Repeat(" ", 41-len(command))
-			}
-
-			tempCPU, err := info.CPUPercent()
-			cpuPercent := ""
+			// Get CPU
+			cpu := ""
+			cpuPercent, err := p.CPUPercent()
 			if err == nil {
-				cpuPercent = fmt.Sprintf("%.2f%s", tempCPU, "%")
-				temp = temp + cpuPercent
+				cpu = fmt.Sprintf("%.2f%%", cpuPercent)
 			}
-			temp = temp + strings.Repeat(" ", 11-len(cpuPercent))
 
-			tempMem, err := info.MemoryPercent()
-			memPercent := ""
+			// Get Mem
+			mem := ""
+			memPercent, err := p.MemoryPercent()
 			if err == nil {
-				memPercent = fmt.Sprintf("%.2f%s", tempMem, "%")
-				temp = temp + memPercent
+				mem = fmt.Sprintf("%.2f%%", memPercent)
 			}
-			temp = temp + strings.Repeat(" ", 11-len(memPercent))
 
-			status, err := info.Status()
+			// Get Status
+			status, _ := p.Status()
+
+			// Get Foreground
+			fg, _ := p.Foreground()
+
+			// Get Creation time
+			t, err := p.CreateTime()
+			ctime := ""
 			if err == nil {
-				temp = temp + status
-			}
-			temp = temp + strings.Repeat(" ", 9-len(status))
-
-			fg, err := info.Foreground()
-			if err == nil {
-				if fg {
-					temp = temp + "True"
-					temp = temp + strings.Repeat(" ", 9)
-				} else {
-					temp = temp + "False"
-					temp = temp + strings.Repeat(" ", 8)
-				}
+				ctime = utils.GetDateFromUnix(t)
 			}
 
-			ctime, err := info.CreateTime()
-			createTime := ""
-			if err == nil {
-				createTime := utils.GetDateFromUnix(ctime)
-				temp = temp + createTime
-			}
-			temp = temp + strings.Repeat(" ", 9-len(createTime))
+			// Get Thread Count
+			tc, _ := p.NumThreads()
 
-			threads, err := info.NumThreads()
-			if err == nil {
-				threadCount := strconv.FormatInt(int64(threads), 10)
-				temp = temp + threadCount
+			// Aggregate row
+			r := []string{
+				fmt.Sprintf("%d", p.Pid),
+				cmd,
+				cpu,
+				mem,
+				status,
+				fmt.Sprintf("%t", fg),
+				ctime,
+				fmt.Sprintf("%d", tc),
 			}
-
-			data = append(data, temp)
+			procData = append(procData, r)
 		}
 	}
-	return data
+
+	return procData
 }
 
 func AllProcVisuals(dataChannel chan []*proc.Process,
@@ -143,19 +145,20 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 	}
 
 	uiEvents := ui.PollEvents()
-	tick := time.Tick(time.Duration(refreshRate) * time.Millisecond)
+	t := time.NewTicker(time.Duration(refreshRate) * time.Millisecond)
+	tick := t.C
 
 	previousKey := ""
-	selectedStyle := ui.NewStyle(ui.ColorYellow, ui.ColorClear, ui.ModifierBold)
-	killingStyle := ui.NewStyle(ui.ColorWhite, ui.ColorMagenta, ui.ModifierBold)
-	errorStyle := ui.NewStyle(ui.ColorBlack, ui.ColorRed, ui.ModifierBold)
+	selectedStyle := ui.ColorCyan
+	killingStyle := ui.ColorMagenta
+	errorStyle := ui.ColorRed
 
 	// updates process list immediately
 	updateProcs := func() {
 		if runAllProc {
 			procs, err := proc.Processes()
 			if err == nil {
-				myPage.BodyList.Rows = getData(procs)
+				myPage.ProcTable.Rows = getData(procs)
 			}
 		}
 	}
@@ -166,6 +169,9 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 
 	for {
 		select {
+		case <-ctx.Done():
+			return ctx.Err()
+
 		case e := <-uiEvents:
 			switch e.ID {
 			case "q", "<C-c>": //q or Ctrl-C to quit
@@ -190,87 +196,96 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 					ui.Render(help)
 				}
 			} else {
-				switch e.ID {
-				case "?":
-					updateUI()
-				case "<Escape>":
-					if killSelected {
-						runAllProc = true
-						killSelected = false
-						myPage.BodyList.SelectedRowStyle = selectedStyle
-					}
-				case "s": //s to pause
-					if !killSelected {
+				if !killSelected {
+					switch e.ID {
+					case "?":
+						updateUI()
+					case "s": //s to pause
 						pauseProc()
-					}
-				case "j", "<Down>":
-					if !killSelected {
-						myPage.BodyList.ScrollDown()
-					}
-				case "k", "<Up>":
-					if !killSelected {
-						myPage.BodyList.ScrollUp()
-					}
-				case "<C-d>":
-					if !killSelected {
-						myPage.BodyList.ScrollHalfPageDown()
-					}
-				case "<C-u>":
-					if !killSelected {
-						myPage.BodyList.ScrollHalfPageUp()
-					}
-				case "<C-f>":
-					if !killSelected {
-						myPage.BodyList.ScrollPageDown()
-					}
-				case "<C-b>":
-					if !killSelected {
-						myPage.BodyList.ScrollPageUp()
-					}
-				case "g":
-					if !killSelected && previousKey == "g" {
-						myPage.BodyList.ScrollTop()
-					}
-				case "<Home>":
-					if !killSelected {
-						myPage.BodyList.ScrollTop()
-					}
-				case "G", "<End>":
-					if !killSelected {
-						myPage.BodyList.ScrollBottom()
-					}
-				case "K", "<F9>":
-					if myPage.BodyList.SelectedRow < len(myPage.BodyList.Rows) {
-						row := myPage.BodyList.Rows[myPage.BodyList.SelectedRow]
-						// get PID from the data
-						pid64, err := strconv.ParseInt(strings.SplitN(row, " ", 2)[0], 10, 32)
-						if err != nil {
-							return fmt.Errorf("Failed to get PID of process: %v", err)
+					case "j", "<Down>":
+						myPage.ProcTable.ScrollDown()
+					case "k", "<Up>":
+						myPage.ProcTable.ScrollUp()
+					case "<C-d>":
+						myPage.ProcTable.ScrollHalfPageDown()
+					case "<C-u>":
+						myPage.ProcTable.ScrollHalfPageUp()
+					case "<C-f>":
+						myPage.ProcTable.ScrollPageDown()
+					case "<C-b>":
+						myPage.ProcTable.ScrollPageUp()
+					case "g":
+						if previousKey == "g" {
+							myPage.ProcTable.ScrollTop()
 						}
-						pidToKill = int32(pid64)
+					case "<Home>":
+						myPage.ProcTable.ScrollTop()
+					case "G", "<End>":
+						myPage.ProcTable.ScrollBottom()
+					case "K", "<F9>":
+						if myPage.ProcTable.SelectedRow < len(myPage.ProcTable.Rows) {
+							// get PID from the data
+							row := myPage.ProcTable.Rows[myPage.ProcTable.SelectedRow]
+							pid, err := strconv.Atoi(row[0])
+							if err != nil {
+								return fmt.Errorf("failed to get PID of process: %v", err)
+							}
 
-						if !killSelected {
+							// Set pid to kill
+							pidToKill = int32(pid)
 							runAllProc = false
 							killSelected = true
-							myPage.BodyList.SelectedRowStyle = killingStyle
-						} else {
-							// get process and kill it
-							procToKill, err := proc.NewProcess(pidToKill)
-							myPage.BodyList.SelectedRowStyle = selectedStyle
-							if err == nil {
-								err = procToKill.Kill()
-								if err != nil {
-									myPage.BodyList.SelectedRowStyle = errorStyle
-								}
-							} else {
-								myPage.BodyList.SelectedRowStyle = errorStyle
-							}
+							myPage.ProcTable.CursorColor = killingStyle
+						}
+					// Sort Ascending
+					case "1", "2", "3", "4", "5", "6", "7", "8":
+						myPage.ProcTable.Header = append([]string{}, header...)
+						idx, _ := strconv.Atoi(e.ID)
+						sortIdx = idx - 1
+						myPage.ProcTable.Header[sortIdx] = header[sortIdx] + " " + UP_ARROW
+						sortAsc = true
+						utils.SortData(myPage.ProcTable.Rows, sortIdx, sortAsc, "PROCS")
+
+					// Sort Descending
+					case "<F1>", "<F2>", "<F3>", "<F4>", "<F5>", "<F6>", "<F7>", "<F8>":
+						myPage.ProcTable.Header = append([]string{}, header...)
+						idx, _ := strconv.Atoi(e.ID[2:3])
+						sortIdx = idx - 1
+						myPage.ProcTable.Header[sortIdx] = header[sortIdx] + " " + DOWN_ARROW
+						sortAsc = false
+						utils.SortData(myPage.ProcTable.Rows, sortIdx, sortAsc, "PROCS")
+
+					// Disable Sort
+					case "0":
+						myPage.ProcTable.Header = append([]string{}, header...)
+						sortIdx = -1
+					}
+				} else {
+					switch e.ID {
+					case "<Escape>":
+						if killSelected {
 							runAllProc = true
 							killSelected = false
-							updateProcs()
+							myPage.ProcTable.CursorColor = selectedStyle
 						}
+					case "K", "<F9>":
+						// get process and kill it
+						procToKill, err := proc.NewProcess(pidToKill)
+						myPage.ProcTable.CursorColor = selectedStyle
+						if err == nil {
+							err = procToKill.Kill()
+							if err != nil {
+								myPage.ProcTable.CursorColor = errorStyle
+							}
+						} else {
+							myPage.ProcTable.CursorColor = errorStyle
+						}
+						runAllProc = true
+						killSelected = false
+						updateProcs()
 					}
 				}
+
 				ui.Render(myPage.Grid)
 				if previousKey == "g" {
 					previousKey = ""
@@ -281,9 +296,12 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 
 		case data := <-dataChannel:
 			if runAllProc {
-				myPage.BodyList.SelectedRowStyle = selectedStyle
-				myPage.BodyList.Rows = getData(data)
-
+				myPage.ProcTable.CursorColor = selectedStyle
+				procData := getData(data)
+				myPage.ProcTable.Rows = procData
+				if sortIdx != -1 {
+					utils.SortData(myPage.ProcTable.Rows, sortIdx, sortAsc, "PROCS")
+				}
 				on.Do(updateUI)
 			}
 
@@ -293,11 +311,11 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 				if !exists {
 					runAllProc = true
 					killSelected = false
-					myPage.BodyList.SelectedRowStyle = selectedStyle
+					myPage.ProcTable.CursorColor = selectedStyle
 					updateProcs()
 				}
 			} else {
-				myPage.BodyList.SelectedRowStyle = selectedStyle
+				myPage.ProcTable.CursorColor = selectedStyle
 			}
 			if !helpVisible {
 				ui.Render(myPage.Grid)

@@ -2,3 +2,7 @@ bin
 grofer
 main
 grofer_profile
+bin/
+Vagrantfile
+*.log
+.vagrant
