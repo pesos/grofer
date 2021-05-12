@@ -22,6 +22,11 @@ As an executable:
 curl -sSL https://github.com/pesos/grofer/releases/download/<version tag>/grofer_<architecture> --output grofer
 chmod +x grofer
 ```
+`architecture`: underlying system architecture on which grofer will be run
+- grofer_386
+- grofer_amd64
+- grofer_arm
+- grofer_arm64
 
 `architecture`: underlying system architecture on which grofer will be run  
  - grofer_386  
