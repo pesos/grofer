@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	ui "github.com/gizak/termui/v3"
@@ -273,7 +274,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 						procToKill, err := proc.NewProcess(pidToKill)
 						myPage.ProcTable.CursorColor = selectedStyle
 						if err == nil {
-							err = procToKill.Kill()
+							err = procToKill.SendSignal(syscall.SIGTERM)
 							if err != nil {
 								myPage.ProcTable.CursorColor = errorStyle
 							}
