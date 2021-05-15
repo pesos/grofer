@@ -231,6 +231,9 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 					case "G", "<End>":
 						myPage.ProcTable.ScrollBottom()
 					case "K", "<F9>":
+						sendSignal = true
+						updateUI()
+						// println(sendSignal)
 						if myPage.ProcTable.SelectedRow < len(myPage.ProcTable.Rows) {
 							// get PID from the data
 							row := myPage.ProcTable.Rows[myPage.ProcTable.SelectedRow]
@@ -276,6 +279,8 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 							killSelected = false
 							myPage.ProcTable.CursorColor = selectedStyle
 						}
+						sendSignal = false
+						updateUI()
 					case "K", "<F9>":
 						// get process and kill it
 						procToKill, err := proc.NewProcess(pidToKill)
@@ -291,6 +296,29 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 						runAllProc = true
 						killSelected = false
 						updateProcs()
+					case "j", "<Down>":
+						signals.List.ScrollDown()
+						ui.Render(signals)
+					case "k", "<Up>":
+						signals.List.ScrollUp()
+						ui.Render(signals)
+					case "<Enter>":
+						signalToSend := signals.SelectedSignal()
+						procToKill, err := proc.NewProcess(pidToKill)
+						myPage.ProcTable.CursorColor = selectedStyle
+						if err == nil {
+							err = procToKill.SendSignal(signalToSend)
+							if err != nil {
+								myPage.ProcTable.CursorColor = errorStyle
+							}
+						} else {
+							myPage.ProcTable.CursorColor = errorStyle
+						}
+						runAllProc = true
+						killSelected = false
+						updateProcs()
+						sendSignal = false
+						updateUI()
 					}
 				}
 
