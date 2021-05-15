@@ -17,6 +17,8 @@ package process
 
 import (
 	"context"
+	"fmt"
+	"golang.org/x/sync/errgroup"
 	"log"
 	"strconv"
 	"sync"
@@ -51,7 +53,6 @@ func ProcVisuals(ctx context.Context,
 	refreshRate uint64) error {
 
 	defer ui.Close()
-
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
@@ -115,7 +116,8 @@ func ProcVisuals(ctx context.Context,
 
 		case e := <-uiEvents:
 			switch e.ID {
-			case "q", "<C-c>": //q or Ctrl-C to quit
+			case "q", "<C-c>":
+				//q or Ctrl-C to quit
 				return info.ErrCanceledByUser
 			case "<Resize>":
 				updateUI()
@@ -162,6 +164,30 @@ func ProcVisuals(ctx context.Context,
 					myPage.ChildProcsTable.ScrollTop()
 				case "G", "<End>":
 					myPage.ChildProcsTable.ScrollBottom()
+					myPage.ChildProcsList.ScrollBottom()
+				case "<Enter>":
+					if myPage.ChildProcsList.SelectedRow != 0 {
+						row := myPage.ChildProcsList.Rows[myPage.ChildProcsList.SelectedRow]
+						// get PID from the data
+						pid, err := strconv.ParseInt(strings.SplitN(row, " ", 2)[0], 10, 32)
+						if err != nil {
+							return fmt.Errorf("Failed to get PID of process: %v", err)
+						}
+						eg, ctx := errgroup.WithContext(context.Background())
+						proc, _ := process.NewProcess(int32(pid))
+						dataChannel := make(chan *process.Process, 1)
+						eg.Go(func() error {
+							return process.Serve(proc, dataChannel, ctx, int64(4*refreshRate/5))
+						})
+						eg.Go(func() error {
+							return ProcVisuals(ctx, dataChannel, refreshRate)
+						})
+						if err := eg.Wait(); err != nil {
+							if err != info.ErrCanceledByUser {
+								fmt.Printf("Error: %v\n", err)
+							}
+						}
+					}
 				}
 
 				ui.Render(myPage.Grid)
