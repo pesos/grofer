@@ -35,6 +35,7 @@ import (
 
 var runAllProc = true
 var helpVisible = false
+var sendSignal = false
 var sortIdx = -1
 var sortAsc = false
 var header = []string{
@@ -123,6 +124,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 
 	var on sync.Once
 	var help *h.HelpMenu = h.NewHelpMenu()
+	var signals *h.SignalList = h.NewSignalList()
 	h.SelectHelpMenu("proc")
 
 	myPage := NewAllProcsPage()
@@ -131,6 +133,11 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 		w, h := ui.TerminalDimensions()
 		myPage.Grid.SetRect(0, 0, w, h)
 		help.Resize(w, h)
+		if sendSignal {
+			signals.SetRect(0, 0, w/6, h)
+			myPage.Grid.SetRect(w/6, 0, w, h)
+			ui.Render(signals)
+		}
 		if helpVisible {
 			ui.Clear()
 			ui.Render(help)
@@ -317,6 +324,9 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 				}
 			} else {
 				myPage.ProcTable.CursorColor = selectedStyle
+			}
+			if sendSignal {
+				ui.Render(signals)
 			}
 			if !helpVisible {
 				ui.Render(myPage.Grid)
