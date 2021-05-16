@@ -18,7 +18,7 @@ git commit
 
 - Before pushing your changes, make sure that the changes from upstream are included (use `--rebase` to make sure that your changes stay on top of the latest changes in the upstream repository)
 ```
-git pull --rebase upstream master     # if you are working on a feature branch, use that branch name instead of master
+git pull --rebase upstream main     # if you are working on a feature branch, use that branch name instead of master
 ```
 
 - In the *extremely* small chance that you run into a conflict, just open the files having the conflict and remove the markers and edit the file to the one you want to push. After editing, run `git rebase --continue` and repeat till no conflict remains
@@ -26,7 +26,7 @@ git pull --rebase upstream master     # if you are working on a feature branch, 
 - Verify that your program builds and passes all the tests, and your change actually works in general
 - Push your changes to your fork
 ```
-git push origin master      # if you are working on a feature branch, use that branch name instead of master
+git push origin main      # if you are working on a feature branch, use that branch name instead of master
 ```
 - Visit your forked repository and click on "Pull Request". The Pull Request must always be made to the `pesos/master` branch. Add the relevant description. At this point your name will be assigned to the original issue.
 - The maintainers will review your code and see if it is okay to merge. It is quite normal for them to suggest you to make some changes in this review.
@@ -35,7 +35,7 @@ git push origin master      # if you are working on a feature branch, use that b
 # make your change
 git add <files that you changed>
 git commit
-git push origin master      # if you are working on a feature branch, use that branch name instead of master
+git push origin main      # if you are working on a feature branch, use that branch name instead of master
 ```
 - The changes are immediately reflected in the pull request. Once the maintainers are satisfied, they will merge your contribution :)
 
@@ -43,7 +43,7 @@ As long as you follow the above instructions things should go well. You are alwa
 
 ## Release overview (for the more regular contributors)
 
-- master branch for development. Small patches/enhancements go here.
+- main branch for development. Small patches/enhancements go here.
 - stable branch for tagged releases. This is the branch that will be shipped to users.
 - Separate feature-x branches for adding new "big" features. These branches are merged with master, on completion.
 - Once we are satisfied with a certain set of features and stability, we pull the changes from master to stable. A new release tag is made.
