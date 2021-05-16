@@ -2,7 +2,7 @@
 
 - Look for issues in the repository. Identify an issue you would like to work on.
 - Once you have done that, leave a comment on the issue saying that you want to work on it. The maintainers will give you the go-ahead.
-- Fork the repository. Your changes will be made on its `master` branch, or on the appropriate feature branch if applicable
+- Fork the repository. Your changes will be made on its `main` branch, or on the appropriate feature branch if applicable
 - Clone the fork on your system. Add a remote to the original `pesos/grofer` repository called `upstream`
 ```
 git clone https://github.com/<your-github-username>/grofer.git
@@ -18,7 +18,7 @@ git commit
 
 - Before pushing your changes, make sure that the changes from upstream are included (use `--rebase` to make sure that your changes stay on top of the latest changes in the upstream repository)
 ```
-git pull --rebase upstream main     # if you are working on a feature branch, use that branch name instead of master
+git pull --rebase upstream main     # if you are working on a feature branch, use that branch name instead of main
 ```
 
 - In the *extremely* small chance that you run into a conflict, just open the files having the conflict and remove the markers and edit the file to the one you want to push. After editing, run `git rebase --continue` and repeat till no conflict remains
@@ -26,16 +26,16 @@ git pull --rebase upstream main     # if you are working on a feature branch, us
 - Verify that your program builds and passes all the tests, and your change actually works in general
 - Push your changes to your fork
 ```
-git push origin main      # if you are working on a feature branch, use that branch name instead of master
+git push origin main      # if you are working on a feature branch, use that branch name instead of main
 ```
-- Visit your forked repository and click on "Pull Request". The Pull Request must always be made to the `pesos/master` branch. Add the relevant description. At this point your name will be assigned to the original issue.
+- Visit your forked repository and click on "Pull Request". The Pull Request must always be made to the `pesos/main` branch. Add the relevant description. At this point your name will be assigned to the original issue.
 - The maintainers will review your code and see if it is okay to merge. It is quite normal for them to suggest you to make some changes in this review.
 - if you are asked to make changes, all you need to do is:
 ```
 # make your change
 git add <files that you changed>
 git commit
-git push origin main      # if you are working on a feature branch, use that branch name instead of master
+git push origin main      # if you are working on a feature branch, use that branch name instead of main
 ```
 - The changes are immediately reflected in the pull request. Once the maintainers are satisfied, they will merge your contribution :)
 
@@ -45,6 +45,6 @@ As long as you follow the above instructions things should go well. You are alwa
 
 - main branch for development. Small patches/enhancements go here.
 - stable branch for tagged releases. This is the branch that will be shipped to users.
-- Separate feature-x branches for adding new "big" features. These branches are merged with master, on completion.
-- Once we are satisfied with a certain set of features and stability, we pull the changes from master to stable. A new release tag is made.
-- If bugs were found on the stable release, we create a hotfix branch and fix the bug. The master branch must also pull the changes from hotfix. A new release tag is created (incrementing with a smaller number).
+- Separate feature-x branches for adding new "big" features. These branches are merged with main, on completion.
+- Once we are satisfied with a certain set of features and stability, we pull the changes from main to stable. A new release tag is made.
+- If bugs were found on the stable release, we create a hotfix branch and fix the bug. The main branch must also pull the changes from hotfix. A new release tag is created (incrementing with a smaller number).
