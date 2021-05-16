@@ -19,11 +19,11 @@ package general
 import (
 	"context"
 	"fmt"
-	"os/exec"
+	"os"
 	"strconv"
+	"strings"
 
 	"github.com/pesos/grofer/src/utils"
-	gjson "github.com/tidwall/gjson"
 )
 
 // CPULoad type contains info about load on CPU from various sources
@@ -47,29 +47,60 @@ func NewCPULoad() *CPULoad {
 	return &CPULoad{}
 }
 
+// ReadCPULoad reads /proc/stat and returns the average load
+func ReadCPULoad() ([10]float64, error) {
+	data, error := os.ReadFile("/proc/stat")
+	if error != nil {
+		return [10]float64{}, error
+	}
+	string_data := string(data)
+	lines := strings.Split(string_data, "\n")
+	vals := strings.Split(lines[0], " ")
+	var avg [10]float64
+	sum := 0
+	for i, x := range vals {
+		if i < 2 {
+			continue
+		}
+		curr, err := strconv.Atoi(x)
+		if err != nil {
+			return [10]float64{}, error
+		} else {
+			sum += curr
+		}
+	}
+
+	for i, x := range vals {
+		if i < 2 {
+			continue
+		}
+		curr, err := strconv.Atoi(x)
+		if err != nil {
+			fmt.Print(err)
+			return [10]float64{}, err
+		} else {
+			avg[i-2] = 100 * float64(curr) / float64(sum)
+		}
+	}
+	return avg, error
+}
+
 // UpdateCPULoad updates fields of the type CPULoad
 func (c *CPULoad) UpdateCPULoad() error {
-	mpstat := "mpstat"
-	arg0 := "-o"
-	arg1 := "JSON"
-	cmd := exec.Command(mpstat, arg0, arg1)
-	stdout, err := cmd.Output()
+	stats, err := ReadCPULoad()
 	if err != nil {
 		return err
 	}
-
-	statsExtract := gjson.Get(string(stdout), "sysstat.hosts.0.statistics.0.cpu-load.0")
-	stats := statsExtract.Map()
-	c.Usr = int(stats["usr"].Int())
-	c.Nice = int(stats["nice"].Int())
-	c.Sys = int(stats["sys"].Int())
-	c.Iowait = int(stats["iowait"].Int())
-	c.Irq = int(stats["irq"].Int())
-	c.Soft = int(stats["soft"].Int())
-	c.Steal = int(stats["steal"].Int())
-	c.Guest = int(stats["guest"].Int())
-	c.Gnice = int(stats["gnice"].Int())
-	c.Idle = int(stats["idle"].Int())
+	c.Usr = int(stats[0])
+	c.Nice = int(stats[1])
+	c.Sys = int(stats[2])
+	c.Idle = int(stats[3])
+	c.Iowait = int(stats[4])
+	c.Irq = int(stats[5])
+	c.Soft = int(stats[6])
+	c.Steal = int(stats[7])
+	c.Guest = int(stats[8])
+	c.Gnice = int(stats[9])
 
 	cpuRates, err := GetCPURates()
 	if err != nil {
