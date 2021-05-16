@@ -66,21 +66,12 @@ func ReadCPULoad() ([10]float64, error) {
 		if err != nil {
 			return [10]float64{}, error
 		} else {
+			avg[i-2] = float64(curr)
 			sum += curr
 		}
 	}
-
-	for i, x := range vals {
-		if i < 2 {
-			continue
-		}
-		curr, err := strconv.Atoi(x)
-		if err != nil {
-			fmt.Print(err)
-			return [10]float64{}, err
-		} else {
-			avg[i-2] = 100 * float64(curr) / float64(sum)
-		}
+	for i, x := range avg {
+		avg[i] = 100 * x / float64(sum)
 	}
 	return avg, error
 }
