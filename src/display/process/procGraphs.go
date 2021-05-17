@@ -21,6 +21,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"log"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -164,12 +165,11 @@ func ProcVisuals(ctx context.Context,
 					myPage.ChildProcsTable.ScrollTop()
 				case "G", "<End>":
 					myPage.ChildProcsTable.ScrollBottom()
-					myPage.ChildProcsList.ScrollBottom()
 				case "<Enter>":
-					if myPage.ChildProcsList.SelectedRow != 0 {
-						row := myPage.ChildProcsList.Rows[myPage.ChildProcsList.SelectedRow]
+					if myPage.ChildProcsTable.SelectedRow != 0 {
+						row := myPage.ChildProcsTable.Rows[myPage.ChildProcsTable.SelectedRow]
 						// get PID from the data
-						pid, err := strconv.ParseInt(strings.SplitN(row, " ", 2)[0], 10, 32)
+						pid, err := strconv.ParseInt(strings.SplitN(row[0], " ", 2)[0], 10, 32)
 						if err != nil {
 							return fmt.Errorf("Failed to get PID of process: %v", err)
 						}
@@ -187,6 +187,7 @@ func ProcVisuals(ctx context.Context,
 								fmt.Printf("Error: %v\n", err)
 							}
 						}
+
 					}
 				}
 
