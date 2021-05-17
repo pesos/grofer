@@ -48,7 +48,7 @@ func NewCPULoad() *CPULoad {
 }
 
 // ReadCPULoad reads /proc/stat and returns the average load
-func readCPULoad(c *CPULoad) error {
+func (c *CPULoad) readCPULoad() error {
 	data, error := os.ReadFile("/proc/stat")
 	if error != nil {
 		return error
@@ -91,7 +91,7 @@ func readCPULoad(c *CPULoad) error {
 
 // UpdateCPULoad updates fields of the type CPULoad
 func (c *CPULoad) UpdateCPULoad() error {
-	err := readCPULoad(c)
+	err := c.readCPULoad()
 	if err != nil {
 		return err
 	}
