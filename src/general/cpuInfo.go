@@ -58,18 +58,16 @@ func readCPULoad(c *CPULoad) error {
 	// First line should store in the format:
 	// "cpu <usr> <nice> <system> <idle> <iowait> <irq> <softirq> <steal> <guest> <guest_nice>"
 	vals := strings.Fields(lines[0])
+	// Start from index 1 as first element is the cpu/cpu<no>
+	vals = vals[1:]
 	var avg [10]float64
 	sum := 0
 	for i, x := range vals {
-		// Start from index 1 as first element is the cpu/cpu<no>
-		if i < 1 {
-			continue
-		}
 		curr, err := strconv.Atoi(x)
 		if err != nil {
 			return error
 		} else {
-			avg[i-1] = float64(curr)
+			avg[i] = float64(curr)
 			sum += curr
 		}
 	}
