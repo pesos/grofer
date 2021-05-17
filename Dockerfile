@@ -1,6 +1,6 @@
 # we're using Golang 1.x (1.16.3 at the time of writing)
 #             and Debian buster
-FROM golang:1-buster
+FROM golang:alpine
 
 # ADD grofer /go/bin/
 ADD . /src
