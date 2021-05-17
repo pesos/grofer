@@ -17,6 +17,7 @@ limitations under the License.
 package general
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"os"
@@ -49,23 +50,23 @@ func NewCPULoad() *CPULoad {
 
 // ReadCPULoad reads /proc/stat and returns the average load
 func (c *CPULoad) readCPULoad() error {
-	data, error := os.ReadFile("/proc/stat")
-	if error != nil {
-		return error
+	file, err := os.Open("/proc/stat")
+	if err != nil {
+		return err
 	}
-	stringData := string(data)
-	lines := strings.Split(stringData, "\n")
-	// First line should store in the format:
-	// "cpu <usr> <nice> <system> <idle> <iowait> <irq> <softirq> <steal> <guest> <guest_nice>"
-	vals := strings.Fields(lines[0])
-	// Start from index 1 as first element is the cpu/cpu<no>
-	vals = vals[1:]
+	defer file.Close()
+	reader := bufio.NewReader(file)
+	data, err := reader.ReadBytes(byte('\n'))
+	if err != nil {
+		return err
+	}
+	vals := strings.Fields(string(data))[1:]
 	var avg [10]float64
 	sum := 0
 	for i, x := range vals {
 		curr, err := strconv.Atoi(x)
 		if err != nil {
-			return error
+			return err
 		} else {
 			avg[i] = float64(curr)
 			sum += curr
@@ -74,7 +75,6 @@ func (c *CPULoad) readCPULoad() error {
 	for i, x := range avg {
 		avg[i] = 100 * x / float64(sum)
 	}
-
 	c.Usr = int(avg[0])
 	c.Nice = int(avg[1])
 	c.Sys = int(avg[2])
@@ -86,7 +86,7 @@ func (c *CPULoad) readCPULoad() error {
 	c.Guest = int(avg[8])
 	c.Gnice = int(avg[9])
 
-	return error
+	return err
 }
 
 // UpdateCPULoad updates fields of the type CPULoad
