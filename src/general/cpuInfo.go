@@ -57,19 +57,19 @@ func readCPULoad(c *CPULoad) error {
 	lines := strings.Split(stringData, "\n")
 	// First line should store in the format:
 	// "cpu <usr> <nice> <system> <idle> <iowait> <irq> <softirq> <steal> <guest> <guest_nice>"
-	vals := strings.Split(lines[0], " ")
+	vals := strings.Fields(lines[0])
 	var avg [10]float64
 	sum := 0
 	for i, x := range vals {
-		// Start from index 2 as there's an extra space (" ") on the first line of /proc/stat
-		if i < 2 {
+		// Start from index 1 as first element is the cpu/cpu<no>
+		if i < 1 {
 			continue
 		}
 		curr, err := strconv.Atoi(x)
 		if err != nil {
 			return error
 		} else {
-			avg[i-2] = float64(curr)
+			avg[i-1] = float64(curr)
 			sum += curr
 		}
 	}
