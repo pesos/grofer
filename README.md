@@ -52,20 +52,20 @@ go build grofer.go
    ```
 1. Run using
    ```bash
-   docker run --name grofer --rm -it -v /:/host:ro grofer
+   docker run --name grofer --rm -it -v /:/host:ro --privileged --pid=host grofer
    ```
 
    Additional command to `grofer` can be passed directly at the end of the above command:
    ```bash
-   docker run --name grofer --rm -it -v /:/host:ro grofer proc
+   docker run --name grofer --rm -it -v /:/host:ro --privileged --pid=host grofer proc
    ```
 
    ```bash
-   docker run --name grofer --rm -it -v /:/host:ro grofer --help
+   docker run --name grofer --rm -it -v /:/host:ro --privileged --pid=host grofer --help
    ```
 1. (Optional) create an alias for `docker run` to be able to run it using just `grofer`
    ```zsh
-   alias grofer="docker run --name grofer --rm -it -v /:/host:ro grofer"
+   alias grofer="docker run --name grofer --rm -it -v /:/host:ro --privileged --pid=host grofer"
    ```
 
    Then use `grofer` as normal:
