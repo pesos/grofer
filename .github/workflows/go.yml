@@ -21,5 +21,8 @@ jobs:
     - name: Build
       run: go build -v ./...
 
+    - name: Format
+      run: bash ./scripts/fmt.sh
+      
     - name: Test
       run: go test -v ./...
