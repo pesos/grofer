@@ -48,23 +48,26 @@ func NewCPULoad() *CPULoad {
 }
 
 // ReadCPULoad reads /proc/stat and returns the average load
-func ReadCPULoad() ([10]float64, error) {
+func readCPULoad(c *CPULoad) error {
 	data, error := os.ReadFile("/proc/stat")
 	if error != nil {
-		return [10]float64{}, error
+		return error
 	}
-	string_data := string(data)
-	lines := strings.Split(string_data, "\n")
+	stringData := string(data)
+	lines := strings.Split(stringData, "\n")
+	// First line should store in the format:
+	// "cpu <usr> <nice> <system> <idle> <iowait> <irq> <softirq> <steal> <guest> <guest_nice>"
 	vals := strings.Split(lines[0], " ")
 	var avg [10]float64
 	sum := 0
 	for i, x := range vals {
+		// Start from index 2 as there's an extra space (" ") on the first line of /proc/stat
 		if i < 2 {
 			continue
 		}
 		curr, err := strconv.Atoi(x)
 		if err != nil {
-			return [10]float64{}, error
+			return error
 		} else {
 			avg[i-2] = float64(curr)
 			sum += curr
@@ -73,26 +76,27 @@ func ReadCPULoad() ([10]float64, error) {
 	for i, x := range avg {
 		avg[i] = 100 * x / float64(sum)
 	}
-	return avg, error
+
+	c.Usr = int(avg[0])
+	c.Nice = int(avg[1])
+	c.Sys = int(avg[2])
+	c.Idle = int(avg[3])
+	c.Iowait = int(avg[4])
+	c.Irq = int(avg[5])
+	c.Soft = int(avg[6])
+	c.Steal = int(avg[7])
+	c.Guest = int(avg[8])
+	c.Gnice = int(avg[9])
+
+	return error
 }
 
 // UpdateCPULoad updates fields of the type CPULoad
 func (c *CPULoad) UpdateCPULoad() error {
-	stats, err := ReadCPULoad()
+	err := readCPULoad(c)
 	if err != nil {
 		return err
 	}
-	c.Usr = int(stats[0])
-	c.Nice = int(stats[1])
-	c.Sys = int(stats[2])
-	c.Idle = int(stats[3])
-	c.Iowait = int(stats[4])
-	c.Irq = int(stats[5])
-	c.Soft = int(stats[6])
-	c.Steal = int(stats[7])
-	c.Guest = int(stats[8])
-	c.Gnice = int(stats[9])
-
 	cpuRates, err := GetCPURates()
 	if err != nil {
 		return err
