@@ -48,7 +48,7 @@ func NewCPULoad() *CPULoad {
 	return &CPULoad{}
 }
 
-// ReadCPULoad reads /proc/stat and returns the average load
+// ReadCPULoad reads /proc/stat and returns the total load on all CPU cores
 func (c *CPULoad) readCPULoad() error {
 	file, err := os.Open("/proc/stat")
 	if err != nil {
@@ -56,13 +56,16 @@ func (c *CPULoad) readCPULoad() error {
 	}
 	defer file.Close()
 	reader := bufio.NewReader(file)
+	// Read first line containing load values
 	data, err := reader.ReadBytes(byte('\n'))
 	if err != nil {
 		return err
 	}
+	// Split the first line into an array and omit the 1st index value as it only contains cpu/cpu<no>
 	vals := strings.Fields(string(data))[1:]
 	var avg [10]float64
 	sum := 0
+	// Convert and store the load values into a floating point array
 	for i, x := range vals {
 		curr, err := strconv.Atoi(x)
 		if err != nil {
@@ -72,9 +75,11 @@ func (c *CPULoad) readCPULoad() error {
 			sum += curr
 		}
 	}
+	// Calculate average values
 	for i, x := range avg {
 		avg[i] = 100 * x / float64(sum)
 	}
+	// Store values in CPULoad struct
 	c.Usr = int(avg[0])
 	c.Nice = int(avg[1])
 	c.Sys = int(avg[2])
