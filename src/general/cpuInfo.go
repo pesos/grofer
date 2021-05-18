@@ -17,13 +17,14 @@ limitations under the License.
 package general
 
 import (
+	"bufio"
 	"context"
 	"fmt"
-	"os/exec"
+	"os"
 	"strconv"
+	"strings"
 
 	"github.com/pesos/grofer/src/utils"
-	gjson "github.com/tidwall/gjson"
 )
 
 // CPULoad type contains info about load on CPU from various sources
@@ -47,30 +48,58 @@ func NewCPULoad() *CPULoad {
 	return &CPULoad{}
 }
 
-// UpdateCPULoad updates fields of the type CPULoad
-func (c *CPULoad) UpdateCPULoad() error {
-	mpstat := "mpstat"
-	arg0 := "-o"
-	arg1 := "JSON"
-	cmd := exec.Command(mpstat, arg0, arg1)
-	stdout, err := cmd.Output()
+// ReadCPULoad reads /proc/stat and returns the total load on all CPU cores
+func (c *CPULoad) readCPULoad() error {
+	file, err := os.Open("/proc/stat")
 	if err != nil {
 		return err
 	}
+	defer file.Close()
+	reader := bufio.NewReader(file)
+	// Read first line containing load values
+	data, err := reader.ReadBytes(byte('\n'))
+	if err != nil {
+		return err
+	}
+	// Split the first line into an array and omit the 1st index value as it only contains cpu/cpu<no>
+	vals := strings.Fields(string(data))[1:]
+	var avg [10]float64
+	sum := 0
+	// Convert and store the load values into a floating point array
+	for i, x := range vals {
+		curr, err := strconv.Atoi(x)
+		if err != nil {
+			return err
+		} else {
+			avg[i] = float64(curr)
+			sum += curr
+		}
+	}
+	// Calculate average values
+	for i, x := range avg {
+		avg[i] = 100 * x / float64(sum)
+	}
+	// Store values in CPULoad struct
+	c.Usr = int(avg[0])
+	c.Nice = int(avg[1])
+	c.Sys = int(avg[2])
+	c.Idle = int(avg[3])
+	c.Iowait = int(avg[4])
+	c.Irq = int(avg[5])
+	c.Soft = int(avg[6])
+	c.Steal = int(avg[7])
+	c.Guest = int(avg[8])
+	c.Gnice = int(avg[9])
 
-	statsExtract := gjson.Get(string(stdout), "sysstat.hosts.0.statistics.0.cpu-load.0")
-	stats := statsExtract.Map()
-	c.Usr = int(stats["usr"].Int())
-	c.Nice = int(stats["nice"].Int())
-	c.Sys = int(stats["sys"].Int())
-	c.Iowait = int(stats["iowait"].Int())
-	c.Irq = int(stats["irq"].Int())
-	c.Soft = int(stats["soft"].Int())
-	c.Steal = int(stats["steal"].Int())
-	c.Guest = int(stats["guest"].Int())
-	c.Gnice = int(stats["gnice"].Int())
-	c.Idle = int(stats["idle"].Int())
+	return err
+}
 
+// UpdateCPULoad updates fields of the type CPULoad
+func (c *CPULoad) UpdateCPULoad() error {
+	err := c.readCPULoad()
+	if err != nil {
+		return err
+	}
 	cpuRates, err := GetCPURates()
 	if err != nil {
 		return err
