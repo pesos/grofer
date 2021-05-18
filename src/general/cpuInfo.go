@@ -125,8 +125,12 @@ func GetCPULoad(ctx context.Context, cpuLoad *CPULoad, dataChannel chan *CPULoad
 		if err != nil {
 			return err
 		}
-		dataChannel <- cpuLoad
 
-		return nil
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case dataChannel <- cpuLoad:
+			return nil
+		}
 	})
 }
