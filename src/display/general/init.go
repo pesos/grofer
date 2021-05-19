@@ -26,7 +26,7 @@ import (
 // MainPage contains the ui widgets for the ui rendered by the grofer command
 type MainPage struct {
 	Grid         *ui.Grid
-	MemoryChart  *widgets.BarChart
+	MemoryChart  *utils.BarChart
 	DiskChart    *widgets.Table
 	NetworkChart *widgets.SparklineGroup
 	CPUCharts    []*widgets.Gauge
@@ -57,7 +57,7 @@ func NewPage(numCores int) *MainPage {
 
 	page := &MainPage{
 		Grid:         ui.NewGrid(),
-		MemoryChart:  widgets.NewBarChart(),
+		MemoryChart:  utils.NewBarChart(),
 		DiskChart:    widgets.NewTable(),
 		NetworkChart: widgets.NewSparklineGroup(rxSparkLine, txSparkLine),
 		CPUCharts:    make([]*widgets.Gauge, 0),
@@ -88,13 +88,18 @@ func NewCPUPage(numCores int) *CPUPage {
 
 // InitGeneral initializes all ui elements for the ui rendered by the grofer command
 func (page *MainPage) InitGeneral(numCores int) {
-
 	// Initialize Bar Graph for Memory Chart
 	page.MemoryChart.Title = " Memory (RAM) "
 	page.MemoryChart.TitleStyle = ui.NewStyle(ui.ColorClear)
-	page.MemoryChart.Labels = []string{"Total", "Available", "Used", "Free"}
-	page.MemoryChart.BarWidth = 8
-	page.MemoryChart.BarGap = 9
+	page.MemoryChart.Labels = []string{"Total", "Available", "Used", "Free", "Total Swap", "Cached Swap", "Free Swap"}
+
+	page.MemoryChart.PaddingRight = 2
+	page.MemoryChart.PaddingBottom = 2
+	page.MemoryChart.PaddingTop = 2
+	page.MemoryChart.PaddingLeft = 2
+	//page.MemoryChart.BarWidth = 8
+	//page.MemoryChart.BarGap = 0
+
 	page.MemoryChart.BarColors = []ui.Color{ui.ColorCyan, ui.ColorGreen}
 	page.MemoryChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorClear)}
 	page.MemoryChart.NumStyles = []ui.Style{ui.NewStyle(ui.ColorBlack)}

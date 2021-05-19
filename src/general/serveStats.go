@@ -69,7 +69,8 @@ func ServeMemRates(ctx context.Context, dataChannel chan utils.DataStats) error 
 		return err
 	}
 
-	memRates := []float64{roundOff(memory.Total), roundOff(memory.Available), roundOff(memory.Used), roundOff(memory.Free)}
+	memRates := []float64{roundOff(memory.Total), roundOff(memory.Available), roundOff(memory.Used), roundOff(memory.Free),
+		roundOff(memory.SwapTotal), roundOff(memory.SwapCached), roundOff(memory.SwapFree)}
 
 	data := utils.DataStats{
 		MemStats: memRates,
