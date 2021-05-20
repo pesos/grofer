@@ -46,7 +46,7 @@ func NewBarChart() *BarChart {
 		LabelStyles:  ui.Theme.BarChart.Labels,
 		NumFormatter: func(n float64) string { return fmt.Sprint(n) },
 		BarGap:       1,
-		BarWidth:     8,
+		BarWidth:     3,
 	}
 }
 
@@ -99,6 +99,6 @@ func (b *BarChart) Draw(buf *ui.Buffer) {
 			)
 		}
 
-		barXCoordinate += (b.BarWidth + 4)
+		barXCoordinate += (b.BarWidth + b.BarGap)
 	}
 }

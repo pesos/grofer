@@ -71,24 +71,7 @@ func RenderCharts(ctx context.Context,
 		height := int(h / numCores)
 		heightOffset := h - (height * numCores)
 		_ = heightOffset
-		// Adjust Memory Bar graph values
-		myPage.MemoryChart.BarGap = ((w / 2) - (4 * myPage.MemoryChart.BarWidth)) / 4
 
-		// Adjust CPU Gauge dimensions
-		/*
-			if isCPUSet {
-				if numCores > 8 {
-					// Adjust Grid dimensions
-					myPage.Grid.SetRect(0, 0, w, h)
-				} else {
-					for i := 0; i < numCores; i++ {
-						myPage.CPUCharts[i].SetRect(0, i*height, w/2, (i+1)*height)
-					}
-					// Adjust Grid dimensions
-					myPage.Grid.SetRect(w/2, 0, w, h-heightOffset)
-				}
-			}
-		*/
 		if isCPUSet {
 			myPage.Grid.SetRect(0, 0, w, h)
 		}
@@ -100,13 +83,6 @@ func RenderCharts(ctx context.Context,
 			ui.Render(help)
 		} else {
 			ui.Render(myPage.Grid)
-			/*
-				if numCores <= 8 {
-					for i := 0; i < numCores; i++ {
-						ui.Render(myPage.CPUCharts[i])
-					}
-				}
-			*/
 		}
 	}
 
@@ -169,29 +145,11 @@ func RenderCharts(ctx context.Context,
 				switch data.FieldSet {
 
 				case "CPU": // Update CPU stats
-					//myPage.CPUGraph.Data = data.CpuStats
 					for i, x := range data.CpuStats {
-						key := fmt.Sprintf("CPU%02d", i)
+						key := fmt.Sprintf("CPU%2d", i)
 						myPage.CPUGraph.Data[key] = append(myPage.CPUGraph.Data[key], x)
 						myPage.CPUGraph.Labels[key] = fmt.Sprintf("%3.0f%%", x)
 					}
-				/*
-					if numCores > 8 {
-						rows := [][]string{}
-						for index, rate := range data.CpuStats {
-							rows = append(rows, []string{
-								"CPU " + strconv.Itoa(index),
-								fmt.Sprintf("%.2f%%", rate),
-							})
-						}
-						myPage.CPUTable.Rows = rows
-					} else {
-						for index, rate := range data.CpuStats {
-							myPage.CPUCharts[index].Title = " CPU " + strconv.Itoa(index) + " "
-							myPage.CPUCharts[index].Percent = int(rate)
-						}
-					}
-				*/
 
 				case "MEM": // Update Memory stats
 					myPage.MemoryChart.Data = data.MemStats
@@ -220,8 +178,6 @@ func RenderCharts(ctx context.Context,
 							recentBytesSent = 0
 						}
 
-						//myPage.NetworkChart.Data["RX"] = append(myPage.NetworkChart.Data["RX"], recentBytesRecv)
-						//myPage.NetworkChart.Data["TX"] = append(myPage.NetworkChart.Data["TX"], recentBytesSent)
 						myPage.NetworkChart.Sparklines[0].Data = append(myPage.NetworkChart.Sparklines[0].Data, recentBytesRecv)
 						myPage.NetworkChart.Sparklines[1].Data = append(myPage.NetworkChart.Sparklines[1].Data, recentBytesSent)
 
@@ -232,8 +188,6 @@ func RenderCharts(ctx context.Context,
 
 					totalData, units := utils.RoundValues(totalBytesRecv, totalBytesSent, true)
 
-					//myPage.NetworkChart.Labels["RX"] = fmt.Sprintf("Total: %5.1f %s\n", totalData[0], units)
-					//myPage.NetworkChart.Labels["TX"] = fmt.Sprintf("Total: %5.1f %s\n", totalData[1], units)
 					myPage.NetworkChart.Sparklines[0].Title = fmt.Sprintf(" Total RX: %5.1f %s", totalData[0], units)
 					myPage.NetworkChart.Sparklines[1].Title = fmt.Sprintf(" Total TX: %5.1f %s", totalData[1], units)
 
@@ -244,13 +198,6 @@ func RenderCharts(ctx context.Context,
 		case <-tick: // Update page with new values
 			if !helpVisible {
 				ui.Render(myPage.Grid)
-				/*
-					if numCores <= 8 {
-						for i := 0; i < numCores; i++ {
-							ui.Render(myPage.CPUCharts[i])
-						}
-					}
-				*/
 			}
 		}
 	}
