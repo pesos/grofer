@@ -128,16 +128,18 @@ func RenderCharts(ctx context.Context,
 				case "s": //s to pause
 					pause()
 				}
-				if numCores > 8 {
-					switch e.ID {
-					case "j", "<Down>":
-						myPage.CPUTable.ScrollDown()
-						ui.Render(myPage.Grid)
-					case "k", "<Up>":
-						myPage.CPUTable.ScrollUp()
-						ui.Render(myPage.Grid)
+				/*
+					if numCores > 8 {
+						switch e.ID {
+						case "j", "<Down>":
+							myPage.CPUTable.ScrollDown()
+							ui.Render(myPage.Grid)
+						case "k", "<Up>":
+							myPage.CPUTable.ScrollUp()
+							ui.Render(myPage.Grid)
+						}
 					}
-				}
+				*/
 			}
 
 		case data := <-dataChannel:
@@ -146,16 +148,35 @@ func RenderCharts(ctx context.Context,
 
 				case "CPU": // Update CPU stats
 					for i, x := range data.CpuStats {
-						key := fmt.Sprintf("CPU%2d", i)
+						key := fmt.Sprintf("CPU%d", i)
+						if len(myPage.CPUGraph.Data[key]) > 100 {
+							myPage.CPUGraph.Data[key] = myPage.CPUGraph.Data[key][1:]
+						}
 						myPage.CPUGraph.Data[key] = append(myPage.CPUGraph.Data[key], x)
 						myPage.CPUGraph.Labels[key] = fmt.Sprintf("%3.0f%%", x)
 					}
 
 				case "MEM": // Update Memory stats
-					myPage.MemoryChart.Data = data.MemStats
+					if len(myPage.MemoryChart.Sparklines[0].Data) > 100 {
+						myPage.MemoryChart.Sparklines[0].Data = myPage.MemoryChart.Sparklines[0].Data[1:]
+						myPage.MemoryChart.Sparklines[1].Data = myPage.MemoryChart.Sparklines[1].Data[1:]
+						myPage.MemoryChart.Sparklines[2].Data = myPage.MemoryChart.Sparklines[2].Data[1:]
+						myPage.MemoryChart.Sparklines[3].Data = myPage.MemoryChart.Sparklines[3].Data[1:]
+					}
+					myPage.MemoryChart.Sparklines[0].Data = append(myPage.MemoryChart.Sparklines[0].Data, data.MemStats[1])
+					myPage.MemoryChart.Sparklines[1].Data = append(myPage.MemoryChart.Sparklines[1].Data, data.MemStats[2])
+					myPage.MemoryChart.Sparklines[2].Data = append(myPage.MemoryChart.Sparklines[2].Data, data.MemStats[3])
+					myPage.MemoryChart.Sparklines[3].Data = append(myPage.MemoryChart.Sparklines[3].Data, data.MemStats[4])
+					myPage.MemoryChart.Sparklines[0].Title = fmt.Sprintf("Used: %.1fG/%.1fG", data.MemStats[1], data.MemStats[0])
+					myPage.MemoryChart.Sparklines[1].Title = fmt.Sprintf("Available: %.1fG/%.1fG", data.MemStats[2], data.MemStats[0])
+					myPage.MemoryChart.Sparklines[2].Title = fmt.Sprintf("Free: %.1fG/%.1fG", data.MemStats[3], data.MemStats[0])
+					myPage.MemoryChart.Sparklines[3].Title = fmt.Sprintf("Cached: %.1fG/%.1fG", data.MemStats[4], data.MemStats[0])
 
 				case "DISK": // Update Disk stats
 					myPage.DiskChart.Rows = data.DiskStats
+
+				case "TEMP":
+					myPage.TemperatureTable.Rows = data.TempStats
 
 				case "NET": // Update Network stats
 					var curBytesRecv, curBytesSent float64
@@ -177,8 +198,13 @@ func RenderCharts(ctx context.Context,
 						if int(recentBytesSent) < 0 {
 							recentBytesSent = 0
 						}
-
+						if len(myPage.NetworkChart.Sparklines[0].Data) > 100 {
+							myPage.NetworkChart.Sparklines[0].Data = myPage.NetworkChart.Sparklines[0].Data[1:]
+						}
 						myPage.NetworkChart.Sparklines[0].Data = append(myPage.NetworkChart.Sparklines[0].Data, recentBytesRecv)
+						if len(myPage.NetworkChart.Sparklines[1].Data) > 100 {
+							myPage.NetworkChart.Sparklines[1].Data = myPage.NetworkChart.Sparklines[1].Data[1:]
+						}
 						myPage.NetworkChart.Sparklines[1].Data = append(myPage.NetworkChart.Sparklines[1].Data, recentBytesSent)
 
 					}

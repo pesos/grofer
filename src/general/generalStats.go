@@ -32,6 +32,7 @@ func GlobalStats(ctx context.Context, dataChannel chan utils.DataStats, refreshR
 		ServeMemRates,
 		ServeDiskRates,
 		ServeNetRates,
+		ServeTemperatureRates,
 	}
 
 	return utils.TickUntilDone(ctx, int64(refreshRate), func() error {

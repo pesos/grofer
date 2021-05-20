@@ -25,13 +25,15 @@ import (
 
 // MainPage contains the ui widgets for the ui rendered by the grofer command
 type MainPage struct {
-	Grid         *ui.Grid
-	MemoryChart  *utils.BarChart
+	Grid        *ui.Grid
+	MemoryChart *widgets.SparklineGroup
+	//SwapChart    *widgets.PieChart
 	DiskChart    *widgets.Table
 	NetworkChart *widgets.SparklineGroup
-	CPUCharts    []*widgets.Gauge
-	CPUTable     *utils.Table
-	CPUGraph     *utils.LineGraph
+	//CPUCharts    []*widgets.Gauge
+	//CPUTable     *utils.Table
+	CPUGraph         *utils.LineGraph
+	TemperatureTable *widgets.Table
 }
 
 type CPUPage struct {
@@ -55,14 +57,25 @@ func NewPage(numCores int) *MainPage {
 	txSparkLine := widgets.NewSparkline()
 	txSparkLine.Data = []float64{}
 
+	memAvailableSparkLine := widgets.NewSparkline()
+	memAvailableSparkLine.Data = []float64{}
+	memUsedSparkLine := widgets.NewSparkline()
+	memUsedSparkLine.Data = []float64{}
+	memFreeSparkLine := widgets.NewSparkline()
+	memFreeSparkLine.Data = []float64{}
+	memCachedSparkLine := widgets.NewSparkline()
+	memCachedSparkLine.Data = []float64{}
+
 	page := &MainPage{
-		Grid:         ui.NewGrid(),
-		MemoryChart:  utils.NewBarChart(),
+		Grid:        ui.NewGrid(),
+		MemoryChart: widgets.NewSparklineGroup(memUsedSparkLine, memAvailableSparkLine, memFreeSparkLine, memCachedSparkLine),
+		//SwapChart:    widgets.NewPieChart(),
 		DiskChart:    widgets.NewTable(),
 		NetworkChart: widgets.NewSparklineGroup(rxSparkLine, txSparkLine),
-		CPUCharts:    make([]*widgets.Gauge, 0),
-		CPUTable:     utils.NewTable(),
-		CPUGraph:     utils.NewLineGraph(),
+		//CPUCharts:    make([]*widgets.Gauge, 0),
+		//CPUTable:     utils.NewTable(),
+		CPUGraph:         utils.NewLineGraph(),
+		TemperatureTable: widgets.NewTable(),
 	}
 	page.InitGeneral(numCores)
 	return page
@@ -90,43 +103,52 @@ func NewCPUPage(numCores int) *CPUPage {
 func (page *MainPage) InitGeneral(numCores int) {
 	// Initialize Bar Graph for Memory Chart
 	page.memoryChartWidget()
-
 	// Initialize Table for Disk Chart
 	page.diskChartWidget()
-
 	// Initialize Plot for Network Chart
 	page.networkChartWidget()
-
-	// Initialise Graph for CPU Usage
+	// Initialize Graph for CPU Usage
 	page.cpuGraphWidget(numCores)
-
+	// Initialize Graph for Temperature Table
+	page.temperatureTableWidget()
+	// Get Terminal Dimensions
 	w, h := ui.TerminalDimensions()
 	page.Grid.Set(
-		ui.NewCol(0.5, page.CPUGraph),
-		ui.NewCol(0.5,
+		ui.NewCol(0.4, page.CPUGraph),
+		ui.NewCol(0.6,
 			ui.NewRow(0.34, page.MemoryChart),
-			ui.NewRow(0.34, page.NetworkChart),
+			ui.NewRow(0.34, ui.NewCol(0.5, page.NetworkChart), ui.NewCol(0.5, page.TemperatureTable)),
 			ui.NewRow(0.34, page.DiskChart)),
 	)
 	page.Grid.SetRect(0, 0, w, h)
 }
 
 func (page *MainPage) memoryChartWidget() {
-	page.MemoryChart.Title = " Memory (RAM) "
-	page.MemoryChart.TitleStyle = ui.NewStyle(ui.ColorClear)
-	page.MemoryChart.Labels = []string{"Total", "Available", "Used", "Free", "Total Swap", "Cached Swap", "Free Swap"}
-
-	page.MemoryChart.PaddingRight = 2
-	page.MemoryChart.PaddingBottom = 2
-	page.MemoryChart.PaddingTop = 2
-	page.MemoryChart.PaddingLeft = 2
-	page.MemoryChart.BarWidth = 8
-	page.MemoryChart.BarGap = 0
-
-	page.MemoryChart.BarColors = []ui.Color{ui.ColorCyan, ui.ColorGreen}
-	page.MemoryChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorClear)}
-	page.MemoryChart.NumStyles = []ui.Style{ui.NewStyle(ui.ColorBlack)}
+	page.MemoryChart.Title = " Memory(RAM) "
 	page.MemoryChart.BorderStyle.Fg = ui.ColorCyan
+	page.MemoryChart.TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.MemoryChart.Sparklines[0].TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.MemoryChart.Sparklines[0].LineColor = ui.ColorRed
+	page.MemoryChart.Sparklines[1].TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.MemoryChart.Sparklines[1].LineColor = ui.ColorGreen
+	page.MemoryChart.Sparklines[2].TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.MemoryChart.Sparklines[2].LineColor = ui.ColorBlue
+	page.MemoryChart.Sparklines[3].TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.MemoryChart.Sparklines[3].LineColor = ui.ColorYellow
+}
+
+func (page *MainPage) temperatureTableWidget() {
+	page.TemperatureTable.Title = " Temp "
+	page.TemperatureTable.TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
+	page.TemperatureTable.TextStyle = ui.NewStyle(ui.ColorClear)
+	page.TemperatureTable.TextAlignment = ui.AlignCenter
+	page.TemperatureTable.RowSeparator = true
+	page.TemperatureTable.ColumnWidths = []int{20, 20}
+	page.TemperatureTable.ColumnResizer = func() {
+		x := page.TemperatureTable.Inner.Dx()
+		page.TemperatureTable.ColumnWidths = []int{x / 2, x / 2}
+	}
 }
 
 func (page *MainPage) diskChartWidget() {
@@ -170,7 +192,7 @@ func (page *MainPage) cpuGraphWidget(numCores int) {
 	page.CPUGraph.Min.Y = 0
 	page.CPUGraph.Max.Y = 100
 	for i := 0; i < numCores; i++ {
-		key := fmt.Sprintf("CPU%2d", i)
+		key := fmt.Sprintf("CPU%d", i)
 		page.CPUGraph.LineColors[key] = ui.Color(i + 1)
 		page.CPUGraph.Data[key] = []float64{0}
 	}

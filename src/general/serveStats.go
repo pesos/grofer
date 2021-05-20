@@ -25,6 +25,7 @@ import (
 	"github.com/pesos/grofer/src/utils"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
+	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/net"
 )
@@ -69,14 +70,41 @@ func ServeMemRates(ctx context.Context, dataChannel chan utils.DataStats) error 
 		return err
 	}
 
-	memRates := []float64{roundOff(memory.Total), roundOff(memory.Available), roundOff(memory.Used), roundOff(memory.Free),
-		roundOff(memory.SwapTotal), roundOff(memory.SwapCached), roundOff(memory.SwapFree)}
+	memRates := []float64{roundOff(memory.Total), roundOff(memory.Used), roundOff(memory.Available), roundOff(memory.Free), roundOff(memory.Cached)}
 
 	data := utils.DataStats{
 		MemStats: memRates,
 		FieldSet: "MEM",
 	}
 
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case dataChannel <- data:
+		return nil
+	}
+}
+
+func ServeTemperatureRates(ctx context.Context, dataChannel chan utils.DataStats) error {
+	sensors, err := host.SensorsTemperatures()
+	if err != nil {
+		return err
+	}
+	tempRates := [][]string{{"Sensor", "Temp(Celcius)"}}
+	for _, sensor := range sensors {
+		if strings.Contains(sensor.SensorKey, "input") && sensor.Temperature != 0 {
+			label := sensor.SensorKey
+			//tempRates[label] = int(sensor.Temperature)
+			temp := fmt.Sprintf("%.1f C", sensor.Temperature)
+			row := []string{label, temp}
+			tempRates = append(tempRates, row)
+		}
+	}
+
+	data := utils.DataStats{
+		TempStats: tempRates,
+		FieldSet:  "TEMP",
+	}
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
