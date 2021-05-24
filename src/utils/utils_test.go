@@ -49,7 +49,7 @@ func TestRoundValues(t *testing.T) {
 			inBytes:             false,
 		},
 		{
-			expectedUnit:        " per trillion ",
+			expectedUnit:        " per billion ",
 			input:               []float64{100000000, 100000000000},
 			expectedRoundedVals: []float64{0.1, 100},
 			inBytes:             false,
