@@ -49,9 +49,21 @@ func TestRoundValues(t *testing.T) {
 			inBytes:             false,
 		},
 		{
-			expectedUnit:        " per trillion ",
+			expectedUnit:        " per billion ",
 			input:               []float64{100000000, 100000000000},
 			expectedRoundedVals: []float64{0.1, 100},
+			inBytes:             false,
+		},
+		{
+			expectedUnit:        " per trillion ",
+			input:               []float64{100000000000, 10000000000000},
+			expectedRoundedVals: []float64{0.1, 10},
+			inBytes:             false,
+		},
+		{
+			expectedUnit:        " per quadrillion ",
+			input:               []float64{100000000000000, 10000000000000000},
+			expectedRoundedVals: []float64{0.1, 10},
 			inBytes:             false,
 		},
 		{
@@ -76,6 +88,18 @@ func TestRoundValues(t *testing.T) {
 			expectedUnit:        " gB ",
 			input:               []float64{100000000, 100000000000},
 			expectedRoundedVals: []float64{0.1, 100},
+			inBytes:             true,
+		},
+		{
+			expectedUnit:        " tB ",
+			input:               []float64{100000000000, 10000000000000},
+			expectedRoundedVals: []float64{0.1, 10},
+			inBytes:             true,
+		},
+		{
+			expectedUnit:        " pB ",
+			input:               []float64{100000000000000, 10000000000000000},
+			expectedRoundedVals: []float64{0.1, 10},
 			inBytes:             true,
 		},
 	}
