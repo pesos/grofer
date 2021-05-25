@@ -173,7 +173,8 @@ func RenderCharts(ctx context.Context,
 					myPage.MemoryChart.Sparklines[3].Title = fmt.Sprintf("Cached: %.1fG/%.1fG", data.MemStats[4], data.MemStats[0])
 
 				case "DISK": // Update Disk stats
-					myPage.DiskChart.Rows = data.DiskStats
+					myPage.DiskChart.Header = data.DiskStats[0]
+					myPage.DiskChart.Rows = data.DiskStats[1:]
 
 				case "TEMP":
 					myPage.TemperatureTable.Rows = data.TempStats

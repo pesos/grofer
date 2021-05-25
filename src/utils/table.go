@@ -45,8 +45,9 @@ type Table struct {
 	SelectedItem string // used to keep the cursor on the correct item if the data changes
 	SelectedRow  int
 	TopRow       int // used to indicate where in the table we are scrolled at
-
-	ColResizer func()
+	HeaderStyle  ui.Style
+	CellStyle    ui.Style
+	ColResizer   func()
 }
 
 // NewTable returns a new Table instance
@@ -56,7 +57,9 @@ func NewTable() *Table {
 		SelectedRow: 0,
 		TopRow:      0,
 		UniqueCol:   0,
+		HeaderStyle: ui.NewStyle(ui.Theme.Default.Fg, ui.ColorClear, ui.ModifierBold),
 		ColResizer:  func() {},
+		CellStyle:   ui.Theme.Default,
 	}
 }
 
@@ -90,7 +93,7 @@ func (t *Table) Draw(buf *ui.Buffer) {
 		}
 		buf.SetString(
 			h,
-			ui.NewStyle(ui.Theme.Default.Fg, ui.ColorClear, ui.ModifierBold),
+			t.HeaderStyle,
 			image.Pt(t.Inner.Min.X+colXPos[i]-1, t.Inner.Min.Y),
 		)
 	}
@@ -138,7 +141,7 @@ func (t *Table) Draw(buf *ui.Buffer) {
 			r := ui.TrimString(row[i], width)
 			buf.SetString(
 				r,
-				style,
+				t.CellStyle,
 				image.Pt(t.Inner.Min.X+colXPos[i]-1, t.Inner.Min.Y+y-1),
 			)
 		}
