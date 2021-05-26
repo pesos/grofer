@@ -124,7 +124,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 
 	var on sync.Once
 	var help *h.HelpMenu = h.NewHelpMenu()
-	var signals *h.SignalList = h.NewSignalList()
+	var signals *h.SignalTable = h.NewSignalTable()
 	h.SelectHelpMenu("proc")
 
 	myPage := NewAllProcsPage()
@@ -297,10 +297,19 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 						killSelected = false
 						updateProcs()
 					case "j", "<Down>":
-						signals.List.ScrollDown()
+						signals.Table.ScrollDown()
 						ui.Render(signals)
 					case "k", "<Up>":
-						signals.List.ScrollUp()
+						signals.Table.ScrollUp()
+						ui.Render(signals)
+					case "1", "2", "3", "4", "5", "6", "7", "8", "9":
+						scrollIdx, _ := strconv.Atoi(e.ID)
+						if utils.Contains([]string{"1", "2", "3"}, previousKey) != -1 {
+							prevIdx, _ := strconv.Atoi(previousKey)
+							scrollIdx = 10 * prevIdx + scrollIdx
+							previousKey = "g" // TODO: don't use this hack
+						}
+						signals.Table.ScrollToIndex(scrollIdx-1) // account for 0-indexing
 						ui.Render(signals)
 					case "<Enter>":
 						signalToSend := signals.SelectedSignal()
