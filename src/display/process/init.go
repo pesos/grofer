@@ -188,10 +188,10 @@ func (page *AllProcPage) InitAllProc() {
 	}
 	page.ProcTable.ShowCursor = true
 	page.ProcTable.CursorColor = ui.ColorCyan
-	page.ProcTable.RowStyle = ui.NewStyle(ui.ColorCyan)
+	page.ProcTable.RowStyle = ui.NewStyle(ui.ColorClear)
 	page.ProcTable.ColColor = []utils.CustomColColor{{ColNumber: 1, ColColor: ui.ColorGreen}}
 	page.ProcTable.BorderStyle.Fg = ui.ColorCyan
-	page.ProcTable.HeaderStyle = ui.NewStyle(ui.ColorBlue, ui.ColorClear, ui.ModifierUnderline)
+	//page.ProcTable.HeaderStyle = ui.NewStyle(ui.ColorBlue, ui.ColorClear, ui.ModifierUnderline)
 
 	page.Grid.Set(
 		ui.NewRow(1.0, page.ProcTable),

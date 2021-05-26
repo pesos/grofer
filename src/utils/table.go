@@ -37,6 +37,7 @@ type Table struct {
 	Header []string
 	Rows   [][]string
 
+	// Different Styles for Header and Rows
 	HeaderStyle ui.Style
 	RowStyle    ui.Style
 
@@ -53,8 +54,9 @@ type Table struct {
 	SelectedItem string // used to keep the cursor on the correct item if the data changes
 	SelectedRow  int
 	TopRow       int // used to indicate where in the table we are scrolled at
-	ColColor     []CustomColColor
-	ColResizer   func()
+	// List of type CustomColColor which can store column number and color. Allows you to set different colors for different columns
+	ColColor   []CustomColColor
+	ColResizer func()
 }
 
 // NewTable returns a new Table instance
@@ -137,9 +139,10 @@ func (t *Table) Draw(buf *ui.Buffer) {
 			}
 		}
 		// prints each col of the row
-
+		tempColor := style.Fg
 		for i, width := range t.ColWidths {
-			style.Fg = t.RowStyle.Fg
+			style.Fg = tempColor
+			// Change Foreground color if the column number is in the ColColor list
 			for _, x := range t.ColColor {
 				if x.ColNumber == i {
 					style.Fg = x.ColColor
