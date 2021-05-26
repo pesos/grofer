@@ -26,6 +26,7 @@ var (
 	M = math.Pow(10, 6)
 	G = math.Pow(10, 9)
 	T = math.Pow(10, 12)
+	Q = math.Pow(10, 15)
 )
 
 func roundOffNearestTen(num float64, divisor float64) float64 {
@@ -62,7 +63,17 @@ func RoundValues(num1, num2 float64, inBytes bool) ([]float64, string) {
 	case n < T:
 		nums = append(nums, roundOffNearestTen(num1, G))
 		nums = append(nums, roundOffNearestTen(num2, G))
+		units = " per billion "
+
+	case n < Q:
+		nums = append(nums, roundOffNearestTen(num1, T))
+		nums = append(nums, roundOffNearestTen(num2, T))
 		units = " per trillion "
+
+	case n >= Q:
+		nums = append(nums, roundOffNearestTen(num1, Q))
+		nums = append(nums, roundOffNearestTen(num2, Q))
+		units = " per quadrillion "
 	}
 
 	if inBytes {
@@ -73,8 +84,12 @@ func RoundValues(num1, num2 float64, inBytes bool) ([]float64, string) {
 			units = " kB "
 		case " per million ":
 			units = " mB "
-		case " per trillion ":
+		case " per billion ":
 			units = " gB "
+		case " per trillion ":
+			units = " tB "
+		case " per quadrillion ":
+			units = " pB "
 		}
 	}
 
