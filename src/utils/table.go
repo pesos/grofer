@@ -221,7 +221,7 @@ func (t *Table) ScrollPageDown() {
 }
 
 func (t *Table) ScrollToIndex(idx int) {
-	if idx < 0 || idx>=len(t.Rows) {
+	if idx < 0 || idx >= len(t.Rows) {
 		return
 	}
 	t.SelectedRow = idx

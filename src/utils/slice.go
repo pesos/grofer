@@ -6,5 +6,5 @@ func Contains(slc []string, item string) int {
 			return i
 		}
 	}
-	return -1;
+	return -1
 }
