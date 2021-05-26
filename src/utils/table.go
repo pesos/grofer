@@ -25,11 +25,6 @@ import (
 	ui "github.com/gizak/termui/v3"
 )
 
-type CustomColColor struct {
-	ColNumber int
-	ColColor  ui.Color
-}
-
 // Custom table widget
 type Table struct {
 	*ui.Block
@@ -54,8 +49,8 @@ type Table struct {
 	SelectedItem string // used to keep the cursor on the correct item if the data changes
 	SelectedRow  int
 	TopRow       int // used to indicate where in the table we are scrolled at
-	// List of type CustomColColor which can store column number and color. Allows you to set different colors for different columns
-	ColColor   []CustomColColor
+	// Map that stores custom column colors
+	ColColor   map[int]ui.Color
 	ColResizer func()
 }
 
@@ -69,7 +64,7 @@ func NewTable() *Table {
 		TopRow:      0,
 		UniqueCol:   0,
 		ColResizer:  func() {},
-		ColColor:    []CustomColColor{},
+		ColColor:    make(map[int]ui.Color),
 	}
 }
 
@@ -143,10 +138,8 @@ func (t *Table) Draw(buf *ui.Buffer) {
 		for i, width := range t.ColWidths {
 			style.Fg = tempColor
 			// Change Foreground color if the column number is in the ColColor list
-			for _, x := range t.ColColor {
-				if x.ColNumber == i {
-					style.Fg = x.ColColor
-				}
+			if val, ok := t.ColColor[i]; ok {
+				style.Fg = val
 			}
 			if width == 0 {
 				continue
