@@ -25,12 +25,20 @@ import (
 	ui "github.com/gizak/termui/v3"
 )
 
+type CustomColColor struct {
+	ColNumber int
+	ColColor  ui.Color
+}
+
 // Custom table widget
 type Table struct {
 	*ui.Block
 
 	Header []string
 	Rows   [][]string
+
+	HeaderStyle ui.Style
+	RowStyle    ui.Style
 
 	ColWidths []int
 	ColGap    int
@@ -45,18 +53,21 @@ type Table struct {
 	SelectedItem string // used to keep the cursor on the correct item if the data changes
 	SelectedRow  int
 	TopRow       int // used to indicate where in the table we are scrolled at
-
-	ColResizer func()
+	ColColor     []CustomColColor
+	ColResizer   func()
 }
 
 // NewTable returns a new Table instance
 func NewTable() *Table {
 	return &Table{
 		Block:       ui.NewBlock(),
+		HeaderStyle: ui.NewStyle(ui.ColorClear, ui.ColorClear, ui.ModifierBold),
+		RowStyle:    ui.NewStyle(ui.Theme.Default.Fg),
 		SelectedRow: 0,
 		TopRow:      0,
 		UniqueCol:   0,
 		ColResizer:  func() {},
+		ColColor:    []CustomColColor{},
 	}
 }
 
@@ -90,7 +101,7 @@ func (t *Table) Draw(buf *ui.Buffer) {
 		}
 		buf.SetString(
 			h,
-			ui.NewStyle(ui.Theme.Default.Fg, ui.ColorClear, ui.ModifierBold),
+			t.HeaderStyle,
 			image.Pt(t.Inner.Min.X+colXPos[i]-1, t.Inner.Min.Y),
 		)
 	}
@@ -106,7 +117,7 @@ func (t *Table) Draw(buf *ui.Buffer) {
 		y := (rowNum + 2) - t.TopRow
 
 		// prints cursor
-		style := ui.NewStyle(ui.Theme.Default.Fg)
+		style := t.RowStyle
 		if t.ShowCursor {
 			if (t.SelectedItem == "" && rowNum == t.SelectedRow) || (t.SelectedItem != "" && t.SelectedItem == row[t.UniqueCol]) {
 				style.Fg = t.CursorColor
@@ -125,9 +136,15 @@ func (t *Table) Draw(buf *ui.Buffer) {
 				t.SelectedRow = rowNum
 			}
 		}
-
 		// prints each col of the row
+
 		for i, width := range t.ColWidths {
+			style.Fg = t.RowStyle.Fg
+			for _, x := range t.ColColor {
+				if x.ColNumber == i {
+					style.Fg = x.ColColor
+				}
+			}
 			if width == 0 {
 				continue
 			}
