@@ -220,6 +220,14 @@ func (t *Table) ScrollPageDown() {
 	t.calcPos()
 }
 
+func (t *Table) ScrollToIndex(idx int) {
+	if idx < 0 || idx>=len(t.Rows) {
+		return
+	}
+	t.SelectedRow = idx
+	t.calcPos()
+}
+
 func (t *Table) HandleClick(x, y int) {
 	x = x - t.Min.X
 	y = y - t.Min.Y
