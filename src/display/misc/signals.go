@@ -18,46 +18,151 @@ package misc
 
 import (
 	ui "github.com/gizak/termui/v3"
-	"github.com/gizak/termui/v3/widgets"
+	"github.com/pesos/grofer/src/utils"
 	"syscall"
 )
 
-var allSignals = []string{
-	"SIGABRT",
-	"SIGALRM",
-	"SIGBUS",
-	"SIGCHLD",
-	"SIGCLD",
-	"SIGCONT",
-	"SIGFPE",
-	"SIGHUP",
-	"SIGILL",
-	"SIGINT",
-	"SIGIO",
-	"SIGIOT",
-	"SIGKILL",
-	"SIGPIPE",
-	"SIGPOLL",
-	"SIGPROF",
-	"SIGPWR",
-	"SIGQUIT",
-	"SIGSEGV",
-	"SIGSTKFLT",
-	"SIGSTOP",
-	"SIGSYS",
-	"SIGTERM",
-	"SIGTRAP",
-	"SIGTSTP",
-	"SIGTTIN",
-	"SIGTTOU",
-	"SIGUNUSED",
-	"SIGURG",
-	"SIGUSR1",
-	"SIGUSR2",
-	"SIGVTALRM",
-	"SIGWINCH",
-	"SIGXCPU",
-	"SIGXFSZ",
+var allSignals = [][]string{
+	{
+		"1",
+		"SIGABRT",
+	},
+	{
+		"2",
+		"SIGALRM",
+	},
+	{
+		"3",
+		"SIGBUS",
+	},
+	{
+		"4",
+		"SIGCHLD",
+	},
+	{
+		"5",
+		"SIGCLD",
+	},
+	{
+		"6",
+		"SIGCONT",
+	},
+	{
+		"7",
+		"SIGFPE",
+	},
+	{
+		"8",
+		"SIGHUP",
+	},
+	{
+		"9",
+		"SIGILL",
+	},
+	{
+		"10",
+		"SIGINT",
+	},
+	{
+		"11",
+		"SIGIO",
+	},
+	{
+		"12",
+		"SIGIOT",
+	},
+	{
+		"13",
+		"SIGKILL",
+	},
+	{
+		"14",
+		"SIGPIPE",
+	},
+	{
+		"15",
+		"SIGPOLL",
+	},
+	{
+		"16",
+		"SIGPROF",
+	},
+	{
+		"17",
+		"SIGPWR",
+	},
+	{
+		"18",
+		"SIGQUIT",
+	},
+	{
+		"19",
+		"SIGSEGV",
+	},
+	{
+		"20",
+		"SIGSTKFLT",
+	},
+	{
+		"21",
+		"SIGSTOP",
+	},
+	{
+		"22",
+		"SIGSYS",
+	},
+	{
+		"23",
+		"SIGTERM",
+	},
+	{
+		"24",
+		"SIGTRAP",
+	},
+	{
+		"25",
+		"SIGTSTP",
+	},
+	{
+		"26",
+		"SIGTTIN",
+	},
+	{
+		"27",
+		"SIGTTOU",
+	},
+	{
+		"28",
+		"SIGUNUSED",
+	},
+	{
+		"29",
+		"SIGURG",
+	},
+	{
+		"30",
+		"SIGUSR1",
+	},
+	{
+		"31",
+		"SIGUSR2",
+	},
+	{
+		"32",
+		"SIGVTALRM",
+	},
+	{
+		"33",
+		"SIGWINCH",
+	},
+	{
+		"34",
+		"SIGXCPU",
+	},
+	{
+		"35",
+		"SIGXFSZ",
+	},
 }
 
 var signalMap = map[string]syscall.Signal{
@@ -98,33 +203,44 @@ var signalMap = map[string]syscall.Signal{
 	"SIGXFSZ":   syscall.SIGXFSZ,
 }
 
-// SignalList is a wrapper widget around a List
+const sigNameIdx int = 1
+
+// SignalTable is a wrapper widget around a Table
 // meant to display error messages if any
-type SignalList struct {
-	*widgets.List
+type SignalTable struct {
+	*utils.Table
 }
 
-// NewErrorBox is a constructor for the SignalList type
-func NewSignalList() *SignalList {
-	return &SignalList{
-		List: widgets.NewList(),
+// NewSignalTable is a constructor for the SignalTable type
+func NewSignalTable() *SignalTable {
+	sigTable := &SignalTable{
+		Table: utils.NewTable(),
 	}
+	sigTable.Table.Title = " Select Signal "
+	sigTable.Table.Header = []string{"ID", "Signal"}
+	sigTable.Table.Rows = allSignals
+	sigTable.Table.ColWidths = []int{4, 10}
+	sigTable.Table.ColResizer = func() {
+		sigTable.Table.ColWidths = []int{
+			4,
+			10,
+		}
+	}
+	sigTable.Table.ShowCursor = true
+	sigTable.Table.CursorColor = ui.ColorCyan
+	sigTable.Table.BorderStyle.Fg = ui.ColorCyan
+	return sigTable
 }
 
-func (sigList *SignalList) SignalFromRow(rowIndex int) syscall.Signal {
-	return signalMap[sigList.Rows[rowIndex]]
+func (sigTable *SignalTable) SignalFromRow(rowIndex int) syscall.Signal {
+	return signalMap[sigTable.Rows[rowIndex][sigNameIdx]]
 }
 
-func (sigList *SignalList) SelectedSignal() syscall.Signal {
-	return signalMap[sigList.Rows[sigList.SelectedRow]]
+func (sigTable *SignalTable) SelectedSignal() syscall.Signal {
+	return signalMap[sigTable.Rows[sigTable.SelectedRow][sigNameIdx]]
 }
 
 // Draw puts the required text into the widget
-func (sigList *SignalList) Draw(buf *ui.Buffer) {
-	sigList.List.Title = " Select signal "
-
-	sigList.List.Rows = allSignals
-	sigList.List.TextStyle = ui.NewStyle(ui.ColorYellow)
-	sigList.List.WrapText = false
-	sigList.List.Draw(buf)
+func (sigTable *SignalTable) Draw(buf *ui.Buffer) {
+	sigTable.Table.Draw(buf)
 }
