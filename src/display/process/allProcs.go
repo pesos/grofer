@@ -149,7 +149,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 	tick := t.C
 
 	previousKey := ""
-	selectedStyle := ui.ColorCyan
+	selectedStyle := myPage.ProcTable.CursorColor
 	killingStyle := ui.ColorMagenta
 	errorStyle := ui.ColorRed
 
@@ -296,7 +296,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 
 		case data := <-dataChannel:
 			if runAllProc {
-				//myPage.ProcTable.CursorColor = selectedStyle
+				myPage.ProcTable.CursorColor = selectedStyle
 				procData := getData(data)
 				myPage.ProcTable.Rows = procData
 				if sortIdx != -1 {
