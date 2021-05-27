@@ -305,7 +305,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 						ui.Render(signals)
 					case "1", "2", "3", "4", "5", "6", "7", "8", "9":
 						scrollIdx, _ := strconv.Atoi(e.ID)
-						if utils.Contains([]string{"1", "2", "3"}, previousKey) != -1 {
+						if _, checkPrev := map[string]bool{"1": true, "2": true, "3": true}[previousKey]; checkPrev {
 							prevIdx, _ := strconv.Atoi(previousKey)
 							scrollIdx = 10*prevIdx + scrollIdx
 							previousKey = "g" // TODO: don't use this hack
