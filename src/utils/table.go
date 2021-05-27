@@ -42,7 +42,6 @@ type Table struct {
 
 	ShowCursor  bool
 	CursorColor ui.Color
-	CurCol      ui.Color
 
 	ShowLocation bool
 
@@ -66,8 +65,7 @@ func NewTable() *Table {
 		UniqueCol:   0,
 		ColResizer:  func() {},
 		ColColor:    make(map[int]ui.Color),
-		CursorColor: ui.ColorGreen,
-		CurCol:      ui.ColorCyan,
+		CursorColor: ui.ColorBlue,
 	}
 }
 
@@ -118,7 +116,7 @@ func (t *Table) Draw(buf *ui.Buffer) {
 		style := t.RowStyle
 		if t.ShowCursor {
 			if (t.SelectedItem == "" && rowNum == t.SelectedRow) || (t.SelectedItem != "" && t.SelectedItem == row[t.UniqueCol]) {
-				style.Fg = t.CurCol
+				style.Fg = t.CursorColor
 				style.Modifier = ui.ModifierReverse
 				for _, width := range t.ColWidths {
 					if width == 0 {
@@ -143,7 +141,7 @@ func (t *Table) Draw(buf *ui.Buffer) {
 			// Change Foreground color if the column number is in the ColColor list
 			if val, ok := t.ColColor[i]; ok {
 				if rowNum == t.SelectedRow {
-					style.Fg = t.CurCol
+					style.Fg = t.CursorColor
 				} else {
 					style.Fg = val
 				}
