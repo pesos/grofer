@@ -65,7 +65,7 @@ func NewTable() *Table {
 		UniqueCol:   0,
 		ColResizer:  func() {},
 		ColColor:    make(map[int]ui.Color),
-		CursorColor: ui.ColorBlue,
+		CursorColor: ui.ColorCyan,
 	}
 }
 

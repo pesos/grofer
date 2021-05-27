@@ -296,7 +296,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 
 		case data := <-dataChannel:
 			if runAllProc {
-				myPage.ProcTable.CursorColor = selectedStyle
+				//myPage.ProcTable.CursorColor = selectedStyle
 				procData := getData(data)
 				myPage.ProcTable.Rows = procData
 				if sortIdx != -1 {
