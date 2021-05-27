@@ -65,6 +65,7 @@ func NewTable() *Table {
 		UniqueCol:   0,
 		ColResizer:  func() {},
 		ColColor:    make(map[int]ui.Color),
+		CursorColor: ui.ColorBlue,
 	}
 }
 
@@ -107,12 +108,10 @@ func (t *Table) Draw(buf *ui.Buffer) {
 		log.Printf("table widget TopRow value less than 0. TopRow: %v", t.TopRow)
 		return
 	}
-
 	// prints each row
 	for rowNum := t.TopRow; rowNum < t.TopRow+t.Inner.Dy()-1 && rowNum < len(t.Rows); rowNum++ {
 		row := t.Rows[rowNum]
 		y := (rowNum + 2) - t.TopRow
-
 		// prints cursor
 		style := t.RowStyle
 		if t.ShowCursor {
@@ -134,12 +133,18 @@ func (t *Table) Draw(buf *ui.Buffer) {
 			}
 		}
 		// prints each col of the row
-		tempColor := style.Fg
+		tempFgColor := style.Fg
+		tempBgColor := style.Bg
 		for i, width := range t.ColWidths {
-			style.Fg = tempColor
+			style.Fg = tempFgColor
+			style.Bg = tempBgColor
 			// Change Foreground color if the column number is in the ColColor list
 			if val, ok := t.ColColor[i]; ok {
-				style.Fg = val
+				if rowNum == t.SelectedRow {
+					style.Fg = t.CursorColor
+				} else {
+					style.Fg = val
+				}
 			}
 			if width == 0 {
 				continue
