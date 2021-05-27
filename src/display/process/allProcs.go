@@ -149,7 +149,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 	tick := t.C
 
 	previousKey := ""
-	selectedStyle := ui.ColorCyan
+	selectedStyle := myPage.ProcTable.CursorColor
 	killingStyle := ui.ColorMagenta
 	errorStyle := ui.ColorRed
 
