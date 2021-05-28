@@ -186,13 +186,12 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 				return info.ErrCanceledByUser
 			case "?":
 				helpVisible = !helpVisible
+				updateUI()
 			case "<Resize>":
 				updateUI() // updateUI only during resize event
 			}
 			if helpVisible {
 				switch e.ID {
-				case "?":
-					updateUI()
 				case "<Escape>":
 					helpVisible = false
 					updateUI()
@@ -206,8 +205,6 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 			} else {
 				if !killSelected {
 					switch e.ID {
-					case "?":
-						updateUI()
 					case "s": //s to pause
 						pauseProc()
 					case "j", "<Down>":
