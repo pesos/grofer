@@ -174,8 +174,10 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 	// whether a process is selected for killing (UI controls are paused)
 	killSelected := false
 	var pidToKill int32
+	var handledPreviousKey bool
 
 	for {
+		handledPreviousKey = false
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -222,6 +224,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 					case "g":
 						if previousKey == "g" {
 							myPage.ProcTable.ScrollTop()
+							handledPreviousKey = true
 						}
 					case "<Home>":
 						myPage.ProcTable.ScrollTop()
@@ -305,7 +308,8 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 						if _, checkPrev := map[string]bool{"1": true, "2": true, "3": true}[previousKey]; checkPrev {
 							prevIdx, _ := strconv.Atoi(previousKey)
 							scrollIdx = 10*prevIdx + scrollIdx
-							previousKey = "g" // TODO: don't use this hack
+							handledPreviousKey = true
+							// previousKey = "g" // TODO: don't use this hack
 						}
 						signals.Table.ScrollToIndex(scrollIdx - 1) // account for 0-indexing
 						ui.Render(signals)
@@ -330,7 +334,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 				}
 
 				ui.Render(myPage.Grid)
-				if previousKey == "g" {
+				if handledPreviousKey {
 					previousKey = ""
 				} else {
 					previousKey = e.ID
