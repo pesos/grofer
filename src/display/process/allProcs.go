@@ -133,15 +133,15 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 		w, h := ui.TerminalDimensions()
 		myPage.Grid.SetRect(0, 0, w, h)
 		help.Resize(w, h)
-		if sendSignal {
-			signals.SetRect(0, 0, w/6, h)
-			myPage.Grid.SetRect(w/6, 0, w, h)
-			ui.Render(signals)
-		}
 		if helpVisible {
 			ui.Clear()
 			ui.Render(help)
 		} else {
+			if sendSignal {
+				signals.SetRect(0, 0, w/6, h)
+				myPage.Grid.SetRect(w/6, 0, w, h)
+				ui.Render(signals)
+			}
 			ui.Render(myPage.Grid)
 		}
 	}
@@ -363,10 +363,10 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 			} else {
 				myPage.ProcTable.CursorColor = selectedStyle
 			}
-			if sendSignal {
-				ui.Render(signals)
-			}
 			if !helpVisible {
+				if sendSignal {
+					ui.Render(signals)
+				}
 				ui.Render(myPage.Grid)
 			}
 		}
