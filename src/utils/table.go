@@ -32,6 +32,10 @@ type Table struct {
 	Header []string
 	Rows   [][]string
 
+	// Different Styles for Header and Rows
+	HeaderStyle ui.Style
+	RowStyle    ui.Style
+
 	ColWidths []int
 	ColGap    int
 	PadLeft   int
@@ -45,7 +49,8 @@ type Table struct {
 	SelectedItem string // used to keep the cursor on the correct item if the data changes
 	SelectedRow  int
 	TopRow       int // used to indicate where in the table we are scrolled at
-
+	// Map that stores custom column colors
+	ColColor   map[int]ui.Color
 	ColResizer func()
 }
 
@@ -53,10 +58,14 @@ type Table struct {
 func NewTable() *Table {
 	return &Table{
 		Block:       ui.NewBlock(),
+		HeaderStyle: ui.NewStyle(ui.ColorClear, ui.ColorClear, ui.ModifierBold),
+		RowStyle:    ui.NewStyle(ui.Theme.Default.Fg),
 		SelectedRow: 0,
 		TopRow:      0,
 		UniqueCol:   0,
 		ColResizer:  func() {},
+		ColColor:    make(map[int]ui.Color),
+		CursorColor: ui.ColorCyan,
 	}
 }
 
@@ -90,7 +99,7 @@ func (t *Table) Draw(buf *ui.Buffer) {
 		}
 		buf.SetString(
 			h,
-			ui.NewStyle(ui.Theme.Default.Fg, ui.ColorClear, ui.ModifierBold),
+			t.HeaderStyle,
 			image.Pt(t.Inner.Min.X+colXPos[i]-1, t.Inner.Min.Y),
 		)
 	}
@@ -99,14 +108,12 @@ func (t *Table) Draw(buf *ui.Buffer) {
 		log.Printf("table widget TopRow value less than 0. TopRow: %v", t.TopRow)
 		return
 	}
-
 	// prints each row
 	for rowNum := t.TopRow; rowNum < t.TopRow+t.Inner.Dy()-1 && rowNum < len(t.Rows); rowNum++ {
 		row := t.Rows[rowNum]
 		y := (rowNum + 2) - t.TopRow
-
 		// prints cursor
-		style := ui.NewStyle(ui.Theme.Default.Fg)
+		style := t.RowStyle
 		if t.ShowCursor {
 			if (t.SelectedItem == "" && rowNum == t.SelectedRow) || (t.SelectedItem != "" && t.SelectedItem == row[t.UniqueCol]) {
 				style.Fg = t.CursorColor
@@ -125,9 +132,20 @@ func (t *Table) Draw(buf *ui.Buffer) {
 				t.SelectedRow = rowNum
 			}
 		}
-
 		// prints each col of the row
+		tempFgColor := style.Fg
+		tempBgColor := style.Bg
 		for i, width := range t.ColWidths {
+			style.Fg = tempFgColor
+			style.Bg = tempBgColor
+			// Change Foreground color if the column number is in the ColColor list
+			if val, ok := t.ColColor[i]; ok {
+				if rowNum == t.SelectedRow {
+					style.Fg = t.CursorColor
+				} else {
+					style.Fg = val
+				}
+			}
 			if width == 0 {
 				continue
 			}

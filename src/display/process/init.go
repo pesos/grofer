@@ -187,9 +187,9 @@ func (page *AllProcPage) InitAllProc() {
 		}
 	}
 	page.ProcTable.ShowCursor = true
-	page.ProcTable.CursorColor = ui.ColorCyan
+	page.ProcTable.RowStyle = ui.NewStyle(ui.ColorClear)
+	page.ProcTable.ColColor[1] = ui.ColorGreen
 	page.ProcTable.BorderStyle.Fg = ui.ColorCyan
-
 	page.Grid.Set(
 		ui.NewRow(1.0, page.ProcTable),
 	)
