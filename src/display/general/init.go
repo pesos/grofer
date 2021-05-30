@@ -26,7 +26,7 @@ import (
 // MainPage contains the ui widgets for the ui rendered by the grofer command
 type MainPage struct {
 	Grid        *ui.Grid
-	MemoryChart *widgets.SparklineGroup
+	MemoryChart *utils.HorizontalBarChart
 	//SwapChart    *widgets.PieChart
 	DiskChart    *widgets.Table
 	NetworkChart *widgets.SparklineGroup
@@ -68,7 +68,8 @@ func NewPage(numCores int) *MainPage {
 
 	page := &MainPage{
 		Grid:        ui.NewGrid(),
-		MemoryChart: widgets.NewSparklineGroup(memUsedSparkLine, memAvailableSparkLine, memFreeSparkLine, memCachedSparkLine),
+		MemoryChart: utils.NewHorizontalBarChart(),
+		//MemoryChart: widgets.NewSparklineGroup(memUsedSparkLine, memAvailableSparkLine, memFreeSparkLine, memCachedSparkLine),
 		//SwapChart:    widgets.NewPieChart(),
 		DiskChart:    widgets.NewTable(),
 		NetworkChart: widgets.NewSparklineGroup(rxSparkLine, txSparkLine),
@@ -127,14 +128,13 @@ func (page *MainPage) memoryChartWidget() {
 	page.MemoryChart.Title = " Memory(RAM) "
 	page.MemoryChart.BorderStyle.Fg = ui.ColorCyan
 	page.MemoryChart.TitleStyle = ui.NewStyle(ui.ColorClear)
-	page.MemoryChart.Sparklines[0].TitleStyle = ui.NewStyle(ui.ColorClear)
-	page.MemoryChart.Sparklines[0].LineColor = ui.ColorRed
-	page.MemoryChart.Sparklines[1].TitleStyle = ui.NewStyle(ui.ColorClear)
-	page.MemoryChart.Sparklines[1].LineColor = ui.ColorGreen
-	page.MemoryChart.Sparklines[2].TitleStyle = ui.NewStyle(ui.ColorClear)
-	page.MemoryChart.Sparklines[2].LineColor = ui.ColorBlue
-	page.MemoryChart.Sparklines[3].TitleStyle = ui.NewStyle(ui.ColorClear)
-	page.MemoryChart.Sparklines[3].LineColor = ui.ColorYellow
+	page.MemoryChart.ColResizer = func() {
+		if page.MemoryChart.Inner.Max.Y > 8 {
+			page.MemoryChart.BarWidth = 2
+		} else {
+			page.MemoryChart.BarWidth = 1
+		}
+	}
 }
 
 func (page *MainPage) temperatureTableWidget() {

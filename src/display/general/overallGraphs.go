@@ -157,20 +157,12 @@ func RenderCharts(ctx context.Context,
 					}
 
 				case "MEM": // Update Memory stats
-					if len(myPage.MemoryChart.Sparklines[0].Data) > 100 {
-						myPage.MemoryChart.Sparklines[0].Data = myPage.MemoryChart.Sparklines[0].Data[1:]
-						myPage.MemoryChart.Sparklines[1].Data = myPage.MemoryChart.Sparklines[1].Data[1:]
-						myPage.MemoryChart.Sparklines[2].Data = myPage.MemoryChart.Sparklines[2].Data[1:]
-						myPage.MemoryChart.Sparklines[3].Data = myPage.MemoryChart.Sparklines[3].Data[1:]
-					}
-					myPage.MemoryChart.Sparklines[0].Data = append(myPage.MemoryChart.Sparklines[0].Data, data.MemStats[1])
-					myPage.MemoryChart.Sparklines[1].Data = append(myPage.MemoryChart.Sparklines[1].Data, data.MemStats[2])
-					myPage.MemoryChart.Sparklines[2].Data = append(myPage.MemoryChart.Sparklines[2].Data, data.MemStats[3])
-					myPage.MemoryChart.Sparklines[3].Data = append(myPage.MemoryChart.Sparklines[3].Data, data.MemStats[4])
-					myPage.MemoryChart.Sparklines[0].Title = fmt.Sprintf("Used: %.1fG/%.1fG", data.MemStats[1], data.MemStats[0])
-					myPage.MemoryChart.Sparklines[1].Title = fmt.Sprintf("Available: %.1fG/%.1fG", data.MemStats[2], data.MemStats[0])
-					myPage.MemoryChart.Sparklines[2].Title = fmt.Sprintf("Free: %.1fG/%.1fG", data.MemStats[3], data.MemStats[0])
-					myPage.MemoryChart.Sparklines[3].Title = fmt.Sprintf("Cached: %.1fG/%.1fG", data.MemStats[4], data.MemStats[0])
+					myPage.MemoryChart.MaxVal = data.MemStats[0]
+					myPage.MemoryChart.Data = data.MemStats[1:]
+					myPage.MemoryChart.Labels = append(myPage.MemoryChart.Labels, fmt.Sprintf("Used: %.2fG/%.2fG", data.MemStats[1], data.MemStats[0]))
+					myPage.MemoryChart.Labels = append(myPage.MemoryChart.Labels, fmt.Sprintf("Available: %.2fG/%.2fG", data.MemStats[2], data.MemStats[0]))
+					myPage.MemoryChart.Labels = append(myPage.MemoryChart.Labels, fmt.Sprintf("Free: %.2fG/%.2fG", data.MemStats[3], data.MemStats[0]))
+					myPage.MemoryChart.Labels = append(myPage.MemoryChart.Labels, fmt.Sprintf("Cached: %.2fG/%.2fG", data.MemStats[4], data.MemStats[0]))
 
 				case "DISK": // Update Disk stats
 					myPage.DiskChart.Rows = data.DiskStats
