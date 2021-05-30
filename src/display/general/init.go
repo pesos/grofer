@@ -28,7 +28,7 @@ type MainPage struct {
 	Grid        *ui.Grid
 	MemoryChart *widgets.SparklineGroup
 	//SwapChart    *widgets.PieChart
-	DiskChart    *utils.Table
+	DiskChart    *widgets.Table
 	NetworkChart *widgets.SparklineGroup
 	//CPUCharts    []*widgets.Gauge
 	//CPUTable     *utils.Table
@@ -67,10 +67,13 @@ func NewPage(numCores int) *MainPage {
 	memCachedSparkLine.Data = []float64{}
 
 	page := &MainPage{
-		Grid:             ui.NewGrid(),
-		MemoryChart:      widgets.NewSparklineGroup(memUsedSparkLine, memAvailableSparkLine, memFreeSparkLine, memCachedSparkLine),
-		DiskChart:        utils.NewTable(),
-		NetworkChart:     widgets.NewSparklineGroup(rxSparkLine, txSparkLine),
+		Grid:        ui.NewGrid(),
+		MemoryChart: widgets.NewSparklineGroup(memUsedSparkLine, memAvailableSparkLine, memFreeSparkLine, memCachedSparkLine),
+		//SwapChart:    widgets.NewPieChart(),
+		DiskChart:    widgets.NewTable(),
+		NetworkChart: widgets.NewSparklineGroup(rxSparkLine, txSparkLine),
+		//CPUCharts:    make([]*widgets.Gauge, 0),
+		//CPUTable:     utils.NewTable(),
 		CPUGraph:         utils.NewLineGraph(),
 		TemperatureTable: widgets.NewTable(),
 	}
@@ -151,21 +154,15 @@ func (page *MainPage) temperatureTableWidget() {
 func (page *MainPage) diskChartWidget() {
 	page.DiskChart.Title = " Disk "
 	page.DiskChart.TitleStyle = ui.NewStyle(ui.ColorClear)
-	//page.DiskChart.TextStyle = ui.NewStyle(ui.ColorClear)
-	//page.DiskChart.TextAlignment = ui.AlignLeft
-	//page.DiskChart.RowSeparator = false
-	page.DiskChart.ColWidths = []int{10, 9, 9, 9, 9, 10}
+	page.DiskChart.TextStyle = ui.NewStyle(ui.ColorClear)
+	page.DiskChart.TextAlignment = ui.AlignLeft
+	page.DiskChart.RowSeparator = false
+	page.DiskChart.ColumnWidths = []int{10, 9, 9, 9, 9, 10}
 	page.DiskChart.BorderStyle.Fg = ui.ColorCyan
-	page.DiskChart.HeaderStyle = ui.NewStyle(ui.ColorRed, ui.ColorClear, ui.ModifierUnderline)
-	//page.DiskChart.RowSeparator = true
-	//page.DiskChart.ShowCursor = true
-	//page.DiskChart.ShowCursor = true
-	//page.DiskChart.CursorColor = ui.ColorGreen
-	page.DiskChart.CellStyle = ui.NewStyle(ui.ColorMagenta, ui.ColorWhite, ui.ModifierUnderline)
-	page.DiskChart.ColResizer = func() {
+	page.DiskChart.ColumnResizer = func() {
 		// Middle 4 columns are of fixed length
 		x := page.DiskChart.Inner.Dx()
-		page.DiskChart.ColWidths = []int{
+		page.DiskChart.ColumnWidths = []int{
 			x / 6,
 			x / 6,
 			x / 6,
@@ -174,7 +171,6 @@ func (page *MainPage) diskChartWidget() {
 			x / 6,
 		}
 	}
-
 }
 
 func (page *MainPage) networkChartWidget() {
