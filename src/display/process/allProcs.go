@@ -231,8 +231,8 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 					case "G", "<End>":
 						myPage.ProcTable.ScrollBottom()
 					case "K", "<F9>":
-						sendSignal = true
 						if myPage.ProcTable.SelectedRow < len(myPage.ProcTable.Rows) {
+							sendSignal = true
 							// get PID from the data
 							row := myPage.ProcTable.Rows[myPage.ProcTable.SelectedRow]
 							pid, err := strconv.Atoi(row[0])
@@ -245,8 +245,8 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 							runAllProc = false
 							killSelected = true
 							myPage.ProcTable.CursorColor = killingStyle
+							updateUI()
 						}
-						updateUI()
 					// Sort Ascending
 					case "1", "2", "3", "4", "5", "6", "7", "8":
 						myPage.ProcTable.Header = append([]string{}, header...)
