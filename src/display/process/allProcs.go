@@ -192,7 +192,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 			case "<Resize>":
 				updateUI() // updateUI only during resize event
 			}
-			if helpVisible {
+			if helpVisible { // keybindings for help menu
 				switch e.ID {
 				case "<Escape>":
 					helpVisible = false
@@ -205,7 +205,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 					ui.Render(help)
 				}
 			} else {
-				if !killSelected {
+				if !killSelected { // keybindings for main proc table
 					switch e.ID {
 					case "s": //s to pause
 						pauseProc()
@@ -232,7 +232,6 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 						myPage.ProcTable.ScrollBottom()
 					case "K", "<F9>":
 						if myPage.ProcTable.SelectedRow < len(myPage.ProcTable.Rows) {
-							sendSignal = true
 							// get PID from the data
 							row := myPage.ProcTable.Rows[myPage.ProcTable.SelectedRow]
 							pid, err := strconv.Atoi(row[0])
@@ -245,6 +244,8 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 							runAllProc = false
 							killSelected = true
 							myPage.ProcTable.CursorColor = killingStyle
+							// open the signal selector
+							sendSignal = true
 							updateUI()
 						}
 					// Sort Ascending
@@ -270,7 +271,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 						myPage.ProcTable.Header = append([]string{}, header...)
 						sortIdx = -1
 					}
-				} else {
+				} else { // keybindings for signal menu
 					switch e.ID {
 					case "<Escape>":
 						if killSelected {
@@ -304,6 +305,13 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 						signals.Table.ScrollUp()
 						ui.Render(signals)
 					case "0", "1", "2", "3", "4", "5", "6", "7", "8", "9":
+						/*
+						* The signal selector can be navigated by entering the number beside the
+						* desired signal. Double digit numbers are handled by checking the previous
+						* key and, if it is among 1,2 and 3, navigate to the corresponding double
+						* digit number (as there are currently 31 supported signals).
+						* For example, pressing 25 would first navigate to signal 2, then to signal 25
+						 */
 						scrollIdx, _ := strconv.Atoi(e.ID)
 						if _, checkPrev := map[string]bool{"1": true, "2": true, "3": true}[previousKey]; checkPrev {
 							prevIdx, _ := strconv.Atoi(previousKey)
