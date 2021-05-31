@@ -147,6 +147,7 @@ func RenderCharts(ctx context.Context,
 				switch data.FieldSet {
 
 				case "CPU": // Update CPU stats
+					avgLoad := 0.0
 					for i, x := range data.CpuStats {
 						key := fmt.Sprintf("CPU%d", i)
 						if len(myPage.CPUGraph.Data[key]) > 100 {
@@ -154,6 +155,20 @@ func RenderCharts(ctx context.Context,
 						}
 						myPage.CPUGraph.Data[key] = append(myPage.CPUGraph.Data[key], x)
 						myPage.CPUGraph.Labels[key] = fmt.Sprintf("%3.0f%%", x)
+						avgLoad += x
+					}
+					avgLoad /= float64(numCores)
+					if len(myPage.AvgCPUGraph.Data["Average CPU Load:"]) > 100 {
+						myPage.AvgCPUGraph.Data["Average CPU Load:"] = myPage.AvgCPUGraph.Data["Average CPU Load:"][1:]
+					}
+					myPage.AvgCPUGraph.Data["Average CPU Load:"] = append(myPage.AvgCPUGraph.Data["Average CPU Load:"], avgLoad)
+					myPage.AvgCPUGraph.Labels["Average CPU Load:"] = fmt.Sprintf("%3.2f%%", avgLoad)
+					if avgLoad > 70.0 {
+						myPage.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorRed
+					} else if avgLoad > 40.0 {
+						myPage.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorYellow
+					} else {
+						myPage.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorGreen
 					}
 
 				case "MEM": // Update Memory stats

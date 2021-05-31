@@ -25,14 +25,13 @@ import (
 
 // MainPage contains the ui widgets for the ui rendered by the grofer command
 type MainPage struct {
-	Grid        *ui.Grid
-	MemoryChart *utils.HorizontalBarChart
-	//SwapChart    *widgets.PieChart
-	DiskChart    *widgets.Table
-	NetworkChart *utils.SparklineGroup
-	//CPUCharts    []*widgets.Gauge
-	//CPUTable     *utils.Table
+	Grid             *ui.Grid
+	MemoryChart      *utils.HorizontalBarChart
+	DiskChart        *widgets.Table
+	NetworkChart     *utils.SparklineGroup
 	CPUGraph         *utils.LineGraph
+	CPUTable         *utils.Table
+	AvgCPUGraph      *utils.LineGraph
 	TemperatureTable *widgets.Table
 }
 
@@ -72,6 +71,8 @@ func NewPage(numCores int) *MainPage {
 		DiskChart:        widgets.NewTable(),
 		NetworkChart:     utils.NewSparklineGroup(rxSparkLine, txSparkLine),
 		CPUGraph:         utils.NewLineGraph(),
+		CPUTable:         utils.NewTable(),
+		AvgCPUGraph:      utils.NewLineGraph(),
 		TemperatureTable: widgets.NewTable(),
 	}
 	page.InitGeneral(numCores)
@@ -106,17 +107,28 @@ func (page *MainPage) InitGeneral(numCores int) {
 	page.networkChartWidget()
 	// Initialize Graph for CPU Usage
 	page.cpuGraphWidget(numCores)
+	page.avgCpuGraphWidget()
 	// Initialize Graph for Temperature Table
 	page.temperatureTableWidget()
 	// Get Terminal Dimensions
 	w, h := ui.TerminalDimensions()
-	page.Grid.Set(
-		ui.NewCol(0.4, page.CPUGraph),
-		ui.NewCol(0.6,
-			ui.NewRow(0.34, page.MemoryChart),
-			ui.NewRow(0.34, ui.NewCol(0.5, page.NetworkChart), ui.NewCol(0.5, page.TemperatureTable)),
-			ui.NewRow(0.34, page.DiskChart)),
-	)
+	if numCores > 8 {
+		page.Grid.Set(
+			ui.NewCol(0.4, page.AvgCPUGraph),
+			ui.NewCol(0.6,
+				ui.NewRow(0.34, page.MemoryChart),
+				ui.NewRow(0.34, ui.NewCol(0.5, page.NetworkChart), ui.NewCol(0.5, page.TemperatureTable)),
+				ui.NewRow(0.34, page.DiskChart)),
+		)
+	} else {
+		page.Grid.Set(
+			ui.NewCol(0.4, page.CPUGraph),
+			ui.NewCol(0.6,
+				ui.NewRow(0.34, page.MemoryChart),
+				ui.NewRow(0.34, ui.NewCol(0.5, page.NetworkChart), ui.NewCol(0.5, page.TemperatureTable)),
+				ui.NewRow(0.34, page.DiskChart)),
+		)
+	}
 	page.Grid.SetRect(0, 0, w, h)
 }
 
@@ -193,6 +205,18 @@ func (page *MainPage) cpuGraphWidget(numCores int) {
 		page.CPUGraph.LineColors[key] = ui.Color(i + 1)
 		page.CPUGraph.Data[key] = []float64{0}
 	}
+}
+
+func (page *MainPage) avgCpuGraphWidget() {
+	page.AvgCPUGraph.Title = " Average CPU Usage "
+	page.AvgCPUGraph.TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.AvgCPUGraph.HorizontalScale = 10
+	page.AvgCPUGraph.BorderStyle.Fg = ui.ColorCyan
+	page.AvgCPUGraph.DefaultLineColor = ui.ColorClear
+	page.AvgCPUGraph.Min.Y = 0
+	page.AvgCPUGraph.Max.Y = 100
+	page.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorClear
+	page.AvgCPUGraph.Data["Average CPU Load:"] = []float64{0}
 }
 
 func (page *CPUPage) InitCPU(numCores int) {
