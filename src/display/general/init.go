@@ -30,7 +30,7 @@ type MainPage struct {
 	DiskChart        *widgets.Table
 	NetworkChart     *utils.SparklineGroup
 	CPUGraph         *utils.LineGraph
-	CPUTable         *utils.Table
+	CPUTable         *utils.CpuTableChart
 	AvgCPUGraph      *utils.LineGraph
 	TemperatureTable *widgets.Table
 }
@@ -71,7 +71,7 @@ func NewPage(numCores int) *MainPage {
 		DiskChart:        widgets.NewTable(),
 		NetworkChart:     utils.NewSparklineGroup(rxSparkLine, txSparkLine),
 		CPUGraph:         utils.NewLineGraph(),
-		CPUTable:         utils.NewTable(),
+		CPUTable:         utils.NewCpuTableChart(),
 		AvgCPUGraph:      utils.NewLineGraph(),
 		TemperatureTable: widgets.NewTable(),
 	}
@@ -106,15 +106,21 @@ func (page *MainPage) InitGeneral(numCores int) {
 	// Initialize Plot for Network Chart
 	page.networkChartWidget()
 	// Initialize Graph for CPU Usage
-	page.cpuGraphWidget(numCores)
-	page.avgCpuGraphWidget()
+	if numCores > 8 {
+		page.avgCpuGraphWidget()
+		page.cpuTableWidget(numCores)
+	} else {
+		page.cpuGraphWidget(numCores)
+	}
 	// Initialize Graph for Temperature Table
 	page.temperatureTableWidget()
 	// Get Terminal Dimensions
 	w, h := ui.TerminalDimensions()
 	if numCores > 8 {
 		page.Grid.Set(
-			ui.NewCol(0.4, page.AvgCPUGraph),
+			ui.NewCol(0.4,
+				ui.NewRow(0.5, page.AvgCPUGraph),
+				ui.NewRow(0.5, page.CPUTable)),
 			ui.NewCol(0.6,
 				ui.NewRow(0.34, page.MemoryChart),
 				ui.NewRow(0.34, ui.NewCol(0.5, page.NetworkChart), ui.NewCol(0.5, page.TemperatureTable)),
@@ -205,6 +211,13 @@ func (page *MainPage) cpuGraphWidget(numCores int) {
 		page.CPUGraph.LineColors[key] = ui.Color(i + 1)
 		page.CPUGraph.Data[key] = []float64{0}
 	}
+}
+
+func (page *MainPage) cpuTableWidget(numCores int) {
+	page.CPUTable.Title = " CPU Table "
+	page.CPUTable.TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.CPUTable.BorderStyle.Fg = ui.ColorCyan
+	page.CPUTable.NumCores = numCores
 }
 
 func (page *MainPage) avgCpuGraphWidget() {

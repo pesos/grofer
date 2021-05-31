@@ -128,18 +128,16 @@ func RenderCharts(ctx context.Context,
 				case "s": //s to pause
 					pause()
 				}
-				/*
-					if numCores > 8 {
-						switch e.ID {
-						case "j", "<Down>":
-							myPage.CPUTable.ScrollDown()
-							ui.Render(myPage.Grid)
-						case "k", "<Up>":
-							myPage.CPUTable.ScrollUp()
-							ui.Render(myPage.Grid)
-						}
+				if numCores > 8 {
+					switch e.ID {
+					case "j", "<Down>":
+						myPage.CPUTable.ScrollDown()
+						ui.Render(myPage.Grid)
+					case "k", "<Up>":
+						myPage.CPUTable.ScrollUp()
+						ui.Render(myPage.Grid)
 					}
-				*/
+				}
 			}
 
 		case data := <-dataChannel:
@@ -157,18 +155,21 @@ func RenderCharts(ctx context.Context,
 						myPage.CPUGraph.Labels[key] = fmt.Sprintf("%3.0f%%", x)
 						avgLoad += x
 					}
-					avgLoad /= float64(numCores)
-					if len(myPage.AvgCPUGraph.Data["Average CPU Load:"]) > 100 {
-						myPage.AvgCPUGraph.Data["Average CPU Load:"] = myPage.AvgCPUGraph.Data["Average CPU Load:"][1:]
-					}
-					myPage.AvgCPUGraph.Data["Average CPU Load:"] = append(myPage.AvgCPUGraph.Data["Average CPU Load:"], avgLoad)
-					myPage.AvgCPUGraph.Labels["Average CPU Load:"] = fmt.Sprintf("%3.2f%%", avgLoad)
-					if avgLoad > 70.0 {
-						myPage.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorRed
-					} else if avgLoad > 40.0 {
-						myPage.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorYellow
-					} else {
-						myPage.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorGreen
+					if numCores > 8 {
+						myPage.CPUTable.Data = data.CpuStats
+						avgLoad /= float64(numCores)
+						if len(myPage.AvgCPUGraph.Data["Average CPU Load:"]) > 100 {
+							myPage.AvgCPUGraph.Data["Average CPU Load:"] = myPage.AvgCPUGraph.Data["Average CPU Load:"][1:]
+						}
+						myPage.AvgCPUGraph.Data["Average CPU Load:"] = append(myPage.AvgCPUGraph.Data["Average CPU Load:"], avgLoad)
+						myPage.AvgCPUGraph.Labels["Average CPU Load:"] = fmt.Sprintf("%3.2f%%", avgLoad)
+						if avgLoad > 70.0 {
+							myPage.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorRed
+						} else if avgLoad > 40.0 {
+							myPage.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorYellow
+						} else {
+							myPage.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorGreen
+						}
 					}
 
 				case "MEM": // Update Memory stats
