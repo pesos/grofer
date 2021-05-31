@@ -29,7 +29,7 @@ type MainPage struct {
 	MemoryChart *utils.HorizontalBarChart
 	//SwapChart    *widgets.PieChart
 	DiskChart    *widgets.Table
-	NetworkChart *widgets.SparklineGroup
+	NetworkChart *utils.SparklineGroup
 	//CPUCharts    []*widgets.Gauge
 	//CPUTable     *utils.Table
 	CPUGraph         *utils.LineGraph
@@ -52,9 +52,9 @@ type CPUPage struct {
 
 // NewPage returns a new page initialized from the MainPage struct
 func NewPage(numCores int) *MainPage {
-	rxSparkLine := widgets.NewSparkline()
+	rxSparkLine := utils.NewSparkline()
 	rxSparkLine.Data = []float64{}
-	txSparkLine := widgets.NewSparkline()
+	txSparkLine := utils.NewSparkline()
 	txSparkLine.Data = []float64{}
 
 	memAvailableSparkLine := widgets.NewSparkline()
@@ -67,14 +67,10 @@ func NewPage(numCores int) *MainPage {
 	memCachedSparkLine.Data = []float64{}
 
 	page := &MainPage{
-		Grid:        ui.NewGrid(),
-		MemoryChart: utils.NewHorizontalBarChart(),
-		//MemoryChart: widgets.NewSparklineGroup(memUsedSparkLine, memAvailableSparkLine, memFreeSparkLine, memCachedSparkLine),
-		//SwapChart:    widgets.NewPieChart(),
-		DiskChart:    widgets.NewTable(),
-		NetworkChart: widgets.NewSparklineGroup(rxSparkLine, txSparkLine),
-		//CPUCharts:    make([]*widgets.Gauge, 0),
-		//CPUTable:     utils.NewTable(),
+		Grid:             ui.NewGrid(),
+		MemoryChart:      utils.NewHorizontalBarChart(),
+		DiskChart:        widgets.NewTable(),
+		NetworkChart:     utils.NewSparklineGroup(rxSparkLine, txSparkLine),
 		CPUGraph:         utils.NewLineGraph(),
 		TemperatureTable: widgets.NewTable(),
 	}
@@ -129,7 +125,7 @@ func (page *MainPage) memoryChartWidget() {
 	page.MemoryChart.BorderStyle.Fg = ui.ColorCyan
 	page.MemoryChart.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.MemoryChart.ColResizer = func() {
-		if page.MemoryChart.Inner.Max.Y > 8 {
+		if page.MemoryChart.Inner.Dy() > 8 {
 			page.MemoryChart.BarWidth = 2
 		} else {
 			page.MemoryChart.BarWidth = 1
@@ -181,6 +177,7 @@ func (page *MainPage) networkChartWidget() {
 	page.NetworkChart.Sparklines[0].LineColor = ui.ColorRed
 	page.NetworkChart.Sparklines[1].TitleStyle.Fg = ui.ColorGreen
 	page.NetworkChart.Sparklines[1].LineColor = ui.ColorGreen
+	page.NetworkChart.Sparklines[1].Reverse = true
 }
 
 func (page *MainPage) cpuGraphWidget(numCores int) {
