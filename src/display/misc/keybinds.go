@@ -43,7 +43,7 @@ var procKeybindings = []string{
 	"  - K and <F9>: Open signal selector menu",
 	"",
 	"[Signal selection](fg:white)",
-	"  - K and <F9>: Send SIGTERM to selected process",
+	"  - K and <F9>: Send SIGTERM to selected process. Kills the process",
 	"  - k and <Up>: up",
 	"  - j and <Down>: down",
 	"  - 0-9: navigate by numeric index",
