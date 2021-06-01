@@ -130,11 +130,29 @@ func RenderCharts(ctx context.Context,
 				}
 				if numCores > 8 {
 					switch e.ID {
-					case "j", "<Down>":
+					case "<Down>":
 						myPage.CPUTable.ScrollDown()
 						ui.Render(myPage.Grid)
-					case "k", "<Up>":
+					case "<Up>":
 						myPage.CPUTable.ScrollUp()
+						ui.Render(myPage.Grid)
+
+					case "j":
+						myPage.DiskChart.ScrollDown()
+						ui.Render(myPage.Grid)
+
+					case "k":
+						myPage.DiskChart.ScrollUp()
+						ui.Render(myPage.Grid)
+					}
+				} else {
+					switch e.ID {
+					case "j", "<Down>":
+						myPage.DiskChart.ScrollDown()
+						ui.Render(myPage.Grid)
+
+					case "k", "<Up>":
+						myPage.DiskChart.ScrollUp()
 						ui.Render(myPage.Grid)
 					}
 				}
@@ -181,7 +199,8 @@ func RenderCharts(ctx context.Context,
 					myPage.MemoryChart.Labels = append(myPage.MemoryChart.Labels, fmt.Sprintf("Cached: %.2fG/%.2fG", data.MemStats[4], data.MemStats[0]))
 
 				case "DISK": // Update Disk stats
-					myPage.DiskChart.Rows = data.DiskStats
+					myPage.DiskChart.Header = data.DiskStats[0]
+					myPage.DiskChart.Rows = data.DiskStats[1:]
 
 				case "TEMP":
 					myPage.TemperatureTable.Rows = data.TempStats

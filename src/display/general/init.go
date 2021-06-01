@@ -27,7 +27,7 @@ import (
 type MainPage struct {
 	Grid             *ui.Grid
 	MemoryChart      *utils.HorizontalBarChart
-	DiskChart        *widgets.Table
+	DiskChart        *utils.Table
 	NetworkChart     *utils.SparklineGroup
 	CPUGraph         *utils.LineGraph
 	CPUTable         *utils.CpuTableChart
@@ -68,7 +68,7 @@ func NewPage(numCores int) *MainPage {
 	page := &MainPage{
 		Grid:             ui.NewGrid(),
 		MemoryChart:      utils.NewHorizontalBarChart(),
-		DiskChart:        widgets.NewTable(),
+		DiskChart:        utils.NewTable(),
 		NetworkChart:     utils.NewSparklineGroup(rxSparkLine, txSparkLine),
 		CPUGraph:         utils.NewLineGraph(),
 		CPUTable:         utils.NewCpuTableChart(),
@@ -168,15 +168,16 @@ func (page *MainPage) temperatureTableWidget() {
 func (page *MainPage) diskChartWidget() {
 	page.DiskChart.Title = " Disk "
 	page.DiskChart.TitleStyle = ui.NewStyle(ui.ColorClear)
-	page.DiskChart.TextStyle = ui.NewStyle(ui.ColorClear)
-	page.DiskChart.TextAlignment = ui.AlignLeft
-	page.DiskChart.RowSeparator = false
-	page.DiskChart.ColumnWidths = []int{10, 9, 9, 9, 9, 10}
+	page.DiskChart.ShowCursor = true
+	//page.DiskChart.TextStyle = ui.NewStyle(ui.ColorClear)
+	//page.DiskChart.TextAlignment = ui.AlignLeft
+	//page.DiskChart.RowSeparator = false
+	//page.DiskChart.ColumnWidths = []int{10, 9, 9, 9, 9, 10}
 	page.DiskChart.BorderStyle.Fg = ui.ColorCyan
-	page.DiskChart.ColumnResizer = func() {
+	page.DiskChart.ColResizer = func() {
 		// Middle 4 columns are of fixed length
 		x := page.DiskChart.Inner.Dx()
-		page.DiskChart.ColumnWidths = []int{
+		page.DiskChart.ColWidths = []int{
 			x / 6,
 			x / 6,
 			x / 6,
