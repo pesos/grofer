@@ -81,8 +81,10 @@ func (self *SparklineGroup) Draw(buf *ui.Buffer) {
 		}
 
 		// draw line
-		for j := 0; j < len(sl.Data) && j < self.Inner.Dx(); j++ {
-			data := sl.Data[j]
+		index := 0
+		for j := self.Inner.Dx() - 1; index < len(sl.Data) && j >= 0; j-- {
+			data := sl.Data[index]
+			index++
 			height := int((data / maxVal) * float64(barHeight))
 			sparkChar := ui.IRREGULAR_BLOCKS[15]
 			for k := 0; k < height; k++ {
