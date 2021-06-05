@@ -52,20 +52,52 @@ go build grofer.go
    ```
 1. Run using
    ```bash
-   docker run --name grofer --rm -it -v /:/host:ro --privileged --pid=host --network=host grofer
+   docker run \
+    --name grofer \
+    --rm -it \
+    -v /:/host:ro \
+    -v /var/run/docker.sock:/var/run/docker.sock:ro \
+    --privileged \
+    --pid=host \
+    --network=host \
+    grofer
    ```
 
-   Additional command to `grofer` can be passed directly at the end of the above command:
+   Additional subcommands and flags to `grofer` can be passed directly at the end of the above command:
    ```bash
-   docker run --name grofer --rm -it -v /:/host:ro --privileged --pid=host --network=host grofer proc
+   docker run \
+    --name grofer \
+    --rm -it \
+    -v /:/host:ro \
+    -v /var/run/docker.sock:/var/run/docker.sock:ro \
+    --privileged \
+    --pid=host \
+    --network=host \
+    grofer proc
    ```
 
    ```bash
-   docker run --name grofer --rm -it -v /:/host:ro --privileged --pid=host --network=host grofer --help
+   docker run \
+    --name grofer \
+    --rm -it \
+    -v /:/host:ro \
+    -v /var/run/docker.sock:/var/run/docker.sock:ro \
+    --privileged \
+    --pid=host \
+    --network=host \
+    grofer --help
    ```
 1. (Optional) create an alias for `docker run` to be able to run it using just `grofer`
    ```zsh
-   alias grofer="docker run --name grofer --rm -it -v /:/host:ro --privileged --pid=host --network=host grofer"
+   alias grofer="docker run \
+    --name grofer \
+    --rm -it \
+    -v /:/host:ro \
+    -v /var/run/docker.sock:/var/run/docker.sock:ro \
+    --privileged \
+    --pid=host \
+    --network=host \
+    grofer"
    ```
 
    Then use `grofer` as normal:
@@ -75,6 +107,11 @@ go build grofer.go
 
    ```bash
    grofer proc
+   ```
+
+   Container metrics also work inside docker:
+   ```bash
+   grofer container
    ```
 
 #### Building Docker image
