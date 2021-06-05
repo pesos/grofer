@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	ui "github.com/gizak/termui/v3"
@@ -34,6 +35,7 @@ import (
 
 var runAllProc = true
 var helpVisible = false
+var sendSignal = false
 var sortIdx = -1
 var sortAsc = false
 var header = []string{
@@ -122,6 +124,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 
 	var on sync.Once
 	var help *h.HelpMenu = h.NewHelpMenu()
+	var signals *h.SignalTable = h.NewSignalTable()
 	h.SelectHelpMenu("proc")
 
 	myPage := NewAllProcsPage()
@@ -134,6 +137,11 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 			ui.Clear()
 			ui.Render(help)
 		} else {
+			if sendSignal {
+				signals.SetRect(0, 0, w/6, h)
+				myPage.Grid.SetRect(w/6, 0, w, h)
+				ui.Render(signals)
+			}
 			ui.Render(myPage.Grid)
 		}
 	}
@@ -166,8 +174,10 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 	// whether a process is selected for killing (UI controls are paused)
 	killSelected := false
 	var pidToKill int32
+	var handledPreviousKey bool
 
 	for {
+		handledPreviousKey = false
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -178,13 +188,12 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 				return info.ErrCanceledByUser
 			case "?":
 				helpVisible = !helpVisible
+				updateUI()
 			case "<Resize>":
 				updateUI() // updateUI only during resize event
 			}
-			if helpVisible {
+			if helpVisible { // keybindings for help menu
 				switch e.ID {
-				case "?":
-					updateUI()
 				case "<Escape>":
 					helpVisible = false
 					updateUI()
@@ -196,10 +205,8 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 					ui.Render(help)
 				}
 			} else {
-				if !killSelected {
+				if !killSelected { // keybindings for main proc table
 					switch e.ID {
-					case "?":
-						updateUI()
 					case "s": //s to pause
 						pauseProc()
 					case "j", "<Down>":
@@ -217,6 +224,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 					case "g":
 						if previousKey == "g" {
 							myPage.ProcTable.ScrollTop()
+							handledPreviousKey = true
 						}
 					case "<Home>":
 						myPage.ProcTable.ScrollTop()
@@ -236,6 +244,9 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 							runAllProc = false
 							killSelected = true
 							myPage.ProcTable.CursorColor = killingStyle
+							// open the signal selector
+							sendSignal = true
+							updateUI()
 						}
 					// Sort Ascending
 					case "1", "2", "3", "4", "5", "6", "7", "8":
@@ -260,7 +271,7 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 						myPage.ProcTable.Header = append([]string{}, header...)
 						sortIdx = -1
 					}
-				} else {
+				} else { // keybindings for signal menu
 					switch e.ID {
 					case "<Escape>":
 						if killSelected {
@@ -268,12 +279,14 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 							killSelected = false
 							myPage.ProcTable.CursorColor = selectedStyle
 						}
+						sendSignal = false
+						updateUI()
 					case "K", "<F9>":
 						// get process and kill it
 						procToKill, err := proc.NewProcess(pidToKill)
 						myPage.ProcTable.CursorColor = selectedStyle
 						if err == nil {
-							err = procToKill.Kill()
+							err = procToKill.SendSignal(syscall.SIGTERM)
 							if err != nil {
 								myPage.ProcTable.CursorColor = errorStyle
 							}
@@ -283,11 +296,52 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 						runAllProc = true
 						killSelected = false
 						updateProcs()
+						sendSignal = false
+						updateUI()
+					case "j", "<Down>":
+						signals.Table.ScrollDown()
+						ui.Render(signals)
+					case "k", "<Up>":
+						signals.Table.ScrollUp()
+						ui.Render(signals)
+					case "0", "1", "2", "3", "4", "5", "6", "7", "8", "9":
+						/*
+						* The signal selector can be navigated by entering the number beside the
+						* desired signal. Double digit numbers are handled by checking the previous
+						* key and, if it is among 1,2 and 3, navigate to the corresponding double
+						* digit number (as there are currently 31 supported signals).
+						* For example, pressing 25 would first navigate to signal 2, then to signal 25
+						 */
+						scrollIdx, _ := strconv.Atoi(e.ID)
+						if _, checkPrev := map[string]bool{"1": true, "2": true, "3": true}[previousKey]; checkPrev {
+							prevIdx, _ := strconv.Atoi(previousKey)
+							scrollIdx = 10*prevIdx + scrollIdx
+							handledPreviousKey = true
+						}
+						signals.Table.ScrollToIndex(scrollIdx - 1) // account for 0-indexing
+						ui.Render(signals)
+					case "<Enter>":
+						signalToSend := signals.SelectedSignal()
+						procToKill, err := proc.NewProcess(pidToKill)
+						myPage.ProcTable.CursorColor = selectedStyle
+						if err == nil {
+							err = procToKill.SendSignal(signalToSend)
+							if err != nil {
+								myPage.ProcTable.CursorColor = errorStyle
+							}
+						} else {
+							myPage.ProcTable.CursorColor = errorStyle
+						}
+						runAllProc = true
+						killSelected = false
+						updateProcs()
+						sendSignal = false
+						updateUI()
 					}
 				}
 
 				ui.Render(myPage.Grid)
-				if previousKey == "g" {
+				if handledPreviousKey {
 					previousKey = ""
 				} else {
 					previousKey = e.ID
@@ -318,6 +372,9 @@ func AllProcVisuals(dataChannel chan []*proc.Process,
 				myPage.ProcTable.CursorColor = selectedStyle
 			}
 			if !helpVisible {
+				if sendSignal {
+					ui.Render(signals)
+				}
 				ui.Render(myPage.Grid)
 			}
 		}
