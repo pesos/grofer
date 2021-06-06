@@ -48,7 +48,7 @@ go build grofer.go
 
 1. Get docker image using
    ```
-   TODO: docker image is not uploaded yet
+   docker pull ghcr.io/pesos/grofer
    ```
 1. Run using
    ```bash
@@ -60,7 +60,7 @@ go build grofer.go
     --privileged \
     --pid=host \
     --network=host \
-    grofer
+    ghcr.io/pesos/grofer
    ```
 
    Additional subcommands and flags to `grofer` can be passed directly at the end of the above command:
@@ -73,7 +73,7 @@ go build grofer.go
     --privileged \
     --pid=host \
     --network=host \
-    grofer proc
+    ghcr.io/pesos/grofer proc
    ```
 
    ```bash
@@ -85,7 +85,7 @@ go build grofer.go
     --privileged \
     --pid=host \
     --network=host \
-    grofer --help
+    ghcr.io/pesos/grofer --help
    ```
 1. (Optional) create an alias for `docker run` to be able to run it using just `grofer`
    ```zsh
@@ -97,7 +97,7 @@ go build grofer.go
     --privileged \
     --pid=host \
     --network=host \
-    grofer"
+    ghcr.io/pesos/grofer"
    ```
 
    Then use `grofer` as normal:
@@ -117,7 +117,7 @@ go build grofer.go
 #### Building Docker image
 
 ```bash
-docker build -t grofer .
+docker build -t ghcr.io/pesos/grofer .
 ```
 
 ---
