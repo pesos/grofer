@@ -10,8 +10,9 @@ on:
     tags:
       - v*
 
-  # to test if it works
-  pull_request:
+  # uncomment the following line if containers are required for PRs
+  #   (disabled since it will not work for PRs from forks, only internal branches)
+  # pull_request:
 
 env:
   IMAGE_NAME: grofer
@@ -21,8 +22,8 @@ jobs:
   # See also https://docs.docker.com/docker-hub/builds/
   push:
     runs-on: ubuntu-latest
-    # TODO: enable this later
-    # if: github.event_name == 'push'
+    # run only on pushes (and not PRs). Might be redundant.
+    if: github.event_name == 'push'
 
     permissions:
       contents: read
