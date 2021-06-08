@@ -90,14 +90,17 @@ func ServeTemperatureRates(ctx context.Context, dataChannel chan utils.DataStats
 	if err != nil {
 		return err
 	}
-	tempRates := [][]string{{"Sensor", "Temp(Celcius)"}}
+	tempRates := [][]string{{"Sensor", "Temp(°C)"}}
 	for _, sensor := range sensors {
 		if strings.Contains(sensor.SensorKey, "input") && sensor.Temperature != 0 {
-			label := sensor.SensorKey
-			//tempRates[label] = int(sensor.Temperature)
-			temp := fmt.Sprintf("%.1f C", sensor.Temperature)
-			row := []string{label, temp}
-			tempRates = append(tempRates, row)
+			temp_label := sensor.SensorKey
+			label := strings.TrimSuffix(sensor.SensorKey, "_input")
+			label = strings.TrimSuffix(label, "_thermal")
+			if temp_label != label {
+				temp := fmt.Sprintf("%.1f °C", sensor.Temperature)
+				row := []string{label, temp}
+				tempRates = append(tempRates, row)
+			}
 		}
 	}
 
