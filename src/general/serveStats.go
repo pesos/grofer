@@ -88,6 +88,7 @@ func ServeMemRates(ctx context.Context, dataChannel chan utils.DataStats) error 
 func ServeTemperatureRates(ctx context.Context, dataChannel chan utils.DataStats) error {
 	sensors, err := host.SensorsTemperatures()
 	if err != nil {
+		fmt.Print(err)
 		return err
 	}
 	tempRates := [][]string{{"Sensor", "Temp(°C)"}}
