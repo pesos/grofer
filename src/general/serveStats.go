@@ -85,16 +85,19 @@ func ServeMemRates(ctx context.Context, dataChannel chan utils.DataStats) error 
 	}
 }
 
+// ServeTemperatureRates feeds temperature values from input sensors into the data channel
+// Credits to github.com/shirou/gopsutil
 func ServeTemperatureRates(ctx context.Context, dataChannel chan utils.DataStats) error {
 	sensors, err := host.SensorsTemperatures()
 	if err != nil {
-		fmt.Print(err)
 		return err
 	}
+	// 2D string stores Header and Rows
 	tempRates := [][]string{{"Sensor", "Temp(°C)"}}
 	for _, sensor := range sensors {
 		if strings.Contains(sensor.SensorKey, "input") && sensor.Temperature != 0 {
 			temp_label := sensor.SensorKey
+			// Only read input sensors
 			label := strings.TrimSuffix(sensor.SensorKey, "_input")
 			label = strings.TrimSuffix(label, "_thermal")
 			if temp_label != label {

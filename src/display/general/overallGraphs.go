@@ -130,6 +130,8 @@ func RenderCharts(ctx context.Context,
 				}
 				if numCores > 8 {
 					switch e.ID {
+					// Use <Up> and <Down> to scroll CPUTable when number of cores is greater than 8,
+					// and use <j> and <k> to scroll the DiskChart
 					case "<Down>":
 						myPage.CPUTable.ScrollDown()
 						ui.Render(myPage.Grid)
@@ -147,6 +149,7 @@ func RenderCharts(ctx context.Context,
 					}
 				} else {
 					switch e.ID {
+					// Use <Down><Up>/<j><k> to scroll DiskChart when number of CPUs is less than, equal to 8
 					case "j", "<Down>":
 						myPage.DiskChart.ScrollDown()
 						ui.Render(myPage.Grid)
@@ -164,6 +167,7 @@ func RenderCharts(ctx context.Context,
 
 				case "CPU": // Update CPU stats
 					avgLoad := 0.0
+					// Individual line charts for each CPU core when < 8
 					for i, x := range data.CpuStats {
 						key := fmt.Sprintf("CPU%d", i)
 						if len(myPage.CPUGraph.Data[key]) > 100 {
@@ -173,6 +177,7 @@ func RenderCharts(ctx context.Context,
 						myPage.CPUGraph.Labels[key] = fmt.Sprintf("%3.0f%%", x)
 						avgLoad += x
 					}
+					// Generate an Average Graph for CPUs when number of cores > 8
 					if numCores > 8 {
 						myPage.CPUTable.Data = data.CpuStats
 						avgLoad /= float64(numCores)
@@ -181,6 +186,7 @@ func RenderCharts(ctx context.Context,
 						}
 						myPage.AvgCPUGraph.Data["Average CPU Load:"] = append(myPage.AvgCPUGraph.Data["Average CPU Load:"], avgLoad)
 						myPage.AvgCPUGraph.Labels["Average CPU Load:"] = fmt.Sprintf("%3.2f%%", avgLoad)
+						// Change LineColor based on percentage
 						if avgLoad > 70.0 {
 							myPage.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorRed
 						} else if avgLoad > 40.0 {

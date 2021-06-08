@@ -23,6 +23,8 @@ import (
 	ui "github.com/gizak/termui/v3"
 )
 
+// Custom widget to print a CPU Table
+
 type CpuTableChart struct {
 	*ui.Block
 	Data        []float64

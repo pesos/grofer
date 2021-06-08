@@ -24,14 +24,14 @@ import (
 
 type HorizontalBarChart struct {
 	*ui.Block
-	BarColors   []ui.Color
-	LabelStyles []ui.Style
+	BarColors   []ui.Color // Custom bar colors
+	LabelStyles []ui.Style // Styles label styles
 	Data        []float64
 	Labels      []string
 	MaxVal      float64
-	BarGap      int
-	BarWidth    int
-	ColResizer  func()
+	BarGap      int    // Gap between bars
+	BarWidth    int    // Width of each bar
+	ColResizer  func() // Function to resize bar
 }
 
 func NewHorizontalBarChart() *HorizontalBarChart {
@@ -48,12 +48,15 @@ func NewHorizontalBarChart() *HorizontalBarChart {
 
 func (self *HorizontalBarChart) Draw(buf *ui.Buffer) {
 	self.Block.Draw(buf)
+	// Call function to resize columns depending on term size
 	self.ColResizer()
+	// Calculate maximum value if not given
 	maxVal := self.MaxVal
 	if maxVal == 0 {
 		maxVal, _ = ui.GetMaxFloat64FromSlice(self.Data)
 	}
 	barYCoordinate := self.Inner.Min.Y
+	// Draw the horizontal bars and print the labels.
 
 	for i, data := range self.Data {
 		barWidth := int((data / maxVal) * float64(self.Inner.Dx()))
