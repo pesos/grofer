@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// groferVersion is the version of grofer that is loaded in during build
 var groferVersion string
 
 // aboutCmd represents the about command
