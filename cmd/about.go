@@ -24,6 +24,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var groferVersion string
+
 // aboutCmd represents the about command
 var aboutCmd = &cobra.Command{
 	Use:   "about",
@@ -42,6 +44,7 @@ var aboutCmd = &cobra.Command{
 		About.BorderStyle.Fg = ui.ColorBlue
 		About.Text =
 			"\nA system profiler written purely in golang!\n\n" +
+				"version: " + groferVersion + "\n\n" +
 				"Made with [♥](fg:red) by [PES Open Source](fg:green)\n\n"
 
 		uiEvents := ui.PollEvents()
