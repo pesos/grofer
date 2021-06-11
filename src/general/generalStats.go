@@ -17,6 +17,8 @@ package general
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"sync"
 
 	"github.com/pesos/grofer/src/utils"
@@ -52,6 +54,10 @@ func GlobalStats(ctx context.Context, dataChannel chan utils.DataStats, refreshR
 		close(errCh)
 		for err := range errCh {
 			if err != nil {
+				if err == os.ErrInvalid {
+					fmt.Printf("Warning: %s", err.Error())
+					continue
+				}
 				return err
 			}
 		}

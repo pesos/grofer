@@ -169,10 +169,6 @@ func (page *MainPage) diskChartWidget() {
 	page.DiskChart.Title = " Disk "
 	page.DiskChart.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.DiskChart.ShowCursor = true
-	//page.DiskChart.TextStyle = ui.NewStyle(ui.ColorClear)
-	//page.DiskChart.TextAlignment = ui.AlignLeft
-	//page.DiskChart.RowSeparator = false
-	//page.DiskChart.ColumnWidths = []int{10, 9, 9, 9, 9, 10}
 	page.DiskChart.BorderStyle.Fg = ui.ColorCyan
 	page.DiskChart.ColResizer = func() {
 		// Middle 4 columns are of fixed length
