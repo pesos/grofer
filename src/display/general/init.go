@@ -32,7 +32,7 @@ type MainPage struct {
 	CPUGraph         *utils.LineGraph
 	CPUTable         *utils.CpuTableChart
 	AvgCPUGraph      *utils.LineGraph
-	TemperatureTable *widgets.Table
+	TemperatureTable *utils.Table
 }
 
 type CPUPage struct {
@@ -73,7 +73,7 @@ func NewPage(numCores int) *MainPage {
 		CPUGraph:         utils.NewLineGraph(),
 		CPUTable:         utils.NewCpuTableChart(),
 		AvgCPUGraph:      utils.NewLineGraph(),
-		TemperatureTable: widgets.NewTable(),
+		TemperatureTable: utils.NewTable(),
 	}
 	page.InitGeneral(numCores)
 	return page
@@ -155,13 +155,12 @@ func (page *MainPage) temperatureTableWidget() {
 	page.TemperatureTable.Title = " Temp "
 	page.TemperatureTable.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
-	page.TemperatureTable.TextStyle = ui.NewStyle(ui.ColorClear)
-	page.TemperatureTable.TextAlignment = ui.AlignCenter
-	page.TemperatureTable.RowSeparator = true
-	page.TemperatureTable.ColumnWidths = []int{20, 20}
-	page.TemperatureTable.ColumnResizer = func() {
+	page.TemperatureTable.HeaderStyle = ui.NewStyle(ui.ColorClear, ui.ColorClear, ui.ModifierUnderline)
+	page.TemperatureTable.ColColor[1] = ui.ColorGreen
+	page.TemperatureTable.ShowCursor = true
+	page.TemperatureTable.ColResizer = func() {
 		x := page.TemperatureTable.Inner.Dx()
-		page.TemperatureTable.ColumnWidths = []int{x / 2, x / 2}
+		page.TemperatureTable.ColWidths = []int{x / 2, x / 2}
 	}
 }
 

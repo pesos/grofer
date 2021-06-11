@@ -30,7 +30,6 @@ import (
 )
 
 var isCPUSet = false
-
 var run = true
 var helpVisible = false
 
@@ -56,6 +55,7 @@ func RenderCharts(ctx context.Context,
 
 	// Create new page
 	myPage := NewPage(numCores)
+	currScrollable := 1 // Stores 0, 1, 2 for CPUTable, DiskChart and TemperatureTable
 
 	// Pause to pause updating data
 	pause := func() {
@@ -92,6 +92,9 @@ func RenderCharts(ctx context.Context,
 	t := time.NewTicker(time.Duration(refreshRate) * time.Millisecond)
 	tick := t.C
 	for {
+		//myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
+		//myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
+		//myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -130,32 +133,78 @@ func RenderCharts(ctx context.Context,
 				}
 				if numCores > 8 {
 					switch e.ID {
-					// Use <Up> and <Down> to scroll CPUTable when number of cores is greater than 8,
-					// and use <j> and <k> to scroll the DiskChart
-					case "<Down>":
-						myPage.CPUTable.ScrollDown()
-						ui.Render(myPage.Grid)
-					case "<Up>":
-						myPage.CPUTable.ScrollUp()
-						ui.Render(myPage.Grid)
-
-					case "j":
-						myPage.DiskChart.ScrollDown()
+					case "<Down>", "j":
+						switch currScrollable {
+						case 0:
+							myPage.CPUTable.ScrollDown()
+						case 1:
+							myPage.DiskChart.ScrollDown()
+						case 2:
+							myPage.TemperatureTable.ScrollDown()
+						}
 						ui.Render(myPage.Grid)
 
-					case "k":
-						myPage.DiskChart.ScrollUp()
+					case "<Up>", "k":
+						switch currScrollable {
+						case 0:
+							myPage.CPUTable.ScrollUp()
+						case 1:
+							myPage.DiskChart.ScrollUp()
+						case 2:
+							myPage.TemperatureTable.ScrollUp()
+						}
+						ui.Render(myPage.Grid)
+
+					case "<Left>", "h":
+						if currScrollable > 0 {
+							currScrollable -= 1
+						} else {
+							currScrollable = 2
+						}
+						ui.Render(myPage.Grid)
+
+					case "<Right>", "l":
+						if currScrollable < 2 {
+							currScrollable += 1
+						} else {
+							currScrollable = 0
+						}
 						ui.Render(myPage.Grid)
 					}
 				} else {
 					switch e.ID {
-					// Use <Down><Up>/<j><k> to scroll DiskChart when number of CPUs is less than, equal to 8
+					case "<Left>", "h":
+						if currScrollable > 1 {
+							currScrollable -= 1
+						} else {
+							currScrollable = 2
+						}
+						ui.Render(myPage.Grid)
+
+					case "<Right>", "l":
+						if currScrollable < 2 {
+							currScrollable += 1
+						} else {
+							currScrollable = 1
+						}
+						ui.Render(myPage.Grid)
+
 					case "j", "<Down>":
-						myPage.DiskChart.ScrollDown()
+						switch currScrollable {
+						case 1:
+							myPage.DiskChart.ScrollDown()
+						case 2:
+							myPage.DiskChart.ScrollDown()
+						}
 						ui.Render(myPage.Grid)
 
 					case "k", "<Up>":
-						myPage.DiskChart.ScrollUp()
+						switch currScrollable {
+						case 1:
+							myPage.DiskChart.ScrollUp()
+						case 2:
+							myPage.DiskChart.ScrollUp()
+						}
 						ui.Render(myPage.Grid)
 					}
 				}
@@ -167,6 +216,7 @@ func RenderCharts(ctx context.Context,
 
 				case "CPU": // Update CPU stats
 					avgLoad := 0.0
+
 					// Individual line charts for each CPU core when < 8
 					for i, x := range data.CpuStats {
 						key := fmt.Sprintf("CPU%d", i)
@@ -179,6 +229,11 @@ func RenderCharts(ctx context.Context,
 					}
 					// Generate an Average Graph for CPUs when number of cores > 8
 					if numCores > 8 {
+						if currScrollable == 0 {
+							myPage.CPUTable.BorderStyle.Fg = ui.ColorRed
+						} else {
+							myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
+						}
 						myPage.CPUTable.Data = data.CpuStats
 						avgLoad /= float64(numCores)
 						if len(myPage.AvgCPUGraph.Data["Average CPU Load:"]) > 100 {
@@ -205,11 +260,22 @@ func RenderCharts(ctx context.Context,
 					myPage.MemoryChart.Labels = append(myPage.MemoryChart.Labels, fmt.Sprintf("Cached: %.2fG/%.2fG", data.MemStats[4], data.MemStats[0]))
 
 				case "DISK": // Update Disk stats
+					if currScrollable == 1 {
+						myPage.DiskChart.BorderStyle.Fg = ui.ColorRed
+					} else {
+						myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
+					}
 					myPage.DiskChart.Header = data.DiskStats[0]
 					myPage.DiskChart.Rows = data.DiskStats[1:]
 
 				case "TEMP":
-					myPage.TemperatureTable.Rows = data.TempStats
+					if currScrollable == 2 {
+						myPage.TemperatureTable.BorderStyle.Fg = ui.ColorRed
+					} else {
+						myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
+					}
+					myPage.TemperatureTable.Header = data.TempStats[0]
+					myPage.TemperatureTable.Rows = data.TempStats[1:]
 
 				case "NET": // Update Network stats
 					var curBytesRecv, curBytesSent float64
