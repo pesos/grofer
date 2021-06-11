@@ -83,7 +83,7 @@ Display Overall Metrics
 grofer [FLAGS]
 ```
 
-The command displays the default root page which provides verall CPU, Memory, Network and Disk Metrics.
+The command displays the default root page which provides overall CPU, Memory, Network and Disk Metrics.
 
 Optional flags:
 
