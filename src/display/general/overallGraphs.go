@@ -139,8 +139,10 @@ func RenderCharts(ctx context.Context,
 							myPage.CPUTable.ScrollDown()
 						case 1:
 							myPage.DiskChart.ScrollDown()
+
 						case 2:
 							myPage.TemperatureTable.ScrollDown()
+
 						}
 						ui.Render(myPage.Grid)
 
@@ -161,6 +163,22 @@ func RenderCharts(ctx context.Context,
 						} else {
 							currScrollable = 2
 						}
+						switch currScrollable {
+						case 0:
+							myPage.CPUTable.BorderStyle.Fg = ui.ColorRed
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
+
+						case 1:
+							myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorRed
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
+
+						case 2:
+							myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorRed
+						}
 						ui.Render(myPage.Grid)
 
 					case "<Right>", "l":
@@ -168,6 +186,22 @@ func RenderCharts(ctx context.Context,
 							currScrollable += 1
 						} else {
 							currScrollable = 0
+						}
+						switch currScrollable {
+						case 0:
+							myPage.CPUTable.BorderStyle.Fg = ui.ColorRed
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
+
+						case 1:
+							myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorRed
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
+
+						case 2:
+							myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorRed
 						}
 						ui.Render(myPage.Grid)
 					}
@@ -179,6 +213,15 @@ func RenderCharts(ctx context.Context,
 						} else {
 							currScrollable = 2
 						}
+						switch currScrollable {
+						case 1:
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorRed
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
+
+						case 2:
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorRed
+						}
 						ui.Render(myPage.Grid)
 
 					case "<Right>", "l":
@@ -187,14 +230,27 @@ func RenderCharts(ctx context.Context,
 						} else {
 							currScrollable = 1
 						}
+						switch currScrollable {
+						case 1:
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorRed
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
+
+						case 2:
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorRed
+						}
 						ui.Render(myPage.Grid)
 
 					case "j", "<Down>":
 						switch currScrollable {
 						case 1:
 							myPage.DiskChart.ScrollDown()
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorRed
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
 						case 2:
-							myPage.DiskChart.ScrollDown()
+							myPage.TemperatureTable.ScrollDown()
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorRed
 						}
 						ui.Render(myPage.Grid)
 
@@ -202,8 +258,12 @@ func RenderCharts(ctx context.Context,
 						switch currScrollable {
 						case 1:
 							myPage.DiskChart.ScrollUp()
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorRed
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
 						case 2:
-							myPage.DiskChart.ScrollUp()
+							myPage.TemperatureTable.ScrollUp()
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorRed
 						}
 						ui.Render(myPage.Grid)
 					}
@@ -229,11 +289,6 @@ func RenderCharts(ctx context.Context,
 					}
 					// Generate an Average Graph for CPUs when number of cores > 8
 					if numCores > 8 {
-						if currScrollable == 0 {
-							myPage.CPUTable.BorderStyle.Fg = ui.ColorRed
-						} else {
-							myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
-						}
 						myPage.CPUTable.Data = data.CpuStats
 						avgLoad /= float64(numCores)
 						if len(myPage.AvgCPUGraph.Data["Average CPU Load:"]) > 100 {
@@ -260,20 +315,10 @@ func RenderCharts(ctx context.Context,
 					myPage.MemoryChart.Labels = append(myPage.MemoryChart.Labels, fmt.Sprintf("Cached: %.2fG/%.2fG", data.MemStats[4], data.MemStats[0]))
 
 				case "DISK": // Update Disk stats
-					if currScrollable == 1 {
-						myPage.DiskChart.BorderStyle.Fg = ui.ColorRed
-					} else {
-						myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-					}
 					myPage.DiskChart.Header = data.DiskStats[0]
 					myPage.DiskChart.Rows = data.DiskStats[1:]
 
 				case "TEMP":
-					if currScrollable == 2 {
-						myPage.TemperatureTable.BorderStyle.Fg = ui.ColorRed
-					} else {
-						myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
-					}
 					myPage.TemperatureTable.Header = data.TempStats[0]
 					myPage.TemperatureTable.Rows = data.TempStats[1:]
 
