@@ -19,6 +19,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"os"
 	"strings"
 	"time"
 
@@ -89,7 +90,7 @@ func ServeMemRates(ctx context.Context, dataChannel chan utils.DataStats) error 
 // Credits to github.com/shirou/gopsutil
 func ServeTemperatureRates(ctx context.Context, dataChannel chan utils.DataStats) error {
 	sensors, err := host.SensorsTemperatures()
-	if err != nil {
+	if err != nil && err != os.ErrInvalid {
 		return err
 	}
 	// 2D string stores Header and Rows
