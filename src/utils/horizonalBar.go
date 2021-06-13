@@ -46,29 +46,29 @@ func NewHorizontalBarChart() *HorizontalBarChart {
 	}
 }
 
-func (self *HorizontalBarChart) Draw(buf *ui.Buffer) {
-	self.Block.Draw(buf)
+func (h *HorizontalBarChart) Draw(buf *ui.Buffer) {
+	h.Block.Draw(buf)
 	// Call function to resize columns depending on term size
-	self.ColResizer()
+	h.ColResizer()
 	// Calculate maximum value if not given
-	maxVal := self.MaxVal
+	maxVal := h.MaxVal
 	if maxVal == 0 {
-		maxVal, _ = ui.GetMaxFloat64FromSlice(self.Data)
+		maxVal, _ = ui.GetMaxFloat64FromSlice(h.Data)
 	}
-	barYCoordinate := self.Inner.Min.Y
+	barYCoordinate := h.Inner.Min.Y
 	// Draw the horizontal bars and print the labels.
 
-	for i, data := range self.Data {
-		barWidth := int((data / maxVal) * float64(self.Inner.Dx()))
+	for i, data := range h.Data {
+		barWidth := int((data / maxVal) * float64(h.Inner.Dx()))
 		buf.Fill(
-			ui.NewCell(' ', ui.NewStyle(ui.ColorClear, ui.SelectColor(self.BarColors, i))),
-			image.Rect(self.Inner.Min.X, barYCoordinate, barWidth+self.Inner.Min.X, barYCoordinate+self.BarWidth),
+			ui.NewCell(' ', ui.NewStyle(ui.ColorClear, ui.SelectColor(h.BarColors, i))),
+			image.Rect(h.Inner.Min.X, barYCoordinate, barWidth+h.Inner.Min.X, barYCoordinate+h.BarWidth),
 		)
 		buf.SetString(
-			self.Labels[i],
-			ui.SelectStyle(self.LabelStyles, i),
-			image.Pt(self.Inner.Min.X, barYCoordinate+self.BarWidth),
+			h.Labels[i],
+			ui.SelectStyle(h.LabelStyles, i),
+			image.Pt(h.Inner.Min.X, barYCoordinate+h.BarWidth),
 		)
-		barYCoordinate += self.BarWidth + self.BarGap + 1
+		barYCoordinate += h.BarWidth + h.BarGap + 1
 	}
 }

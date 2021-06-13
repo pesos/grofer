@@ -55,17 +55,17 @@ func NewSparklineGroup(sls ...*Sparkline) *SparklineGroup {
 	}
 }
 
-func (self *SparklineGroup) Draw(buf *ui.Buffer) {
-	self.Block.Draw(buf)
+func (s *SparklineGroup) Draw(buf *ui.Buffer) {
+	s.Block.Draw(buf)
 
-	sparklineHeight := self.Inner.Dy() / len(self.Sparklines)
+	sparklineHeight := s.Inner.Dy() / len(s.Sparklines)
 
-	for i, sl := range self.Sparklines {
+	for i, sl := range s.Sparklines {
 		heightOffset := (sparklineHeight * (i + 1))
 		barHeight := sparklineHeight
-		if i == len(self.Sparklines)-1 {
-			heightOffset = self.Inner.Dy()
-			barHeight = self.Inner.Dy() - (sparklineHeight * i)
+		if i == len(s.Sparklines)-1 {
+			heightOffset = s.Inner.Dy()
+			barHeight = s.Inner.Dy() - (sparklineHeight * i)
 		}
 		if sl.Title != "" {
 			barHeight--
@@ -82,19 +82,19 @@ func (self *SparklineGroup) Draw(buf *ui.Buffer) {
 
 		// draw line
 		index := 0
-		for j := self.Inner.Dx() - 1; index < len(sl.Data) && j >= 0; j-- {
+		for j := s.Inner.Dx() - 1; index < len(sl.Data) && j >= 0; j-- {
 			data := sl.Data[index]
 			index++
 			height := int((data / maxVal) * float64(barHeight))
 			sparkChar := ui.IRREGULAR_BLOCKS[15]
 			for k := 0; k < height; k++ {
-				yBarCoord := self.Inner.Min.Y - 1 + heightOffset - k
+				yBarCoord := s.Inner.Min.Y - 1 + heightOffset - k
 				if sl.Reverse {
-					yBarCoord = self.Inner.Min.Y - 1 + heightOffset + k
+					yBarCoord = s.Inner.Min.Y - 1 + heightOffset + k
 				}
 				buf.SetCell(
 					ui.NewCell(sparkChar, ui.NewStyle(sl.LineColor)),
-					image.Pt(j+self.Inner.Min.X, yBarCoord),
+					image.Pt(j+s.Inner.Min.X, yBarCoord),
 				)
 
 			}
@@ -106,21 +106,21 @@ func (self *SparklineGroup) Draw(buf *ui.Buffer) {
 				}
 				buf.SetCell(
 					ui.NewCell(sparkChar, ui.NewStyle(sl.LineColor)),
-					image.Pt(j+self.Inner.Min.X, self.Inner.Min.Y-1+heightOffset),
+					image.Pt(j+s.Inner.Min.X, s.Inner.Min.Y-1+heightOffset),
 				)
 			}
 		}
 
 		if sl.Title != "" {
 			// draw title
-			yTitleCoord := self.Inner.Min.Y - 1 + heightOffset - barHeight
+			yTitleCoord := s.Inner.Min.Y - 1 + heightOffset - barHeight
 			if sl.Reverse {
-				yTitleCoord = self.Inner.Min.Y - 1 + heightOffset + sparklineHeight
+				yTitleCoord = s.Inner.Min.Y - 1 + heightOffset + sparklineHeight
 			}
 			buf.SetString(
-				ui.TrimString(sl.Title, self.Inner.Dx()),
+				ui.TrimString(sl.Title, s.Inner.Dx()),
 				sl.TitleStyle,
-				image.Pt(self.Inner.Min.X, yTitleCoord),
+				image.Pt(s.Inner.Min.X, yTitleCoord),
 			)
 		}
 	}
