@@ -24,6 +24,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// groferVersion is the version of grofer that is loaded in during build
+var groferVersion string = "1.3.0"
+
 // aboutCmd represents the about command
 var aboutCmd = &cobra.Command{
 	Use:   "about",
@@ -42,6 +45,7 @@ var aboutCmd = &cobra.Command{
 		About.BorderStyle.Fg = ui.ColorBlue
 		About.Text =
 			"\nA system profiler written purely in golang!\n\n" +
+				"version: " + groferVersion + "\n\n" +
 				"Made with [♥](fg:red) by [PES Open Source](fg:green)\n\n"
 
 		uiEvents := ui.PollEvents()
