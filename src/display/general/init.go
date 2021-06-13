@@ -31,6 +31,7 @@ type MainPage struct {
 	NetworkChart     *utils.SparklineGroup
 	CPUGraph         *utils.LineGraph
 	CPUTable         *utils.CpuTableChart
+	CPUGauge         *utils.CpuGauge
 	AvgCPUGraph      *utils.LineGraph
 	TemperatureTable *utils.Table
 }
@@ -72,6 +73,7 @@ func NewPage(numCores int) *MainPage {
 		NetworkChart:     utils.NewSparklineGroup(rxSparkLine, txSparkLine),
 		CPUGraph:         utils.NewLineGraph(),
 		CPUTable:         utils.NewCpuTableChart(),
+		CPUGauge:         utils.NewCpuGauge(),
 		AvgCPUGraph:      utils.NewLineGraph(),
 		TemperatureTable: utils.NewTable(),
 	}
@@ -111,6 +113,7 @@ func (page *MainPage) InitGeneral(numCores int) {
 		page.cpuTableWidget(numCores)
 	} else {
 		page.cpuGraphWidget(numCores)
+		page.cpuGaugeWidget(numCores)
 	}
 	// Initialize Graph for Temperature Table
 	page.temperatureTableWidget()
@@ -128,7 +131,9 @@ func (page *MainPage) InitGeneral(numCores int) {
 		)
 	} else {
 		page.Grid.Set(
-			ui.NewCol(0.4, page.CPUGraph),
+			ui.NewCol(0.4,
+				ui.NewRow(0.5, page.CPUGraph),
+				ui.NewRow(0.5, page.CPUGauge)),
 			ui.NewCol(0.6,
 				ui.NewRow(0.34, page.MemoryChart),
 				ui.NewRow(0.34, ui.NewCol(0.5, page.NetworkChart), ui.NewCol(0.5, page.TemperatureTable)),
@@ -206,6 +211,18 @@ func (page *MainPage) cpuGraphWidget(numCores int) {
 		key := fmt.Sprintf("CPU%d", i)
 		page.CPUGraph.LineColors[key] = ui.Color(i + 1)
 		page.CPUGraph.Data[key] = []float64{0}
+	}
+}
+
+func (page *MainPage) cpuGaugeWidget(numCores int) {
+	page.CPUGauge.Title = " CPU Gauge "
+	page.CPUGauge.TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.CPUGauge.BorderStyle.Fg = ui.ColorCyan
+	page.CPUGauge.ColResizer = func() {
+		height := page.CPUGauge.Inner.Dy()
+		width := page.CPUGauge.Inner.Dx()
+		page.CPUGauge.BarHeight = int(height / numCores)
+		page.CPUGauge.BarWidth = int(width / 14)
 	}
 }
 

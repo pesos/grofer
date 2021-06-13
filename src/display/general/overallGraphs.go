@@ -287,6 +287,7 @@ func RenderCharts(ctx context.Context,
 						myPage.CPUGraph.Labels[key] = fmt.Sprintf("%3.0f%%", x)
 						avgLoad += x
 					}
+					myPage.CPUGauge.Values = data.CpuStats
 					// Generate an Average Graph for CPUs when number of cores > 8
 					if numCores > 8 {
 						myPage.CPUTable.Data = data.CpuStats
