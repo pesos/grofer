@@ -50,6 +50,11 @@ go build grofer.go
    ```
    docker pull ghcr.io/pesos/grofer
    ```
+
+   Note: This will use the `latest` image which is built from the main branch.
+   For stable releases, you will need to use the version number as the tag.
+   Example: `docker pull ghcr.io/pesos/grofer:1.3.0`
+
 1. Run using
    ```bash
    docker run \
