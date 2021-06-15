@@ -111,9 +111,9 @@ func (page *MainPage) InitGeneral(numCores int) {
 				ui.NewRow(0.5, page.AvgCPUGraph),
 				ui.NewRow(0.5, page.CPUTable)),
 			ui.NewCol(0.6,
-				ui.NewRow(0.34, page.MemoryChart),
-				ui.NewRow(0.34, ui.NewCol(0.5, page.NetworkChart), ui.NewCol(0.5, page.TemperatureTable)),
-				ui.NewRow(0.34, page.DiskChart)),
+				ui.NewRow(0.4, page.MemoryChart),
+				ui.NewRow(0.3, ui.NewCol(0.5, page.NetworkChart), ui.NewCol(0.5, page.TemperatureTable)),
+				ui.NewRow(0.3, page.DiskChart)),
 		)
 	} else {
 		page.Grid.Set(
@@ -121,9 +121,9 @@ func (page *MainPage) InitGeneral(numCores int) {
 				ui.NewRow(0.5, page.AvgCPUGraph),
 				ui.NewRow(0.5, page.CPUGauge)),
 			ui.NewCol(0.6,
-				ui.NewRow(0.34, page.MemoryChart),
-				ui.NewRow(0.34, ui.NewCol(0.5, page.NetworkChart), ui.NewCol(0.5, page.TemperatureTable)),
-				ui.NewRow(0.34, page.DiskChart)),
+				ui.NewRow(0.4, page.MemoryChart),
+				ui.NewRow(0.3, ui.NewCol(0.5, page.NetworkChart), ui.NewCol(0.5, page.TemperatureTable)),
+				ui.NewRow(0.3, page.DiskChart)),
 		)
 	}
 	page.Grid.SetRect(0, 0, w, h)
@@ -134,7 +134,7 @@ func (page *MainPage) memoryChartWidget() {
 	page.MemoryChart.BorderStyle.Fg = ui.ColorCyan
 	page.MemoryChart.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.MemoryChart.ColResizer = func() {
-		if page.MemoryChart.Inner.Dy() > 8 {
+		if page.MemoryChart.Inner.Dy() > 12 {
 			page.MemoryChart.BarWidth = 2
 		} else {
 			page.MemoryChart.BarWidth = 1
