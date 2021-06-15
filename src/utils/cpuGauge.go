@@ -37,7 +37,7 @@ func NewCpuGauge() *CpuGauge {
 	return &CpuGauge{
 		Block:       ui.NewBlock(),
 		Values:      []float64{},
-		StatusColor: []ui.Color{ui.Color(46), ui.Color(82), ui.Color(154), ui.Color(112), ui.Color(190), ui.Color(226), ui.Color(220), ui.Color(214), ui.Color(202), ui.Color(196), ui.Color(160)},
+		StatusColor: []ui.Color{ui.Color(46), ui.Color(82), ui.Color(154), ui.Color(191), ui.Color(190), ui.Color(226), ui.Color(220), ui.Color(214), ui.Color(202), ui.Color(196), ui.Color(160)},
 		BarGap:      0,
 		BarWidth:    4,
 		BarHeight:   2,
@@ -65,7 +65,7 @@ func (c *CpuGauge) Draw(buf *ui.Buffer) {
 			image.Pt(x-5, y),
 		)
 		buf.SetString(
-			fmt.Sprintf("%.1f%%", val),
+			c.Labels[i],
 			ui.NewStyle(ui.ColorClear, ui.ColorClear),
 			image.Pt(x+1+10*c.BarWidth, y),
 		)

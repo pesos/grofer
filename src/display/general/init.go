@@ -16,8 +16,6 @@ limitations under the License.
 package general
 
 import (
-	"fmt"
-
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 	"github.com/pesos/grofer/src/utils"
@@ -29,7 +27,6 @@ type MainPage struct {
 	MemoryChart      *utils.HorizontalBarChart
 	DiskChart        *utils.Table
 	NetworkChart     *utils.SparklineGroup
-	CPUGraph         *utils.LineGraph
 	CPUTable         *utils.CpuTableChart
 	CPUGauge         *utils.CpuGauge
 	AvgCPUGraph      *utils.LineGraph
@@ -57,21 +54,11 @@ func NewPage(numCores int) *MainPage {
 	txSparkLine := utils.NewSparkline()
 	txSparkLine.Data = []float64{}
 
-	memAvailableSparkLine := widgets.NewSparkline()
-	memAvailableSparkLine.Data = []float64{}
-	memUsedSparkLine := widgets.NewSparkline()
-	memUsedSparkLine.Data = []float64{}
-	memFreeSparkLine := widgets.NewSparkline()
-	memFreeSparkLine.Data = []float64{}
-	memCachedSparkLine := widgets.NewSparkline()
-	memCachedSparkLine.Data = []float64{}
-
 	page := &MainPage{
 		Grid:             ui.NewGrid(),
 		MemoryChart:      utils.NewHorizontalBarChart(),
 		DiskChart:        utils.NewTable(),
 		NetworkChart:     utils.NewSparklineGroup(rxSparkLine, txSparkLine),
-		CPUGraph:         utils.NewLineGraph(),
 		CPUTable:         utils.NewCpuTableChart(),
 		CPUGauge:         utils.NewCpuGauge(),
 		AvgCPUGraph:      utils.NewLineGraph(),
@@ -108,11 +95,10 @@ func (page *MainPage) InitGeneral(numCores int) {
 	// Initialize Plot for Network Chart
 	page.networkChartWidget()
 	// Initialize Graph for CPU Usage
+	page.avgCpuGraphWidget()
 	if numCores > 8 {
-		page.avgCpuGraphWidget()
 		page.cpuTableWidget(numCores)
 	} else {
-		page.cpuGraphWidget(numCores)
 		page.cpuGaugeWidget(numCores)
 	}
 	// Initialize Graph for Temperature Table
@@ -132,7 +118,7 @@ func (page *MainPage) InitGeneral(numCores int) {
 	} else {
 		page.Grid.Set(
 			ui.NewCol(0.4,
-				ui.NewRow(0.5, page.CPUGraph),
+				ui.NewRow(0.5, page.AvgCPUGraph),
 				ui.NewRow(0.5, page.CPUGauge)),
 			ui.NewCol(0.6,
 				ui.NewRow(0.34, page.MemoryChart),
@@ -200,21 +186,6 @@ func (page *MainPage) networkChartWidget() {
 	page.NetworkChart.Sparklines[1].Reverse = true
 }
 
-func (page *MainPage) cpuGraphWidget(numCores int) {
-	page.CPUGraph.Title = " CPU Usage "
-	page.CPUGraph.TitleStyle = ui.NewStyle(ui.ColorClear)
-	page.CPUGraph.HorizontalScale = 10
-	page.CPUGraph.BorderStyle.Fg = ui.ColorCyan
-	page.CPUGraph.DefaultLineColor = ui.ColorClear
-	page.CPUGraph.Min.Y = 0
-	page.CPUGraph.Max.Y = 100
-	for i := 0; i < numCores; i++ {
-		key := fmt.Sprintf("CPU%d", i)
-		page.CPUGraph.LineColors[key] = ui.Color(i + 1)
-		page.CPUGraph.Data[key] = []float64{0}
-	}
-}
-
 func (page *MainPage) cpuGaugeWidget(numCores int) {
 	page.CPUGauge.Title = " CPU Gauge "
 	page.CPUGauge.TitleStyle = ui.NewStyle(ui.ColorClear)
@@ -223,7 +194,7 @@ func (page *MainPage) cpuGaugeWidget(numCores int) {
 		height := page.CPUGauge.Inner.Dy()
 		width := page.CPUGauge.Inner.Dx()
 		page.CPUGauge.BarHeight = int(height / numCores)
-		page.CPUGauge.BarWidth = int(width / 14)
+		page.CPUGauge.BarWidth = int(width / 13)
 	}
 }
 

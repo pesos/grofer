@@ -276,35 +276,34 @@ func RenderCharts(ctx context.Context,
 
 				case "CPU": // Update CPU stats
 					avgLoad := 0.0
-
+					myPage.CPUGauge.Labels = nil
 					// Individual line charts for each CPU core when < 8
-					for i, x := range data.CpuStats {
-						key := fmt.Sprintf("CPU%d", i)
-						if len(myPage.CPUGraph.Data[key]) > 100 {
-							myPage.CPUGraph.Data[key] = myPage.CPUGraph.Data[key][1:]
-						}
-						myPage.CPUGraph.Data[key] = append(myPage.CPUGraph.Data[key], x)
-						myPage.CPUGraph.Labels[key] = fmt.Sprintf("%3.0f%%", x)
+					for _, x := range data.CpuStats {
+						myPage.CPUGauge.Labels = append(myPage.CPUGauge.Labels, fmt.Sprintf("%.1f%%", x))
 						avgLoad += x
 					}
-					myPage.CPUGauge.Values = data.CpuStats
-					// Generate an Average Graph for CPUs when number of cores > 8
+
 					if numCores > 8 {
 						myPage.CPUTable.Data = data.CpuStats
-						avgLoad /= float64(numCores)
-						if len(myPage.AvgCPUGraph.Data["Average CPU Load:"]) > 100 {
-							myPage.AvgCPUGraph.Data["Average CPU Load:"] = myPage.AvgCPUGraph.Data["Average CPU Load:"][1:]
-						}
-						myPage.AvgCPUGraph.Data["Average CPU Load:"] = append(myPage.AvgCPUGraph.Data["Average CPU Load:"], avgLoad)
-						myPage.AvgCPUGraph.Labels["Average CPU Load:"] = fmt.Sprintf("%3.2f%%", avgLoad)
-						// Change LineColor based on percentage
-						if avgLoad > 70.0 {
-							myPage.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorRed
-						} else if avgLoad > 40.0 {
-							myPage.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorYellow
-						} else {
-							myPage.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorGreen
-						}
+					} else {
+						myPage.CPUGauge.Values = data.CpuStats
+					}
+					// Generate an Average Graph for CPUs when number of cores > 8
+					avgLoad /= float64(numCores)
+					if len(myPage.AvgCPUGraph.Data["Average CPU Load:"]) > 100 {
+						myPage.AvgCPUGraph.Data["Average CPU Load:"] = myPage.AvgCPUGraph.Data["Average CPU Load:"][1:]
+					}
+
+					myPage.AvgCPUGraph.Data["Average CPU Load:"] = append(myPage.AvgCPUGraph.Data["Average CPU Load:"], avgLoad)
+					myPage.AvgCPUGraph.Labels["Average CPU Load:"] = fmt.Sprintf("%3.2f%%", avgLoad)
+
+					// Change LineColor based on percentage
+					if avgLoad > 66.6 {
+						myPage.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorRed
+					} else if avgLoad > 33.3 {
+						myPage.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorYellow
+					} else {
+						myPage.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorGreen
 					}
 
 				case "MEM": // Update Memory stats
