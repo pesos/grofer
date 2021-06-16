@@ -133,6 +133,7 @@ func (page *MainPage) memoryChartWidget() {
 	page.MemoryChart.Title = " Memory(RAM) "
 	page.MemoryChart.BorderStyle.Fg = ui.ColorCyan
 	page.MemoryChart.TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.MemoryChart.BarGap = 1
 	page.MemoryChart.ColResizer = func() {
 		if page.MemoryChart.Inner.Dy() > 12 {
 			page.MemoryChart.BarWidth = 2

@@ -64,11 +64,16 @@ func (h *HorizontalBarChart) Draw(buf *ui.Buffer) {
 			ui.NewCell(' ', ui.NewStyle(ui.ColorClear, ui.SelectColor(h.BarColors, i))),
 			image.Rect(h.Inner.Min.X, barYCoordinate, barWidth+h.Inner.Min.X, barYCoordinate+h.BarWidth),
 		)
-		buf.SetString(
-			h.Labels[i],
-			ui.SelectStyle(h.LabelStyles, i),
-			image.Pt(h.Inner.Min.X, barYCoordinate+h.BarWidth),
-		)
-		barYCoordinate += h.BarWidth + h.BarGap + 1
+		for j, ch := range h.Labels[i] {
+			bg := buf.GetCell(image.Pt(h.Inner.Min.X+j, barYCoordinate))
+			var cell ui.Cell
+			if bg.Style.Bg == ui.ColorClear {
+				cell = ui.NewCell(ch, ui.NewStyle(ui.SelectColor(h.BarColors, i), ui.ColorClear))
+			} else {
+				cell = ui.NewCell(ch, ui.NewStyle(bg.Style.Bg, ui.ColorClear, ui.ModifierReverse))
+			}
+			buf.SetCell(cell, image.Pt(h.Inner.Min.X+j, barYCoordinate))
+		}
+		barYCoordinate += h.BarWidth + h.BarGap
 	}
 }
