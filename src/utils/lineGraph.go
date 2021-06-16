@@ -47,7 +47,7 @@ func NewLineGraph() *LineGraph {
 		Labels: make(map[string]string),
 
 		HorizontalScale: 5,
-		MaxVal:          1,
+		MaxVal:          0, // Leave as 0 if you want the graph to resize depending on the values
 		LineColors:      make(map[string]ui.Color),
 	}
 }
@@ -67,9 +67,13 @@ func (l *LineGraph) Draw(buf *ui.Buffer) {
 	seriesList := make([]string, len(l.Data))
 	i := 0
 
+	if l.MaxVal == 0 {
+		l.MaxVal = 1
+	}
+
 	for seriesName := range l.Data {
 		for _, val := range l.Data[seriesName] {
-			if val > l.MaxVal && l.MaxVal != 1 {
+			if val > l.MaxVal {
 				l.MaxVal = val
 			}
 		}

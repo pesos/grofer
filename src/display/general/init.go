@@ -211,6 +211,7 @@ func (page *MainPage) avgCpuGraphWidget() {
 	page.AvgCPUGraph.HorizontalScale = 10
 	page.AvgCPUGraph.BorderStyle.Fg = ui.ColorCyan
 	page.AvgCPUGraph.DefaultLineColor = ui.ColorClear
+	page.AvgCPUGraph.MaxVal = 100
 	page.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorClear
 	page.AvgCPUGraph.Data["Average CPU Load:"] = []float64{0}
 }
