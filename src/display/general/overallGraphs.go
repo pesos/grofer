@@ -92,9 +92,6 @@ func RenderCharts(ctx context.Context,
 	t := time.NewTicker(time.Duration(refreshRate) * time.Millisecond)
 	tick := t.C
 	for {
-		//myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
-		//myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-		//myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -296,7 +293,6 @@ func RenderCharts(ctx context.Context,
 
 					myPage.AvgCPUGraph.Data["Average CPU Load:"] = append(myPage.AvgCPUGraph.Data["Average CPU Load:"], avgLoad)
 					myPage.AvgCPUGraph.Labels["Average CPU Load:"] = fmt.Sprintf("%3.2f%%", avgLoad)
-
 					// Change LineColor based on percentage
 					if avgLoad > 66.6 {
 						myPage.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorRed
