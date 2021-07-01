@@ -162,19 +162,19 @@ func RenderCharts(ctx context.Context,
 						}
 						switch currScrollable {
 						case 0:
-							myPage.CPUTable.BorderStyle.Fg = ui.ColorRed
+							myPage.CPUTable.BorderStyle.Fg = ui.ColorWhite
 							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
 							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
 
 						case 1:
 							myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorRed
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorWhite
 							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
 
 						case 2:
 							myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
 							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorRed
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorWhite
 						}
 						ui.Render(myPage.Grid)
 
@@ -186,19 +186,19 @@ func RenderCharts(ctx context.Context,
 						}
 						switch currScrollable {
 						case 0:
-							myPage.CPUTable.BorderStyle.Fg = ui.ColorRed
+							myPage.CPUTable.BorderStyle.Fg = ui.ColorWhite
 							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
 							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
 
 						case 1:
 							myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorRed
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorWhite
 							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
 
 						case 2:
 							myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
 							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorRed
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorWhite
 						}
 						ui.Render(myPage.Grid)
 					}
@@ -212,12 +212,12 @@ func RenderCharts(ctx context.Context,
 						}
 						switch currScrollable {
 						case 1:
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorRed
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorWhite
 							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
 
 						case 2:
 							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorRed
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorWhite
 						}
 						ui.Render(myPage.Grid)
 
@@ -229,12 +229,12 @@ func RenderCharts(ctx context.Context,
 						}
 						switch currScrollable {
 						case 1:
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorRed
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorWhite
 							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
 
 						case 2:
 							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorRed
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorWhite
 						}
 						ui.Render(myPage.Grid)
 
@@ -242,12 +242,12 @@ func RenderCharts(ctx context.Context,
 						switch currScrollable {
 						case 1:
 							myPage.DiskChart.ScrollDown()
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorRed
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorWhite
 							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
 						case 2:
 							myPage.TemperatureTable.ScrollDown()
 							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorRed
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorWhite
 						}
 						ui.Render(myPage.Grid)
 
@@ -255,12 +255,12 @@ func RenderCharts(ctx context.Context,
 						switch currScrollable {
 						case 1:
 							myPage.DiskChart.ScrollUp()
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorRed
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorWhite
 							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
 						case 2:
 							myPage.TemperatureTable.ScrollUp()
 							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorRed
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorWhite
 						}
 						ui.Render(myPage.Grid)
 					}
