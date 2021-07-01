@@ -192,10 +192,12 @@ func (page *MainPage) cpuGaugeWidget(numCores int) {
 	page.CPUGauge.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.CPUGauge.BorderStyle.Fg = ui.ColorCyan
 	page.CPUGauge.ColResizer = func() {
-		height := page.CPUGauge.Inner.Dy()
-		width := page.CPUGauge.Inner.Dx()
-		page.CPUGauge.BarHeight = int(height / numCores)
-		page.CPUGauge.BarWidth = int(width / 13)
+		page.CPUGauge.BarWidth = page.CPUGauge.Inner.Dy() / numCores
+		if page.CPUGauge.Inner.Dy()-page.CPUGauge.BarWidth*numCores >= numCores-1 {
+			page.CPUGauge.BarGap = 1
+		} else {
+			page.CPUGauge.BarGap = 0
+		}
 	}
 }
 
