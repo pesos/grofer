@@ -32,6 +32,7 @@ import (
 var isCPUSet = false
 var run = true
 var helpVisible = false
+var cpuTableVisible = false
 
 // RenderCharts handles plotting graphs and charts for system stats in general.
 func RenderCharts(ctx context.Context,
@@ -106,6 +107,7 @@ func RenderCharts(ctx context.Context,
 
 			case "?": // s to stop
 				helpVisible = !helpVisible
+
 			}
 			if helpVisible {
 				switch e.ID {
@@ -127,8 +129,11 @@ func RenderCharts(ctx context.Context,
 					updateUI()
 				case "s": //s to pause
 					pause()
+				case "t":
+					cpuTableVisible = !cpuTableVisible
+					myPage = NewPage(numCores)
 				}
-				if numCores > 8 {
+				if numCores > 8 || cpuTableVisible {
 					switch e.ID {
 					case "<Down>", "j":
 						switch currScrollable {
@@ -280,7 +285,7 @@ func RenderCharts(ctx context.Context,
 						avgLoad += x
 					}
 
-					if numCores > 8 {
+					if numCores > 8 || cpuTableVisible {
 						myPage.CPUTable.Data = data.CpuStats
 					} else {
 						myPage.CPUGauge.Values = data.CpuStats

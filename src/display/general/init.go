@@ -96,16 +96,21 @@ func (page *MainPage) InitGeneral(numCores int) {
 	page.networkChartWidget()
 	// Initialize Graph for CPU Usage
 	page.avgCpuGraphWidget()
-	if numCores > 8 {
+	if numCores > 8 || cpuTableVisible {
 		page.cpuTableWidget(numCores)
 	} else {
 		page.cpuGaugeWidget(numCores)
 	}
 	// Initialize Graph for Temperature Table
 	page.temperatureTableWidget()
-	// Get Terminal Dimensions
+	// Set page grid
+	page.setPageGrid(numCores)
+
+}
+
+func (page *MainPage) setPageGrid(numCores int) {
 	w, h := ui.TerminalDimensions()
-	if numCores > 8 {
+	if numCores > 8 || cpuTableVisible {
 		page.Grid.Set(
 			ui.NewCol(0.4,
 				ui.NewRow(0.5, page.AvgCPUGraph),
