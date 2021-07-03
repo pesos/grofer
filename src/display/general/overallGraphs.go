@@ -56,7 +56,7 @@ func RenderCharts(ctx context.Context,
 
 	// Create new page
 	myPage := NewPage(numCores)
-	currScrollable := 1 // Stores 0, 1, 2 for CPUTable, DiskChart and TemperatureTable
+	selectedTable := 1 // Stores 0, 1, 2 for CPUTable, DiskChart and TemperatureTable
 
 	// Pause to pause updating data
 	pause := func() {
@@ -131,12 +131,13 @@ func RenderCharts(ctx context.Context,
 					pause()
 				case "t":
 					cpuTableVisible = !cpuTableVisible
+					selectedTable = 1
 					myPage = NewPage(numCores)
 				}
 				if numCores > 8 || cpuTableVisible {
 					switch e.ID {
 					case "<Down>", "j":
-						switch currScrollable {
+						switch selectedTable {
 						case 0:
 							myPage.CPUTable.ScrollDown()
 						case 1:
@@ -149,7 +150,7 @@ func RenderCharts(ctx context.Context,
 						ui.Render(myPage.Grid)
 
 					case "<Up>", "k":
-						switch currScrollable {
+						switch selectedTable {
 						case 0:
 							myPage.CPUTable.ScrollUp()
 						case 1:
@@ -160,112 +161,132 @@ func RenderCharts(ctx context.Context,
 						ui.Render(myPage.Grid)
 
 					case "<Left>", "h":
-						if currScrollable > 0 {
-							currScrollable -= 1
+						if selectedTable > 0 {
+							selectedTable -= 1
 						} else {
-							currScrollable = 2
+							selectedTable = 2
 						}
-						switch currScrollable {
+						switch selectedTable {
 						case 0:
-							myPage.CPUTable.BorderStyle.Fg = ui.ColorWhite
+							myPage.CPUTable.BorderStyle.Fg = ui.ColorClear
 							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
 							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
+							myPage.DiskChart.ShowCursor = false
+							myPage.TemperatureTable.ShowCursor = false
 
 						case 1:
 							myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorWhite
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorClear
 							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
+							myPage.DiskChart.ShowCursor = true
+							myPage.TemperatureTable.ShowCursor = false
 
 						case 2:
 							myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
 							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorWhite
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorClear
+							myPage.DiskChart.ShowCursor = false
+							myPage.TemperatureTable.ShowCursor = true
 						}
 						ui.Render(myPage.Grid)
 
 					case "<Right>", "l":
-						if currScrollable < 2 {
-							currScrollable += 1
+						if selectedTable < 2 {
+							selectedTable += 1
 						} else {
-							currScrollable = 0
+							selectedTable = 0
 						}
-						switch currScrollable {
+						switch selectedTable {
 						case 0:
-							myPage.CPUTable.BorderStyle.Fg = ui.ColorWhite
+							myPage.CPUTable.BorderStyle.Fg = ui.ColorClear
 							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
 							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
+							myPage.DiskChart.ShowCursor = false
+							myPage.TemperatureTable.ShowCursor = false
 
 						case 1:
 							myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorWhite
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorClear
 							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
+							myPage.DiskChart.ShowCursor = true
+							myPage.TemperatureTable.ShowCursor = false
 
 						case 2:
 							myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
 							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorWhite
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorClear
+							myPage.DiskChart.ShowCursor = false
+							myPage.TemperatureTable.ShowCursor = true
 						}
 						ui.Render(myPage.Grid)
 					}
 				} else {
 					switch e.ID {
 					case "<Left>", "h":
-						if currScrollable > 1 {
-							currScrollable -= 1
+						if selectedTable > 1 {
+							selectedTable -= 1
 						} else {
-							currScrollable = 2
+							selectedTable = 2
 						}
-						switch currScrollable {
+						switch selectedTable {
 						case 1:
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorWhite
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorClear
 							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
+							myPage.DiskChart.ShowCursor = true
+							myPage.TemperatureTable.ShowCursor = false
 
 						case 2:
 							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorWhite
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorClear
+							myPage.DiskChart.ShowCursor = false
+							myPage.TemperatureTable.ShowCursor = true
 						}
 						ui.Render(myPage.Grid)
 
 					case "<Right>", "l":
-						if currScrollable < 2 {
-							currScrollable += 1
+						if selectedTable < 2 {
+							selectedTable += 1
 						} else {
-							currScrollable = 1
+							selectedTable = 1
 						}
-						switch currScrollable {
+						switch selectedTable {
 						case 1:
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorWhite
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorClear
 							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
+							myPage.DiskChart.ShowCursor = true
+							myPage.TemperatureTable.ShowCursor = false
 
 						case 2:
 							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorWhite
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorClear
+							myPage.DiskChart.ShowCursor = false
+							myPage.TemperatureTable.ShowCursor = true
 						}
 						ui.Render(myPage.Grid)
 
 					case "j", "<Down>":
-						switch currScrollable {
+						switch selectedTable {
 						case 1:
 							myPage.DiskChart.ScrollDown()
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorWhite
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorClear
 							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
 						case 2:
 							myPage.TemperatureTable.ScrollDown()
 							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorWhite
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorClear
 						}
 						ui.Render(myPage.Grid)
 
 					case "k", "<Up>":
-						switch currScrollable {
+						switch selectedTable {
 						case 1:
 							myPage.DiskChart.ScrollUp()
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorWhite
+							myPage.DiskChart.BorderStyle.Fg = ui.ColorClear
 							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
 						case 2:
 							myPage.TemperatureTable.ScrollUp()
 							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorWhite
+							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorClear
 						}
 						ui.Render(myPage.Grid)
 					}

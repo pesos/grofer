@@ -154,7 +154,7 @@ func (page *MainPage) temperatureTableWidget() {
 	page.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
 	page.TemperatureTable.HeaderStyle = ui.NewStyle(ui.ColorClear, ui.ColorClear, ui.ModifierBold)
 	page.TemperatureTable.ColColor[1] = ui.ColorGreen
-	page.TemperatureTable.ShowCursor = true
+	page.TemperatureTable.ShowCursor = false
 	page.TemperatureTable.ColResizer = func() {
 		x := page.TemperatureTable.Inner.Dx()
 		page.TemperatureTable.ColWidths = []int{x / 2, x / 2}
@@ -166,7 +166,7 @@ func (page *MainPage) diskChartWidget() {
 	page.DiskChart.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.DiskChart.HeaderStyle = ui.NewStyle(ui.ColorClear, ui.ColorClear, ui.ModifierBold)
 	page.DiskChart.ShowCursor = true
-	page.DiskChart.BorderStyle.Fg = ui.ColorCyan
+	page.DiskChart.BorderStyle.Fg = ui.ColorClear
 	page.DiskChart.ColResizer = func() {
 		// Middle 4 columns are of fixed length
 		x := page.DiskChart.Inner.Dx()

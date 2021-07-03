@@ -27,10 +27,9 @@ type CpuGauge struct {
 	Labels      []string
 	Values      []float64
 	StatusColor []ui.Color
-	//BarHeight   int
-	BarWidth   int
-	BarGap     int
-	ColResizer func()
+	BarWidth    int
+	BarGap      int
+	ColResizer  func()
 }
 
 func NewCpuGauge() *CpuGauge {
@@ -40,8 +39,7 @@ func NewCpuGauge() *CpuGauge {
 		StatusColor: []ui.Color{ui.Color(46), ui.Color(82), ui.Color(154), ui.Color(191), ui.Color(190), ui.Color(226), ui.Color(220), ui.Color(214), ui.Color(202), ui.Color(196), ui.Color(160)},
 		BarGap:      0,
 		BarWidth:    2,
-		//BarHeight:   2,
-		ColResizer: func() {},
+		ColResizer:  func() {},
 	}
 }
 
@@ -55,7 +53,7 @@ func (c *CpuGauge) Draw(buf *ui.Buffer) {
 			ui.NewCell(' ', ui.NewStyle(ui.ColorClear, c.StatusColor[int(val)/10])),
 			image.Rect(c.Inner.Min.X, height, c.Inner.Min.X+width, height+c.BarWidth),
 		)
-		label := fmt.Sprintf("CPU%d %0.2f%%", i, val)
+		label := fmt.Sprintf("CPU%d     %0.2f%%", i, val)
 		label_pos := c.Inner.Min.X + c.Inner.Dx()/2 - len(label)/2
 		for i, x := range label {
 			bg := buf.GetCell(image.Pt(label_pos+i, height)).Style.Bg
