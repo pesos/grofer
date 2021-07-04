@@ -61,7 +61,7 @@ func tableChange_3(selectedTable int) {
 	}
 }
 
-//Function runs when 2 tables are enabled in the Main page
+// Function runs when 2 tables are enabled in the Main page
 func tableChange_2(selectedTable int) {
 	switch selectedTable {
 	case 1:
