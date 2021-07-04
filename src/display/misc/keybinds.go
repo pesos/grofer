@@ -108,6 +108,9 @@ var perContainerKeyBindings = []string{
 
 var mainKeybindings = []string{
 	"Quit: q or <C-c>",
+	"Table Selection: <Left>/h and <Right>/l",
+	"Table Scrolling: <Up>/k and <Down>/j",
+	"Enable CPU Table: t",
 	"",
 	"[To close this prompt: <Esc>](fg:white)",
 }

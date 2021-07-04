@@ -16,8 +16,6 @@ limitations under the License.
 package general
 
 import (
-	"strconv"
-
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 	"github.com/pesos/grofer/src/utils"
@@ -25,12 +23,14 @@ import (
 
 // MainPage contains the ui widgets for the ui rendered by the grofer command
 type MainPage struct {
-	Grid         *ui.Grid
-	MemoryChart  *widgets.BarChart
-	DiskChart    *widgets.Table
-	NetworkChart *utils.LineGraph
-	CPUCharts    []*widgets.Gauge
-	CPUTable     *utils.Table
+	Grid             *ui.Grid
+	MemoryChart      *utils.HorizontalBarChart
+	DiskChart        *utils.Table
+	NetworkChart     *utils.SparklineGroup
+	CPUTable         *utils.CpuTableChart
+	CPUGauge         *utils.CpuGauge
+	AvgCPUGraph      *utils.LineGraph
+	TemperatureTable *utils.Table
 }
 
 type CPUPage struct {
@@ -49,13 +49,20 @@ type CPUPage struct {
 
 // NewPage returns a new page initialized from the MainPage struct
 func NewPage(numCores int) *MainPage {
+	rxSparkLine := utils.NewSparkline()
+	rxSparkLine.Data = []float64{}
+	txSparkLine := utils.NewSparkline()
+	txSparkLine.Data = []float64{}
+
 	page := &MainPage{
-		Grid:         ui.NewGrid(),
-		MemoryChart:  widgets.NewBarChart(),
-		DiskChart:    widgets.NewTable(),
-		NetworkChart: utils.NewLineGraph(),
-		CPUCharts:    make([]*widgets.Gauge, 0),
-		CPUTable:     utils.NewTable(),
+		Grid:             ui.NewGrid(),
+		MemoryChart:      utils.NewHorizontalBarChart(),
+		DiskChart:        utils.NewTable(),
+		NetworkChart:     utils.NewSparklineGroup(rxSparkLine, txSparkLine),
+		CPUTable:         utils.NewCpuTableChart(),
+		CPUGauge:         utils.NewCpuGauge(),
+		AvgCPUGraph:      utils.NewLineGraph(),
+		TemperatureTable: utils.NewTable(),
 	}
 	page.InitGeneral(numCores)
 	return page
@@ -81,101 +88,147 @@ func NewCPUPage(numCores int) *CPUPage {
 
 // InitGeneral initializes all ui elements for the ui rendered by the grofer command
 func (page *MainPage) InitGeneral(numCores int) {
-
 	// Initialize Bar Graph for Memory Chart
-	page.MemoryChart.Title = " Memory (RAM) "
-	page.MemoryChart.TitleStyle = ui.NewStyle(ui.ColorClear)
-	page.MemoryChart.Labels = []string{"Total", "Available", "Used", "Free"}
-	page.MemoryChart.BarWidth = 8
-	page.MemoryChart.BarGap = 9
-	page.MemoryChart.BarColors = []ui.Color{ui.ColorCyan, ui.ColorGreen}
-	page.MemoryChart.LabelStyles = []ui.Style{ui.NewStyle(ui.ColorClear)}
-	page.MemoryChart.NumStyles = []ui.Style{ui.NewStyle(ui.ColorBlack)}
-	page.MemoryChart.BorderStyle.Fg = ui.ColorCyan
-
+	page.initMemoryChartWidget()
 	// Initialize Table for Disk Chart
-	page.DiskChart.Title = " Disk "
-	page.DiskChart.TitleStyle = ui.NewStyle(ui.ColorClear)
-	page.DiskChart.TextStyle = ui.NewStyle(ui.ColorClear)
-	page.DiskChart.TextAlignment = ui.AlignLeft
-	page.DiskChart.RowSeparator = false
-	page.DiskChart.ColumnWidths = []int{10, 9, 9, 9, 9, 10}
-	page.DiskChart.BorderStyle.Fg = ui.ColorCyan
-	page.DiskChart.ColumnResizer = func() {
-		// Middle 4 columns are of fixed length
-		x := page.DiskChart.Inner.Dx()
-		page.DiskChart.ColumnWidths = []int{
-			x / 6,
-			x / 6,
-			x / 6,
-			x / 6,
-			x / 6,
-			x / 6,
-		}
-	}
-
+	page.initDiskChartWidget()
 	// Initialize Plot for Network Chart
-	page.NetworkChart.Title = " Network data "
-	page.NetworkChart.TitleStyle = ui.NewStyle(ui.ColorClear)
-	page.NetworkChart.HorizontalScale = 1
-	page.NetworkChart.LineColors["RX"] = ui.ColorRed
-	page.NetworkChart.LineColors["TX"] = ui.ColorGreen
-	page.NetworkChart.BorderStyle.Fg = ui.ColorCyan
-	page.NetworkChart.Data["RX"] = []float64{0}
-	page.NetworkChart.Data["TX"] = []float64{0}
-
-	if numCores > 8 {
-		page.CPUTable.Title = " CPU Usage "
-		page.CPUTable.BorderStyle.Fg = ui.ColorCyan
-		page.CPUTable.TitleStyle.Fg = ui.ColorClear
-		page.CPUTable.ColResizer = func() {
-			x := page.CPUTable.Inner.Dx()
-			page.CPUTable.ColWidths = []int{
-				x / 2,
-				x / 2,
-			}
-		}
-		page.CPUTable.Header = []string{"CPU", "Usage"}
-		page.CPUTable.ShowCursor = true
-		page.CPUTable.CursorColor = ui.ColorCyan
+	page.initNetworkChartWidget()
+	// Initialize Graph for CPU Usage
+	page.initAvgCpuGraphWidget()
+	if numCores > 8 || cpuTableVisible {
+		page.initCpuTableWidget(numCores)
 	} else {
-		// Initialize Gauges for each CPU Core usage
-		for i := 0; i < numCores; i++ {
-			tempGauge := widgets.NewGauge()
-			tempGauge.Title = " CPU " + strconv.Itoa(i) + " "
-			tempGauge.Percent = 0
-			tempGauge.BarColor = ui.ColorBlue
-			tempGauge.BorderStyle.Fg = ui.ColorCyan
-			tempGauge.TitleStyle.Fg = ui.ColorWhite
-			tempGauge.LabelStyle.Fg = ui.ColorWhite
-			page.CPUCharts = append(page.CPUCharts, tempGauge)
-		}
+		page.initCpuGaugeWidget(numCores)
 	}
+	// Initialize Graph for Temperature Table
+	page.initTemperatureTableWidget()
+	// Set page grid
+	page.initPageGrid(numCores)
 
-	// Initialize Grid layout
+}
+
+func (page *MainPage) initPageGrid(numCores int) {
 	w, h := ui.TerminalDimensions()
-	if numCores > 8 {
+	if numCores > 8 || cpuTableVisible {
 		page.Grid.Set(
-			ui.NewCol(0.3, page.CPUTable),
-			ui.NewCol(0.7,
-				ui.NewRow(0.34, page.MemoryChart),
-				ui.NewRow(0.34, page.NetworkChart),
-				ui.NewRow(0.34, page.DiskChart),
+			ui.NewCol(
+				0.4,
+				ui.NewRow(0.5, page.AvgCPUGraph),
+				ui.NewRow(0.5, page.CPUTable),
+			),
+			ui.NewCol(
+				0.6,
+				ui.NewRow(0.4, page.MemoryChart),
+				ui.NewRow(0.3, ui.NewCol(0.5, page.NetworkChart), ui.NewCol(0.5, page.TemperatureTable)),
+				ui.NewRow(0.3, page.DiskChart),
 			),
 		)
-
-		// Get Terminal Dimensions
-		page.Grid.SetRect(0, 0, w, h)
 	} else {
 		page.Grid.Set(
-			ui.NewRow(0.34, page.MemoryChart),
-			ui.NewRow(0.34, page.NetworkChart),
-			ui.NewRow(0.34, page.DiskChart),
+			ui.NewCol(
+				0.4,
+				ui.NewRow(0.5, page.AvgCPUGraph),
+				ui.NewRow(0.5, page.CPUGauge),
+			),
+			ui.NewCol(
+				0.6,
+				ui.NewRow(0.4, page.MemoryChart),
+				ui.NewRow(0.3, ui.NewCol(0.5, page.NetworkChart), ui.NewCol(0.5, page.TemperatureTable)),
+				ui.NewRow(0.3, page.DiskChart),
+			),
 		)
-
-		// Get Terminal Dimensions
-		page.Grid.SetRect(w/2, 0, w, h)
 	}
+	page.Grid.SetRect(0, 0, w, h)
+}
+
+func (page *MainPage) initMemoryChartWidget() {
+	page.MemoryChart.Title = " Memory(RAM) "
+	page.MemoryChart.BorderStyle.Fg = ui.ColorCyan
+	page.MemoryChart.TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.MemoryChart.BarGap = 1
+	page.MemoryChart.ColResizer = func() {
+		if page.MemoryChart.Inner.Dy() > 12 {
+			page.MemoryChart.BarWidth = 2
+		} else {
+			page.MemoryChart.BarWidth = 1
+		}
+	}
+}
+
+func (page *MainPage) initTemperatureTableWidget() {
+	page.TemperatureTable.Title = " Temp "
+	page.TemperatureTable.TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
+	page.TemperatureTable.HeaderStyle = ui.NewStyle(ui.ColorClear, ui.ColorClear, ui.ModifierBold)
+	page.TemperatureTable.ColColor[1] = ui.ColorGreen
+	page.TemperatureTable.ShowCursor = false
+	page.TemperatureTable.ColResizer = func() {
+		x := page.TemperatureTable.Inner.Dx()
+		page.TemperatureTable.ColWidths = []int{2 * x / 3, x / 3}
+	}
+}
+
+func (page *MainPage) initDiskChartWidget() {
+	page.DiskChart.Title = " Disk "
+	page.DiskChart.TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.DiskChart.HeaderStyle = ui.NewStyle(ui.ColorClear, ui.ColorClear, ui.ModifierBold)
+	page.DiskChart.ShowCursor = true
+	page.DiskChart.BorderStyle.Fg = ui.ColorClear
+	page.DiskChart.ColResizer = func() {
+		// Middle 4 columns are of fixed length
+		x := page.DiskChart.Inner.Dx()
+		page.DiskChart.ColWidths = []int{
+			x / 6,
+			x / 6,
+			x / 6,
+			x / 6,
+			x / 6,
+			x / 6,
+		}
+	}
+}
+
+func (page *MainPage) initNetworkChartWidget() {
+	page.NetworkChart.Title = " Network data "
+	page.NetworkChart.TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.NetworkChart.BorderStyle.Fg = ui.ColorCyan
+	page.NetworkChart.Sparklines[0].TitleStyle.Fg = ui.ColorRed
+	page.NetworkChart.Sparklines[0].LineColor = ui.ColorRed
+	page.NetworkChart.Sparklines[1].TitleStyle.Fg = ui.ColorGreen
+	page.NetworkChart.Sparklines[1].LineColor = ui.ColorGreen
+}
+
+func (page *MainPage) initCpuGaugeWidget(numCores int) {
+	page.CPUGauge.Title = " Per CPU Usage "
+	page.CPUGauge.TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.CPUGauge.BorderStyle.Fg = ui.ColorCyan
+	page.CPUGauge.ColResizer = func() {
+		page.CPUGauge.BarWidth = page.CPUGauge.Inner.Dy() / numCores
+		if page.CPUGauge.Inner.Dy()-page.CPUGauge.BarWidth*numCores >= numCores-1 {
+			page.CPUGauge.BarGap = 1
+		} else {
+			page.CPUGauge.BarGap = 0
+		}
+	}
+}
+
+func (page *MainPage) initCpuTableWidget(numCores int) {
+	page.CPUTable.Title = " Per CPU Usage "
+	page.CPUTable.TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.CPUTable.BorderStyle.Fg = ui.ColorCyan
+	page.CPUTable.NumCores = numCores
+}
+
+func (page *MainPage) initAvgCpuGraphWidget() {
+	page.AvgCPUGraph.Title = " Average CPU Usage "
+	page.AvgCPUGraph.TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.AvgCPUGraph.HorizontalScale = 10
+	page.AvgCPUGraph.BorderStyle.Fg = ui.ColorCyan
+	page.AvgCPUGraph.DefaultLineColor = ui.ColorClear
+	page.AvgCPUGraph.MaxVal = 100
+	page.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorClear
+	page.AvgCPUGraph.Data["Average CPU Load:"] = []float64{0}
 }
 
 func (page *CPUPage) InitCPU(numCores int) {

@@ -25,6 +25,7 @@ import (
 	"github.com/pesos/grofer/src/utils"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
+	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/net"
 )
@@ -69,13 +70,48 @@ func ServeMemRates(ctx context.Context, dataChannel chan utils.DataStats) error 
 		return err
 	}
 
-	memRates := []float64{roundOff(memory.Total), roundOff(memory.Available), roundOff(memory.Used), roundOff(memory.Free)}
+	memRates := []float64{roundOff(memory.Total), roundOff(memory.Used), roundOff(memory.Available), roundOff(memory.Free), roundOff(memory.Cached)}
 
 	data := utils.DataStats{
 		MemStats: memRates,
 		FieldSet: "MEM",
 	}
 
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case dataChannel <- data:
+		return nil
+	}
+}
+
+// ServeTemperatureRates feeds temperature values from input sensors into the data channel
+// Credits to https://github.com/cjbassi/gotop
+func ServeTemperatureRates(ctx context.Context, dataChannel chan utils.DataStats) error {
+	sensors, err := host.SensorsTemperatures()
+	if err != nil && !strings.Contains(err.Error(), "Number of warnings:") {
+		return err
+	}
+	// 2D string stores Header and Rows
+	tempRates := [][]string{{"Sensor", "Temp(°C)"}}
+	for _, sensor := range sensors {
+		if strings.Contains(sensor.SensorKey, "input") && sensor.Temperature != 0 {
+			temp_label := sensor.SensorKey
+			// Only read input sensors
+			label := strings.TrimSuffix(sensor.SensorKey, "_input")
+			label = strings.TrimSuffix(label, "_thermal")
+			if temp_label != label {
+				temp := fmt.Sprintf("%.1f °C", sensor.Temperature)
+				row := []string{label, temp}
+				tempRates = append(tempRates, row)
+			}
+		}
+	}
+
+	data := utils.DataStats{
+		TempStats: tempRates,
+		FieldSet:  "TEMP",
+	}
 	select {
 	case <-ctx.Done():
 		return ctx.Err()

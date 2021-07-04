@@ -47,8 +47,8 @@ func NewLineGraph() *LineGraph {
 		Labels: make(map[string]string),
 
 		HorizontalScale: 5,
-
-		LineColors: make(map[string]ui.Color),
+		MaxVal:          0, // Leave as 0 if you want the graph to resize depending on the values
+		LineColors:      make(map[string]ui.Color),
 	}
 }
 
@@ -66,7 +66,11 @@ func (l *LineGraph) Draw(buf *ui.Buffer) {
 	// sort the series so that overlapping data will overlap the same way each time
 	seriesList := make([]string, len(l.Data))
 	i := 0
-	l.MaxVal = 1
+
+	if l.MaxVal == 0 {
+		l.MaxVal = 1
+	}
+
 	for seriesName := range l.Data {
 		for _, val := range l.Data[seriesName] {
 			if val > l.MaxVal {
@@ -76,6 +80,7 @@ func (l *LineGraph) Draw(buf *ui.Buffer) {
 		seriesList[i] = seriesName
 		i++
 	}
+
 	sort.Strings(seriesList)
 
 	// draw lines in reverse order so that the first color defined in the colorscheme is on top
