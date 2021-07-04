@@ -34,12 +34,24 @@ type CpuGauge struct {
 
 func NewCpuGauge() *CpuGauge {
 	return &CpuGauge{
-		Block:       ui.NewBlock(),
-		Values:      []float64{},
-		StatusColor: []ui.Color{ui.Color(46), ui.Color(82), ui.Color(154), ui.Color(191), ui.Color(190), ui.Color(226), ui.Color(220), ui.Color(214), ui.Color(202), ui.Color(196), ui.Color(160)},
-		BarGap:      0,
-		BarWidth:    2,
-		ColResizer:  func() {},
+		Block:  ui.NewBlock(),
+		Values: []float64{},
+		StatusColor: []ui.Color{
+			ui.Color(46),
+			ui.Color(82),
+			ui.Color(154),
+			ui.Color(191),
+			ui.Color(190),
+			ui.Color(226),
+			ui.Color(220),
+			ui.Color(214),
+			ui.Color(202),
+			ui.Color(196),
+			ui.Color(160),
+		},
+		BarGap:     0,
+		BarWidth:   2,
+		ColResizer: func() {},
 	}
 }
 

@@ -38,14 +38,26 @@ type CpuTableChart struct {
 
 func NewCpuTableChart() *CpuTableChart {
 	return &CpuTableChart{
-		Block:       ui.NewBlock(),
-		Data:        []float64{0},
-		NumCores:    0,
-		CellSize:    4,
-		TopRow:      0,
-		NumRows:     0,
-		NumCols:     0,
-		StatusColor: []ui.Color{ui.Color(46), ui.Color(82), ui.Color(112), ui.Color(154), ui.Color(190), ui.Color(226), ui.Color(220), ui.Color(214), ui.Color(202), ui.Color(196), ui.Color(160)},
+		Block:    ui.NewBlock(),
+		Data:     []float64{0},
+		NumCores: 0,
+		CellSize: 4,
+		TopRow:   0,
+		NumRows:  0,
+		NumCols:  0,
+		StatusColor: []ui.Color{
+			ui.Color(46),
+			ui.Color(82),
+			ui.Color(154),
+			ui.Color(191),
+			ui.Color(190),
+			ui.Color(226),
+			ui.Color(220),
+			ui.Color(214),
+			ui.Color(202),
+			ui.Color(196),
+			ui.Color(160),
+		},
 	}
 }
 
