@@ -200,7 +200,7 @@ func (page *MainPage) initNetworkChartWidget() {
 }
 
 func (page *MainPage) initCpuGaugeWidget(numCores int) {
-	page.CPUGauge.Title = " CPU Gauge "
+	page.CPUGauge.Title = " Per CPU Usage "
 	page.CPUGauge.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.CPUGauge.BorderStyle.Fg = ui.ColorCyan
 	page.CPUGauge.ColResizer = func() {
@@ -214,7 +214,7 @@ func (page *MainPage) initCpuGaugeWidget(numCores int) {
 }
 
 func (page *MainPage) initCpuTableWidget(numCores int) {
-	page.CPUTable.Title = " CPU Table "
+	page.CPUTable.Title = " Per CPU Usage "
 	page.CPUTable.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.CPUTable.BorderStyle.Fg = ui.ColorCyan
 	page.CPUTable.NumCores = numCores
