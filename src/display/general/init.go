@@ -89,26 +89,26 @@ func NewCPUPage(numCores int) *CPUPage {
 // InitGeneral initializes all ui elements for the ui rendered by the grofer command
 func (page *MainPage) InitGeneral(numCores int) {
 	// Initialize Bar Graph for Memory Chart
-	page.memoryChartWidget()
+	page.initMemoryChartWidget()
 	// Initialize Table for Disk Chart
-	page.diskChartWidget()
+	page.initDiskChartWidget()
 	// Initialize Plot for Network Chart
-	page.networkChartWidget()
+	page.initNetworkChartWidget()
 	// Initialize Graph for CPU Usage
-	page.avgCpuGraphWidget()
+	page.initAvgCpuGraphWidget()
 	if numCores > 8 || cpuTableVisible {
-		page.cpuTableWidget(numCores)
+		page.initCpuTableWidget(numCores)
 	} else {
-		page.cpuGaugeWidget(numCores)
+		page.initCpuGaugeWidget(numCores)
 	}
 	// Initialize Graph for Temperature Table
-	page.temperatureTableWidget()
+	page.initTemperatureTableWidget()
 	// Set page grid
-	page.setPageGrid(numCores)
+	page.initPageGrid(numCores)
 
 }
 
-func (page *MainPage) setPageGrid(numCores int) {
+func (page *MainPage) initPageGrid(numCores int) {
 	w, h := ui.TerminalDimensions()
 	if numCores > 8 || cpuTableVisible {
 		page.Grid.Set(
@@ -142,7 +142,7 @@ func (page *MainPage) setPageGrid(numCores int) {
 	page.Grid.SetRect(0, 0, w, h)
 }
 
-func (page *MainPage) memoryChartWidget() {
+func (page *MainPage) initMemoryChartWidget() {
 	page.MemoryChart.Title = " Memory(RAM) "
 	page.MemoryChart.BorderStyle.Fg = ui.ColorCyan
 	page.MemoryChart.TitleStyle = ui.NewStyle(ui.ColorClear)
@@ -156,7 +156,7 @@ func (page *MainPage) memoryChartWidget() {
 	}
 }
 
-func (page *MainPage) temperatureTableWidget() {
+func (page *MainPage) initTemperatureTableWidget() {
 	page.TemperatureTable.Title = " Temp "
 	page.TemperatureTable.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
@@ -169,7 +169,7 @@ func (page *MainPage) temperatureTableWidget() {
 	}
 }
 
-func (page *MainPage) diskChartWidget() {
+func (page *MainPage) initDiskChartWidget() {
 	page.DiskChart.Title = " Disk "
 	page.DiskChart.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.DiskChart.HeaderStyle = ui.NewStyle(ui.ColorClear, ui.ColorClear, ui.ModifierBold)
@@ -189,7 +189,7 @@ func (page *MainPage) diskChartWidget() {
 	}
 }
 
-func (page *MainPage) networkChartWidget() {
+func (page *MainPage) initNetworkChartWidget() {
 	page.NetworkChart.Title = " Network data "
 	page.NetworkChart.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.NetworkChart.BorderStyle.Fg = ui.ColorCyan
@@ -199,7 +199,7 @@ func (page *MainPage) networkChartWidget() {
 	page.NetworkChart.Sparklines[1].LineColor = ui.ColorGreen
 }
 
-func (page *MainPage) cpuGaugeWidget(numCores int) {
+func (page *MainPage) initCpuGaugeWidget(numCores int) {
 	page.CPUGauge.Title = " CPU Gauge "
 	page.CPUGauge.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.CPUGauge.BorderStyle.Fg = ui.ColorCyan
@@ -213,14 +213,14 @@ func (page *MainPage) cpuGaugeWidget(numCores int) {
 	}
 }
 
-func (page *MainPage) cpuTableWidget(numCores int) {
+func (page *MainPage) initCpuTableWidget(numCores int) {
 	page.CPUTable.Title = " CPU Table "
 	page.CPUTable.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.CPUTable.BorderStyle.Fg = ui.ColorCyan
 	page.CPUTable.NumCores = numCores
 }
 
-func (page *MainPage) avgCpuGraphWidget() {
+func (page *MainPage) initAvgCpuGraphWidget() {
 	page.AvgCPUGraph.Title = " Average CPU Usage "
 	page.AvgCPUGraph.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.AvgCPUGraph.HorizontalScale = 10
