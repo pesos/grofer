@@ -165,7 +165,7 @@ func (page *MainPage) initTemperatureTableWidget() {
 	page.TemperatureTable.ShowCursor = false
 	page.TemperatureTable.ColResizer = func() {
 		x := page.TemperatureTable.Inner.Dx()
-		page.TemperatureTable.ColWidths = []int{x / 2, x / 2}
+		page.TemperatureTable.ColWidths = []int{2 * x / 3, x / 3}
 	}
 }
 
