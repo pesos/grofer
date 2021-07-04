@@ -189,7 +189,6 @@ func (page *MainPage) networkChartWidget() {
 	page.NetworkChart.Sparklines[0].LineColor = ui.ColorRed
 	page.NetworkChart.Sparklines[1].TitleStyle.Fg = ui.ColorGreen
 	page.NetworkChart.Sparklines[1].LineColor = ui.ColorGreen
-	page.NetworkChart.Sparklines[1].Reverse = true
 }
 
 func (page *MainPage) cpuGaugeWidget(numCores int) {

@@ -86,7 +86,7 @@ func (s *SparklineGroup) Draw(buf *ui.Buffer) {
 			data := sl.Data[index]
 			index--
 			height := int((data / maxVal) * float64(barHeight))
-			sparkChar := ui.IRREGULAR_BLOCKS[15]
+			sparkChar := ui.BARS[len(ui.BARS)-1]
 			for k := 0; k < height; k++ {
 				yBarCoord := s.Inner.Min.Y - 1 + heightOffset - k
 				if sl.Reverse {
@@ -96,13 +96,12 @@ func (s *SparklineGroup) Draw(buf *ui.Buffer) {
 					ui.NewCell(sparkChar, ui.NewStyle(sl.LineColor)),
 					image.Pt(j+s.Inner.Min.X, yBarCoord),
 				)
-
 			}
 			if height == 0 {
 				if sl.Reverse {
 					sparkChar = ui.IRREGULAR_BLOCKS[3]
 				} else {
-					sparkChar = ui.IRREGULAR_BLOCKS[12]
+					sparkChar = ui.BARS[1]
 				}
 				buf.SetCell(
 					ui.NewCell(sparkChar, ui.NewStyle(sl.LineColor)),
