@@ -115,24 +115,28 @@ func (page *MainPage) setPageGrid(numCores int) {
 			ui.NewCol(
 				0.4,
 				ui.NewRow(0.5, page.AvgCPUGraph),
-				ui.NewRow(0.5, page.CPUTable)),
+				ui.NewRow(0.5, page.CPUTable),
+			),
 			ui.NewCol(
 				0.6,
 				ui.NewRow(0.4, page.MemoryChart),
 				ui.NewRow(0.3, ui.NewCol(0.5, page.NetworkChart), ui.NewCol(0.5, page.TemperatureTable)),
-				ui.NewRow(0.3, page.DiskChart)),
+				ui.NewRow(0.3, page.DiskChart),
+			),
 		)
 	} else {
 		page.Grid.Set(
 			ui.NewCol(
 				0.4,
 				ui.NewRow(0.5, page.AvgCPUGraph),
-				ui.NewRow(0.5, page.CPUGauge)),
+				ui.NewRow(0.5, page.CPUGauge),
+			),
 			ui.NewCol(
 				0.6,
 				ui.NewRow(0.4, page.MemoryChart),
 				ui.NewRow(0.3, ui.NewCol(0.5, page.NetworkChart), ui.NewCol(0.5, page.TemperatureTable)),
-				ui.NewRow(0.3, page.DiskChart)),
+				ui.NewRow(0.3, page.DiskChart),
+			),
 		)
 	}
 	page.Grid.SetRect(0, 0, w, h)
