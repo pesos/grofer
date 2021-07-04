@@ -29,10 +29,52 @@ import (
 	"github.com/pesos/grofer/src/utils"
 )
 
+var myPage *MainPage
 var isCPUSet = false
 var run = true
 var helpVisible = false
 var cpuTableVisible = false
+
+func tableChange_3(selectedTable int) {
+	switch selectedTable {
+	case 0:
+		myPage.CPUTable.BorderStyle.Fg = ui.ColorClear
+		myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
+		myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
+		myPage.DiskChart.ShowCursor = false
+		myPage.TemperatureTable.ShowCursor = false
+
+	case 1:
+		myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
+		myPage.DiskChart.BorderStyle.Fg = ui.ColorClear
+		myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
+		myPage.DiskChart.ShowCursor = true
+		myPage.TemperatureTable.ShowCursor = false
+
+	case 2:
+		myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
+		myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
+		myPage.TemperatureTable.BorderStyle.Fg = ui.ColorClear
+		myPage.DiskChart.ShowCursor = false
+		myPage.TemperatureTable.ShowCursor = true
+	}
+}
+
+func tableChange_2(selectedTable int) {
+	switch selectedTable {
+	case 1:
+		myPage.DiskChart.BorderStyle.Fg = ui.ColorClear
+		myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
+		myPage.DiskChart.ShowCursor = true
+		myPage.TemperatureTable.ShowCursor = false
+
+	case 2:
+		myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
+		myPage.TemperatureTable.BorderStyle.Fg = ui.ColorClear
+		myPage.DiskChart.ShowCursor = false
+		myPage.TemperatureTable.ShowCursor = true
+	}
+}
 
 // RenderCharts handles plotting graphs and charts for system stats in general.
 func RenderCharts(ctx context.Context,
@@ -55,7 +97,7 @@ func RenderCharts(ctx context.Context,
 	isCPUSet = true
 
 	// Create new page
-	myPage := NewPage(numCores)
+	myPage = NewPage(numCores)
 	selectedTable := 1 // Stores 0, 1, 2 for CPUTable, DiskChart and TemperatureTable
 
 	// Pause to pause updating data
@@ -166,28 +208,7 @@ func RenderCharts(ctx context.Context,
 						} else {
 							selectedTable = 2
 						}
-						switch selectedTable {
-						case 0:
-							myPage.CPUTable.BorderStyle.Fg = ui.ColorClear
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
-							myPage.DiskChart.ShowCursor = false
-							myPage.TemperatureTable.ShowCursor = false
-
-						case 1:
-							myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorClear
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
-							myPage.DiskChart.ShowCursor = true
-							myPage.TemperatureTable.ShowCursor = false
-
-						case 2:
-							myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorClear
-							myPage.DiskChart.ShowCursor = false
-							myPage.TemperatureTable.ShowCursor = true
-						}
+						tableChange_3(selectedTable)
 						ui.Render(myPage.Grid)
 
 					case "<Right>", "l":
@@ -196,28 +217,7 @@ func RenderCharts(ctx context.Context,
 						} else {
 							selectedTable = 0
 						}
-						switch selectedTable {
-						case 0:
-							myPage.CPUTable.BorderStyle.Fg = ui.ColorClear
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
-							myPage.DiskChart.ShowCursor = false
-							myPage.TemperatureTable.ShowCursor = false
-
-						case 1:
-							myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorClear
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
-							myPage.DiskChart.ShowCursor = true
-							myPage.TemperatureTable.ShowCursor = false
-
-						case 2:
-							myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorClear
-							myPage.DiskChart.ShowCursor = false
-							myPage.TemperatureTable.ShowCursor = true
-						}
+						tableChange_3(selectedTable)
 						ui.Render(myPage.Grid)
 					}
 				} else {
@@ -228,19 +228,7 @@ func RenderCharts(ctx context.Context,
 						} else {
 							selectedTable = 2
 						}
-						switch selectedTable {
-						case 1:
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorClear
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
-							myPage.DiskChart.ShowCursor = true
-							myPage.TemperatureTable.ShowCursor = false
-
-						case 2:
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorClear
-							myPage.DiskChart.ShowCursor = false
-							myPage.TemperatureTable.ShowCursor = true
-						}
+						tableChange_2(selectedTable)
 						ui.Render(myPage.Grid)
 
 					case "<Right>", "l":
@@ -249,19 +237,7 @@ func RenderCharts(ctx context.Context,
 						} else {
 							selectedTable = 1
 						}
-						switch selectedTable {
-						case 1:
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorClear
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
-							myPage.DiskChart.ShowCursor = true
-							myPage.TemperatureTable.ShowCursor = false
-
-						case 2:
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorClear
-							myPage.DiskChart.ShowCursor = false
-							myPage.TemperatureTable.ShowCursor = true
-						}
+						tableChange_2(selectedTable)
 						ui.Render(myPage.Grid)
 
 					case "j", "<Down>":
