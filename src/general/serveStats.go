@@ -86,7 +86,7 @@ func ServeMemRates(ctx context.Context, dataChannel chan utils.DataStats) error 
 }
 
 // ServeTemperatureRates feeds temperature values from input sensors into the data channel
-// Credits to github.com/shirou/gopsutil
+// Credits to https://github.com/cjbassi/gotop
 func ServeTemperatureRates(ctx context.Context, dataChannel chan utils.DataStats) error {
 	sensors, err := host.SensorsTemperatures()
 	if err != nil && !strings.Contains(err.Error(), "Number of warnings:") {

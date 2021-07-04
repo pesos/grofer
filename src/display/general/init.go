@@ -112,20 +112,24 @@ func (page *MainPage) setPageGrid(numCores int) {
 	w, h := ui.TerminalDimensions()
 	if numCores > 8 || cpuTableVisible {
 		page.Grid.Set(
-			ui.NewCol(0.4,
+			ui.NewCol(
+				0.4,
 				ui.NewRow(0.5, page.AvgCPUGraph),
 				ui.NewRow(0.5, page.CPUTable)),
-			ui.NewCol(0.6,
+			ui.NewCol(
+				0.6,
 				ui.NewRow(0.4, page.MemoryChart),
 				ui.NewRow(0.3, ui.NewCol(0.5, page.NetworkChart), ui.NewCol(0.5, page.TemperatureTable)),
 				ui.NewRow(0.3, page.DiskChart)),
 		)
 	} else {
 		page.Grid.Set(
-			ui.NewCol(0.4,
+			ui.NewCol(
+				0.4,
 				ui.NewRow(0.5, page.AvgCPUGraph),
 				ui.NewRow(0.5, page.CPUGauge)),
-			ui.NewCol(0.6,
+			ui.NewCol(
+				0.6,
 				ui.NewRow(0.4, page.MemoryChart),
 				ui.NewRow(0.3, ui.NewCol(0.5, page.NetworkChart), ui.NewCol(0.5, page.TemperatureTable)),
 				ui.NewRow(0.3, page.DiskChart)),
