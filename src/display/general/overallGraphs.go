@@ -35,47 +35,47 @@ var run = true
 var helpVisible = false
 var cpuTableVisible = false
 
-// Function runs when 3 tables are enabled in the Main page
-func tableChange_3(selectedTable int) {
-	switch selectedTable {
-	case 0:
-		myPage.CPUTable.BorderStyle.Fg = ui.ColorClear
-		myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-		myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
-		myPage.DiskChart.ShowCursor = false
-		myPage.TemperatureTable.ShowCursor = false
+// Function runs whenever user selects another table
+func tableChange(selectedTable int, numCores int) {
+	if numCores > 8 || cpuTableVisible {
+		switch selectedTable {
+		case 0:
+			myPage.CPUTable.BorderStyle.Fg = ui.ColorClear
+			myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
+			myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
+			myPage.DiskChart.ShowCursor = false
+			myPage.TemperatureTable.ShowCursor = false
 
-	case 1:
-		myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
-		myPage.DiskChart.BorderStyle.Fg = ui.ColorClear
-		myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
-		myPage.DiskChart.ShowCursor = true
-		myPage.TemperatureTable.ShowCursor = false
+		case 1:
+			myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
+			myPage.DiskChart.BorderStyle.Fg = ui.ColorClear
+			myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
+			myPage.DiskChart.ShowCursor = true
+			myPage.TemperatureTable.ShowCursor = false
 
-	case 2:
-		myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
-		myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-		myPage.TemperatureTable.BorderStyle.Fg = ui.ColorClear
-		myPage.DiskChart.ShowCursor = false
-		myPage.TemperatureTable.ShowCursor = true
+		case 2:
+			myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
+			myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
+			myPage.TemperatureTable.BorderStyle.Fg = ui.ColorClear
+			myPage.DiskChart.ShowCursor = false
+			myPage.TemperatureTable.ShowCursor = true
+		}
+	} else {
+		switch selectedTable {
+		case 1:
+			myPage.DiskChart.BorderStyle.Fg = ui.ColorClear
+			myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
+			myPage.DiskChart.ShowCursor = true
+			myPage.TemperatureTable.ShowCursor = false
+
+		case 2:
+			myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
+			myPage.TemperatureTable.BorderStyle.Fg = ui.ColorClear
+			myPage.DiskChart.ShowCursor = false
+			myPage.TemperatureTable.ShowCursor = true
+		}
 	}
-}
 
-// Function runs when 2 tables are enabled in the Main page
-func tableChange_2(selectedTable int) {
-	switch selectedTable {
-	case 1:
-		myPage.DiskChart.BorderStyle.Fg = ui.ColorClear
-		myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
-		myPage.DiskChart.ShowCursor = true
-		myPage.TemperatureTable.ShowCursor = false
-
-	case 2:
-		myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-		myPage.TemperatureTable.BorderStyle.Fg = ui.ColorClear
-		myPage.DiskChart.ShowCursor = false
-		myPage.TemperatureTable.ShowCursor = true
-	}
 }
 
 // RenderCharts handles plotting graphs and charts for system stats in general.
@@ -210,7 +210,7 @@ func RenderCharts(ctx context.Context,
 						} else {
 							selectedTable = 2
 						}
-						tableChange_3(selectedTable)
+						tableChange(selectedTable, numCores)
 						ui.Render(myPage.Grid)
 
 					case "<Right>", "l":
@@ -219,7 +219,7 @@ func RenderCharts(ctx context.Context,
 						} else {
 							selectedTable = 0
 						}
-						tableChange_3(selectedTable)
+						tableChange(selectedTable, numCores)
 						ui.Render(myPage.Grid)
 					}
 				} else {
@@ -230,7 +230,7 @@ func RenderCharts(ctx context.Context,
 						} else {
 							selectedTable = 2
 						}
-						tableChange_2(selectedTable)
+						tableChange(selectedTable, numCores)
 						ui.Render(myPage.Grid)
 
 					case "<Right>", "l":
@@ -239,7 +239,7 @@ func RenderCharts(ctx context.Context,
 						} else {
 							selectedTable = 1
 						}
-						tableChange_2(selectedTable)
+						tableChange(selectedTable, numCores)
 						ui.Render(myPage.Grid)
 
 					case "j", "<Down>":
