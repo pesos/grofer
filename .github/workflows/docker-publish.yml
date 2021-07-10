@@ -2,9 +2,9 @@ name: Docker
 
 on:
   push:
-    # Publish `$default-branch` as Docker `latest` image.
+    # Publish main branch as Docker `latest` image.
     branches:
-      - $default-branch
+      - main
 
     # Publish `v1.2.3` tags as releases.
     tags:
@@ -57,7 +57,7 @@ jobs:
           # if it's a PR, use `pr-<PR number>` as the tag
           [[ "${{ github.ref }}" == "refs/pull/"* ]] && VERSION="pr-${{ github.event.number }}"
           # Use Docker `latest` tag convention
-          [ "$VERSION" == "$default-branch" ] && VERSION=latest
+          [ "$VERSION" == "main" ] && VERSION=latest
 
           IMAGE_ID="ghcr.io/${OWNER}/${IMAGE_NAME}:${VERSION}"
           echo IMAGE_ID=$IMAGE_ID
