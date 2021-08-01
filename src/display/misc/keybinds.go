@@ -22,6 +22,7 @@ package misc
 
 var procKeybindings = []string{
 	"Quit: q or <C-c>",
+	"Pause Rendering: s",
 	"",
 	"[Process navigation](fg:white)",
 	"  - k and <Up>: up",
@@ -36,7 +37,7 @@ var procKeybindings = []string{
 	"[Sorting](fg:white)",
 	"  - Use column number to sort ascending.",
 	"  - Use <F-column number> to sort descending.",
-	"  - Eg: 1 to sort ascedning on 1st Col and F1 for descending",
+	"  - Eg: 1 to sort ascending on 1st Col and F1 for descending",
 	"  - 0: Disable Sort",
 	"",
 	"[Process actions](fg:white)",
@@ -55,6 +56,7 @@ var procKeybindings = []string{
 
 var containerKeybindings = []string{
 	"Quit: q or <C-c>",
+	"Pause Rendering: s",
 	"",
 	"[Container navigation](fg:white)",
 	"  - k and <Up>: up",
@@ -69,7 +71,7 @@ var containerKeybindings = []string{
 	"[Sorting](fg:white)",
 	"  - Use column number to sort ascending.",
 	"  - Use <F-column number> to sort descending.",
-	"  - Eg: 1 to sort ascedning on 1st Col and F1 for descending",
+	"  - Eg: 1 to sort ascending on 1st Col and F1 for descending",
 	"  - 0: Disable Sort",
 	"",
 	"[Container actions](fg:white)",
@@ -85,6 +87,7 @@ var containerKeybindings = []string{
 
 var perContainerKeyBindings = []string{
 	"Quit: q or <C-c>",
+	"Pause Rendering: s",
 	"",
 	"[Table Selection](fg:white)",
 	"  - 1: MountTable",
@@ -108,6 +111,7 @@ var perContainerKeyBindings = []string{
 
 var mainKeybindings = []string{
 	"Quit: q or <C-c>",
+	"Pause Rendering: s",
 	"Table Selection: <Left>/h and <Right>/l",
 	"Table Scrolling: <Up>/k and <Down>/j",
 	"Enable CPU Table: t",
@@ -117,6 +121,7 @@ var mainKeybindings = []string{
 
 var perProcKeyBindings = []string{
 	"Quit: q or <C-c>",
+	"Pause Rendering: s",
 	"",
 	"[To close this prompt: <Esc>](fg:white)",
 }
