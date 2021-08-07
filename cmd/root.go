@@ -16,19 +16,14 @@ limitations under the License.
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/pesos/grofer/pkg/core"
+	"github.com/pesos/grofer/pkg/metrics/factory"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	overallGraph "github.com/pesos/grofer/src/display/general"
-	"github.com/pesos/grofer/src/general"
-	info "github.com/pesos/grofer/src/general"
-	"github.com/pesos/grofer/src/utils"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -47,54 +42,56 @@ var rootCmd = &cobra.Command{
 
 While using a TUI based command, press ? to get information about key bindings (if any) for that command.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		overallRefreshRate, _ := cmd.Flags().GetUint64("refresh")
-
-		if overallRefreshRate < 1000 {
-			return fmt.Errorf("invalid refresh rate: minimum refresh rate is 1000(ms)")
+		// validate and extract flags.
+		rootCmd, err := constructRootCommand(cmd, args)
+		if err != nil {
+			return err
 		}
 
-		cpuLoadFlag, _ := cmd.Flags().GetBool("cpuinfo")
-		if cpuLoadFlag {
-			cpuLoad := info.NewCPULoad()
-			dataChannel := make(chan *info.CPULoad, 1)
+		// construct a system wide metric specific MetricScraper.
+		systemWideMetricScraper, err := factory.
+			NewMetricScraperFactory().
+			ForCommand(core.RootCommand).
+			WithScrapeInterval(rootCmd.refreshRate).
+			Construct()
 
-			eg, ctx := errgroup.WithContext(context.Background())
+		if err != nil {
+			return err
+		}
 
-			eg.Go(func() error {
-				return info.GetCPULoad(ctx, cpuLoad, dataChannel, uint64(4*overallRefreshRate/5))
-			})
-
-			eg.Go(func() error {
-				return overallGraph.RenderCPUinfo(ctx, dataChannel, overallRefreshRate)
-			})
-
-			if err := eg.Wait(); err != nil {
-				if err != general.ErrCanceledByUser {
-					fmt.Printf("Error: %v\n", err)
-				}
-			}
-
-		} else {
-			dataChannel := make(chan utils.DataStats, 1)
-
-			eg, ctx := errgroup.WithContext(context.Background())
-
-			eg.Go(func() error {
-				return general.GlobalStats(ctx, dataChannel, uint64(4*overallRefreshRate/5))
-			})
-			eg.Go(func() error {
-				return overallGraph.RenderCharts(ctx, dataChannel, overallRefreshRate)
-			})
-
-			if err := eg.Wait(); err != nil {
-				if err != general.ErrCanceledByUser {
-					fmt.Printf("Error: %v\n", err)
-				}
-			}
+		err = systemWideMetricScraper.Serve(factory.WithCPUInfoAs(rootCmd.cpuInfo))
+		if err != nil && err != core.ErrCanceledByUser {
+			fmt.Printf("Error: %v\n", err)
 		}
 
 		return nil
 	},
+}
+
+type rootCommand struct {
+	refreshRate uint64
+	cpuInfo     bool
+}
+
+func constructRootCommand(cmd *cobra.Command, args []string) (*rootCommand, error) {
+	refreshRate, err := cmd.Flags().GetUint64("refresh")
+	if err != nil {
+		return nil, err
+	}
+
+	if refreshRate < 1000 {
+		return nil, fmt.Errorf("invalid refresh rate: minimum refresh rate is 1000(ms)")
+	}
+
+	cpuInfo, err := cmd.Flags().GetBool("cpuinfo")
+	if err != nil {
+		return nil, err
+	}
+
+	return &rootCommand{
+		refreshRate: refreshRate,
+		cpuInfo:     cpuInfo,
+	}, nil
 }
 
 func Execute() {

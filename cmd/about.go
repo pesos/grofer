@@ -38,12 +38,12 @@ var aboutCmd = &cobra.Command{
 		}
 		defer ui.Close()
 
-		About := widgets.NewParagraph()
-		About.Title = " Grofer "
-		About.TitleStyle.Fg = ui.ColorCyan
-		About.Border = true
-		About.BorderStyle.Fg = ui.ColorBlue
-		About.Text =
+		about := widgets.NewParagraph()
+		about.Title = " Grofer "
+		about.TitleStyle.Fg = ui.ColorCyan
+		about.Border = true
+		about.BorderStyle.Fg = ui.ColorBlue
+		about.Text =
 			"\nA system profiler written purely in golang!\n\n" +
 				"version: " + groferVersion + "\n\n" +
 				"Made with [♥](fg:red) by [PES Open Source](fg:green)\n\n"
@@ -62,8 +62,8 @@ var aboutCmd = &cobra.Command{
 			case <-tick:
 				ui.Clear()
 				w, h := ui.TerminalDimensions()
-				About.SetRect((w-35)/2, (h-10)/2, (w+35)/2, (h+10)/2)
-				ui.Render(About)
+				about.SetRect((w-35)/2, (h-10)/2, (w+35)/2, (h+10)/2)
+				ui.Render(about)
 			}
 		}
 

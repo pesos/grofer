@@ -34,6 +34,8 @@ BASH_LICENSE = """# Copyright © 2020 The PES Open Source Team pesos@pes.edu
 # limitations under the License.
 """
 
+files_in_need_of_license = []
+
 for subdir, dirs, files in os.walk(rootdir):
     if len(subdir.split("/")) >= 2 and (subdir.split("/")[1]!=".github" and subdir.split("/")[1]!="images" and subdir.split("/")[1]!=".git"):
         for file in files:
@@ -41,10 +43,14 @@ for subdir, dirs, files in os.walk(rootdir):
             data = f.readlines()
             if file.split(".")[1] == "go":
                 if "".join(data[:15]) != GO_LICENSE:
-                    print("License not verified in file {}".format(file))
-                    sys.exit(1)
+                    files_in_need_of_license.append(file)
             if file.split(".")[1] == "sh":
                 if "".join(data[2:15]) != BASH_LICENSE:
-                    print("License not verified in file {}".format(file))
-                    sys.exit(1)
+                    files_in_need_of_license.append(file)
             f.close()
+
+if len(files_in_need_of_license) > 0:
+    print("License not verified in the following files: ", files_in_need_of_license)
+    sys.exit(1)
+
+print("License verified successfully in all relevant files.")
