@@ -102,9 +102,6 @@ func (scms *singularContainerMetrics) Serve(opts ...FactoryOption) error {
 		return utils.TickUntilDone(ctx, scms.refreshRate, func() error {
 			metrics, err := container.GetContainerMetrics(ctx, scms.client, scms.cid)
 			if err != nil {
-				if err == core.ErrInvalidContainer {
-					utils.ErrorMsg("cid")
-				}
 				return err
 			}
 

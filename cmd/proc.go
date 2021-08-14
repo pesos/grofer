@@ -18,9 +18,11 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/pesos/grofer/pkg/core"
 	"github.com/pesos/grofer/pkg/metrics/factory"
+	"github.com/pesos/grofer/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -68,7 +70,10 @@ Syntax:
 
 		err = processMetricScraper.Serve()
 		if err != nil && err != core.ErrCanceledByUser {
-			fmt.Printf("Error: %v\n", err)
+			if err == core.ErrInvalidPID {
+				utils.ErrorMsg("pid")
+			}
+			log.Printf("Error: %v\n", err)
 		}
 
 		return nil

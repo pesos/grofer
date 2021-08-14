@@ -18,7 +18,6 @@ package factory
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/pesos/grofer/pkg/core"
 	"github.com/pesos/grofer/pkg/metrics/process"
@@ -97,8 +96,7 @@ func (spm *singularProcessMetrics) Serve(opts ...FactoryOption) error {
 
 	process, err := process.NewProcess(spm.pid)
 	if err != nil {
-		utils.ErrorMsg("pid")
-		return fmt.Errorf("invalid pid")
+		return core.ErrInvalidPID
 	}
 
 	// start producing metrics.

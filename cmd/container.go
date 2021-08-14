@@ -18,9 +18,11 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/pesos/grofer/pkg/core"
 	"github.com/pesos/grofer/pkg/metrics/factory"
+	"github.com/pesos/grofer/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -66,7 +68,10 @@ var containerCmd = &cobra.Command{
 		}
 
 		if err != nil && err != core.ErrCanceledByUser {
-			fmt.Printf("Error: %v\n", err)
+			if err == core.ErrInvalidContainer {
+				utils.ErrorMsg("cid")
+			}
+			log.Printf("Error: %v\n", err)
 		}
 
 		return nil
