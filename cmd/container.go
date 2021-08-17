@@ -16,18 +16,14 @@ limitations under the License.
 package cmd
 
 import (
-	"context"
+	"errors"
 	"fmt"
 	"log"
 
-	"github.com/docker/docker/client"
-	containerGraph "github.com/pesos/grofer/src/display/container"
-	"github.com/pesos/grofer/src/utils"
-
-	"github.com/pesos/grofer/src/container"
-	"github.com/pesos/grofer/src/general"
+	"github.com/pesos/grofer/pkg/core"
+	"github.com/pesos/grofer/pkg/metrics/factory"
+	"github.com/pesos/grofer/pkg/utils"
 	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -42,62 +38,86 @@ var containerCmd = &cobra.Command{
 	Long:    `container command is used to get information related to docker containers. It provides both overall and per container metrics.`,
 	Aliases: []string{"containers", "docker"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) > 0 {
-			return fmt.Errorf("the container command should have no arguments, see grofer container --help for further info")
-		}
-
-		cid, _ := cmd.Flags().GetString("container-id")
-		containerRefreshRate, _ := cmd.Flags().GetUint64("refresh")
-
-		if containerRefreshRate < 1000 {
-			return fmt.Errorf("invalid refresh rate: minimum refresh rate is 1000(ms)")
-		}
-
-		cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+		// validate args and extract flags.
+		containerCmd, err := constructContainerCommand(cmd, args)
 		if err != nil {
 			return err
 		}
 
-		eg, ctx := errgroup.WithContext(context.Background())
+		// create a metric scraper factory that will help construct
+		// a container metric specific MetricScraper.
+		metricScraperFactory := factory.
+			NewMetricScraperFactory().
+			ForCommand(core.ContainerCommand).
+			WithScrapeInterval(containerCmd.refreshRate)
 
-		if cid != defaultCid {
-			dataChannel := make(chan container.PerContainerMetrics, 1)
+		if containerCmd.isPerContainer() {
+			metricScraperFactory = metricScraperFactory.ForSingularEntity(containerCmd.cid)
+		}
 
-			eg.Go(func() error {
-				return container.ServeContainer(ctx, cli, cid, dataChannel, int64(containerRefreshRate))
-			})
-			eg.Go(func() error {
-				return containerGraph.ContainerVisuals(ctx, dataChannel, containerRefreshRate)
-			})
+		// construct a container specific MetricScraper.
+		containerMetricScraper, err := metricScraperFactory.Construct()
+		if err != nil {
+			return err
+		}
 
-			if err := eg.Wait(); err != nil {
-				if err == general.ErrInvalidContainer {
-					utils.ErrorMsg("cid")
-				}
-				if err != general.ErrCanceledByUser {
-					log.Fatalf("Error: %v\n", err)
-				}
-			}
+		if containerCmd.all {
+			err = containerMetricScraper.Serve(factory.WithAllAs(containerCmd.all))
 		} else {
-			dataChannel := make(chan container.ContainerMetrics)
+			err = containerMetricScraper.Serve()
+		}
 
-			allFlag, _ := cmd.Flags().GetBool("all")
-			eg.Go(func() error {
-				return container.Serve(ctx, cli, allFlag, dataChannel, int64(containerRefreshRate))
-			})
-			eg.Go(func() error {
-				return containerGraph.OverallVisuals(ctx, cli, allFlag, dataChannel, containerRefreshRate)
-			})
-
-			if err := eg.Wait(); err != nil {
-				if err != general.ErrCanceledByUser {
-					log.Fatalf("Error: %v\n", err)
-				}
+		if err != nil && err != core.ErrCanceledByUser {
+			if err == core.ErrInvalidContainer {
+				utils.ErrorMsg("cid")
 			}
+			log.Printf("Error: %v\n", err)
 		}
 
 		return nil
 	},
+}
+
+type containerCommand struct {
+	refreshRate uint64
+	cid         string
+	all         bool
+}
+
+func constructContainerCommand(cmd *cobra.Command, args []string) (*containerCommand, error) {
+	if len(args) > 0 {
+		return nil, fmt.Errorf("the container command should have no arguments, see grofer container --help for further info")
+	}
+	cid, err := cmd.Flags().GetString("container-id")
+	if err != nil {
+		return nil, errors.New("error extracting flag --container-id")
+	}
+
+	allFlag, err := cmd.Flags().GetBool("all")
+	if err != nil {
+		return nil, errors.New("error extracting flag --all")
+	}
+
+	containerRefreshRate, err := cmd.Flags().GetUint64("refresh")
+	if err != nil {
+		return nil, errors.New("error extracting flag --refresh")
+	}
+
+	if containerRefreshRate < 1000 {
+		return nil, errors.New("invalid refresh rate: minimum refresh rate is 1000(ms)")
+	}
+
+	containerCmd := &containerCommand{
+		refreshRate: containerRefreshRate,
+		cid:         cid,
+		all:         allFlag,
+	}
+
+	return containerCmd, nil
+}
+
+func (cc *containerCommand) isPerContainer() bool {
+	return cc.cid != defaultCid
 }
 
 func init() {
