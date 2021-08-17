@@ -194,10 +194,10 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 					helpVisible = false
 					updateUI()
 				case "j", "<Down>":
-					help.List.ScrollDown()
+					help.ScrollDown()
 					ui.Render(help)
 				case "k", "<Up>":
-					help.List.ScrollUp()
+					help.ScrollUp()
 					ui.Render(help)
 				}
 			} else {

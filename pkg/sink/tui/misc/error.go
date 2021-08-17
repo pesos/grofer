@@ -18,22 +18,22 @@ package misc
 
 import (
 	ui "github.com/gizak/termui/v3"
-	"github.com/gizak/termui/v3/widgets"
+	vz "github.com/pesos/grofer/pkg/utils/visualization"
 )
 
 // ErrorBox is a wrapper widget around a List
 // meant to display error messages if any. It
 // implements the ui.Drawable interface.
 type ErrorBox struct {
-	*widgets.List
+	*vz.Table
 	errorString string
-	keybindings []string
+	keybindings [][]string
 }
 
 // NewErrorBox is a constructor for the ErrorBox type.
 func NewErrorBox() *ErrorBox {
 	return &ErrorBox{
-		List:        widgets.NewList(),
+		Table:       vz.NewTable(),
 		keybindings: getErrorKeybindings(),
 	}
 }
@@ -59,18 +59,16 @@ func (errBox *ErrorBox) Resize(termWidth, termHeight int) {
 		textHeight = termHeight
 	}
 
-	errBox.List.SetRect(x, y, textWidth+x, textHeight+y)
+	errBox.Table.SetRect(x, y, textWidth+x, textHeight+y)
 }
 
 // Draw puts the required text into the widget.
 func (errBox *ErrorBox) Draw(buf *ui.Buffer) {
-	errBox.List.Title = " Error "
+	errBox.Table.Title = " Error "
 
-	errBox.List.Rows = []string{errBox.errorString, ""}
-	errBox.List.Rows = append(errBox.List.Rows, errBox.keybindings...)
-	errBox.List.TextStyle = ui.NewStyle(ui.ColorYellow)
-	errBox.List.WrapText = false
-	errBox.List.Draw(buf)
+	errBox.Table.Rows = [][]string{{errBox.errorString}, {""}}
+	errBox.Table.Rows = append(errBox.Table.Rows, errBox.keybindings...)
+	errBox.Table.Draw(buf)
 }
 
 // SetErrorString sets the error string to be displayed.

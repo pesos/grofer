@@ -18,21 +18,23 @@ package misc
 
 import (
 	ui "github.com/gizak/termui/v3"
-	"github.com/gizak/termui/v3/widgets"
+	vz "github.com/pesos/grofer/pkg/utils/visualization"
 )
 
 // HelpMenu is a wrapper widget around a List meant
 // to display the help menu for a command. HelpMenu
 // implements the ui.Drawable interface.
 type HelpMenu struct {
-	*widgets.List
-	keybindings []string
+	*vz.Table
+	keybindings [][]string
 }
 
 // NewHelpMenu is a constructor for the HelpMenu type.
 func NewHelpMenu() *HelpMenu {
+	t := vz.NewTable()
+	t.IsHelp = true
 	return &HelpMenu{
-		List:        widgets.NewList(),
+		Table:       t,
 		keybindings: getDefaultHelpKeybinding(),
 	}
 }
@@ -49,8 +51,8 @@ func (help *HelpMenu) ForCommand(command HelpKeybindingType) *HelpMenu {
 func (help *HelpMenu) Resize(termWidth, termHeight int) {
 	textWidth := 50
 	for _, line := range help.keybindings {
-		if textWidth < len(line) {
-			textWidth = len(line) + 2
+		if textWidth < len(line[0]) {
+			textWidth = len(line[0]) + 2
 		}
 	}
 	textHeight := len(help.keybindings) + 3
@@ -65,17 +67,20 @@ func (help *HelpMenu) Resize(termWidth, termHeight int) {
 		textHeight = termHeight
 	}
 
-	help.List.SetRect(x, y, textWidth+x, textHeight+y)
+	help.Table.SetRect(x, y, textWidth+x, textHeight+y)
 }
 
 // Draw puts the required text into the widget.
 func (help *HelpMenu) Draw(buf *ui.Buffer) {
-	help.List.Title = " Keybindings "
-
-	help.List.Rows = help.keybindings
-	help.List.TextStyle = ui.NewStyle(ui.ColorYellow)
-	help.List.WrapText = false
-	help.List.Draw(buf)
+	help.Table.Title = " Keybindings "
+	help.Table.Rows = help.keybindings
+	help.Table.BorderStyle.Fg = ui.ColorCyan
+	help.Table.BorderStyle.Bg = ui.ColorClear
+	help.Table.ColResizer = func() {
+		x := help.Table.Inner.Dx()
+		help.Table.ColWidths = []int{x}
+	}
+	help.Table.Draw(buf)
 }
 
 // ensure interface compliance.

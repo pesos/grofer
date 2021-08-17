@@ -121,10 +121,10 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 					helpVisible = false
 					updateUI()
 				case "j", "<Down>":
-					help.List.ScrollDown()
+					help.ScrollDown()
 					ui.Render(help)
 				case "k", "<Up>":
-					help.List.ScrollUp()
+					help.ScrollUp()
 					ui.Render(help)
 				}
 			} else if selectedTable != nil {

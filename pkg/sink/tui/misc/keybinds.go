@@ -39,7 +39,7 @@ const (
 )
 
 // getHelpKeybindingsForCommand returns the help keybinding for a specific command.
-func getHelpKeybindingsForCommand(forCommand HelpKeybindingType) []string {
+func getHelpKeybindingsForCommand(forCommand HelpKeybindingType) [][]string {
 	switch forCommand {
 	case RootCommand:
 		return getMainCommandKeybindings()
@@ -56,129 +56,147 @@ func getHelpKeybindingsForCommand(forCommand HelpKeybindingType) []string {
 	}
 }
 
-func getErrorKeybindings() []string {
+func getErrorKeybindings() [][]string {
 	return getDefaultHelpKeybinding()
 }
 
-func getDefaultHelpKeybinding() []string {
-	return []string{
-		"",
-		"[To close this prompt: <Esc>](fg:white)",
+func getDefaultHelpKeybinding() [][]string {
+	return [][]string{
+		{""},
+		{"To close this prompt: <Esc>"},
 	}
 }
 
-func getMainCommandKeybindings() []string {
-	return []string{
-		"Quit: q or <C-c>",
-		"Pause Rendering: s",
-		"Table Selection: <Left>/h and <Right>/l",
-		"Table Scrolling: <Up>/k and <Down>/j",
-		"Enable CPU Table: t",
-		"",
-		"[To close this prompt: <Esc>](fg:white)",
+func getMainCommandKeybindings() [][]string {
+	return [][]string{
+		{"Quit: q or <C-c>"},
+		{"Pause Rendering: s"},
+		{""},
+		{"Table Navigation"},
+		{"  - <Left>/h: select table to left "},
+		{"  - <Right>/l: select table to right"},
+		{""},
+		{"Table Scrolling"},
+		{"  - <Up>/k: scroll up"},
+		{"  - <Down>/j: scroll down"},
+		{""},
+		{"Enable CPU Table: t"},
+		{""},
+		{"To close this prompt: <Esc>"},
 	}
 }
 
-func getProcCommandKeybindings() []string {
-	return []string{
-		"Quit: q or <C-c>",
-		"Pause Rendering: s",
-		"",
-		"[Process navigation](fg:white)",
-		"  - k and <Up>: up",
-		"  - j and <Down>: down",
-		"  - <C-u>: half page up",
-		"  - <C-d>: half page down",
-		"  - <C-b>: full page up",
-		"  - <C-f>: full page down",
-		"  - gg and <Home>: jump to top",
-		"  - G and <End>: jump to bottom",
-		"",
-		"[Sorting](fg:white)",
-		"  - Use column number to sort ascending.",
-		"  - Use <F-column number> to sort descending.",
-		"  - Eg: 1 to sort ascending on 1st Col and F1 for descending",
-		"  - 0: Disable Sort",
-		"",
-		"[Process actions](fg:white)",
-		"  - K and <F9>: Open signal selector menu",
-		"",
-		"[Signal selection](fg:white)",
-		"  - K and <F9>: Send SIGTERM to selected process. Kills the process",
-		"  - k and <Up>: up",
-		"  - j and <Down>: down",
-		"  - 0-9: navigate by numeric index",
-		"  - <Enter>: send highlighted signal to process",
-		"  - <Esc>: close signal selector",
-		"",
-		"[To close this prompt: <Esc>](fg:white)",
+func getProcCommandKeybindings() [][]string {
+	return [][]string{
+		{"Quit: q or <C-c>"},
+		{"Pause Rendering: s"},
+		{""},
+		{"Process table navigation"},
+		{"  - k and <Up>: scroll up"},
+		{"  - j and <Down>: scroll down"},
+		{"  - <C-u>: half page up"},
+		{"  - <C-d>: half page down"},
+		{"  - <C-b>: full page up"},
+		{"  - <C-f>: full page down"},
+		{"  - gg and <Home>: jump to top"},
+		{"  - G and <End>: jump to bottom"},
+		{""},
+		{"Sorting"},
+		{"  - Use column number to sort ascending."},
+		{"  - Use <F-column number> to sort descending."},
+		{"  - Eg: 1 to sort ascending on 1st Col and F1 for descending"},
+		{"  - 0: Disable Sort"},
+		{""},
+		{"Process actions"},
+		{"  - K and <F9>: Open signal selector menu"},
+		{""},
+		{"Signal selection"},
+		{"  - K and <F9>: Send SIGTERM to selected process. Kills the process"},
+		{"  - k and <Up>: up"},
+		{"  - j and <Down>: down"},
+		{"  - 0-9: navigate by numeric index"},
+		{"  - <Enter>: send highlighted signal to process"},
+		{"  - <Esc>: close signal selector"},
+		{""},
+		{"To close this prompt: <Esc>"},
 	}
 }
 
-func getPerProcCommandKeybindings() []string {
-	return []string{
-		"Quit: q or <C-c>",
-		"Pause Rendering: s",
-		"",
-		"[To close this prompt: <Esc>](fg:white)",
+func getPerProcCommandKeybindings() [][]string {
+	return [][]string{
+		{"Quit: q or <C-c>"},
+		{"Pause Rendering: s"},
+		{""},
+		{""},
+		{"Table navigation"},
+		{"  - k and <Up>: scroll up"},
+		{"  - j and <Down>: scroll down"},
+		{"  - <C-u>: half page up"},
+		{"  - <C-d>: half page down"},
+		{"  - <C-b>: full page up"},
+		{"  - <C-f>: full page down"},
+		{"  - gg and <Home>: jump to top"},
+		{"  - G and <End>: jump to bottom"},
+		{""},
+		{"To close this prompt: <Esc>"},
 	}
 }
 
-func getContainerCommandKeybindings() []string {
-	return []string{
-		"Quit: q or <C-c>",
-		"Pause Rendering: s",
-		"",
-		"[Container navigation](fg:white)",
-		"  - k and <Up>: up",
-		"  - j and <Down>: down",
-		"  - <C-u>: half page up",
-		"  - <C-d>: half page down",
-		"  - <C-b>: full page up",
-		"  - <C-f>: full page down",
-		"  - gg and <Home>: jump to top",
-		"  - G and <End>: jump to bottom",
-		"",
-		"[Sorting](fg:white)",
-		"  - Use column number to sort ascending.",
-		"  - Use <F-column number> to sort descending.",
-		"  - Eg: 1 to sort ascending on 1st Col and F1 for descending",
-		"  - 0: Disable Sort",
-		"",
-		"[Container actions](fg:white)",
-		"  - P: pause a container",
-		"  - U: unpause a container",
-		"  - R: restart a container",
-		"  - S: stop a container",
-		"  - K: kill a container",
-		"  - X: remove a container (removes links & volumes)",
-		"",
-		"[To close this prompt: <Esc>](fg:white)",
+func getContainerCommandKeybindings() [][]string {
+	return [][]string{
+		{"Quit: q or <C-c>"},
+		{"Pause Rendering: s"},
+		{""},
+		{"Container table navigation"},
+		{"  - k and <Up>: scroll up"},
+		{"  - j and <Down>: scroll down"},
+		{"  - <C-u>: half page up"},
+		{"  - <C-d>: half page down"},
+		{"  - <C-b>: full page up"},
+		{"  - <C-f>: full page down"},
+		{"  - gg and <Home>: jump to top"},
+		{"  - G and <End>: jump to bottom"},
+		{""},
+		{"Sorting"},
+		{"  - Use column number to sort ascending."},
+		{"  - Use <F-column number> to sort descending."},
+		{"  - Eg: 1 to sort ascending on 1st Col and F1 for descending"},
+		{"  - 0: Disable Sort"},
+		{""},
+		{"Container actions"},
+		{"  - P: pause a container"},
+		{"  - U: unpause a container"},
+		{"  - R: restart a container"},
+		{"  - S: stop a container"},
+		{"  - K: kill a container"},
+		{"  - X: remove a container (removes links & volumes)"},
+		{""},
+		{"To close this prompt: <Esc>"},
 	}
 }
 
-func getPerContainerCommandKeybindings() []string {
-	return []string{
-		"Quit: q or <C-c>",
-		"Pause Rendering: s",
-		"",
-		"[Table Selection](fg:white)",
-		"  - 1: MountTable",
-		"  - 2: NetworkTable",
-		"  - 3: CPUUsageTable",
-		"  - 4: PortMapTable",
-		"  - 5: ProcTable",
-		"",
-		"[Table navigation](fg:white)",
-		"  - k and <Up>: up",
-		"  - j and <Down>: down",
-		"  - <C-u>: half page up",
-		"  - <C-d>: half page down",
-		"  - <C-b>: full page up",
-		"  - <C-f>: full page down",
-		"  - gg and <Home>: jump to top",
-		"  - G and <End>: jump to bottom",
-		"",
-		"[To close this prompt: <Esc>](fg:white)",
+func getPerContainerCommandKeybindings() [][]string {
+	return [][]string{
+		{"Quit: q or <C-c>"},
+		{"Pause Rendering: s"},
+		{""},
+		{"Table Selection"},
+		{"  - 1: MountTable"},
+		{"  - 2: NetworkTable"},
+		{"  - 3: CPUUsageTable"},
+		{"  - 4: PortMapTable"},
+		{"  - 5: ProcTable"},
+		{""},
+		{"Table navigation"},
+		{"  - k and <Up>: scroll up"},
+		{"  - j and <Down>: scroll down"},
+		{"  - <C-u>: half page up"},
+		{"  - <C-d>: half page down"},
+		{"  - <C-b>: full page up"},
+		{"  - <C-f>: full page down"},
+		{"  - gg and <Home>: jump to top"},
+		{"  - G and <End>: jump to bottom"},
+		{""},
+		{"To close this prompt: <Esc>"},
 	}
 }

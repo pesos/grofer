@@ -160,10 +160,10 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 					helpVisible = false
 					updateUI()
 				case "j", "<Down>":
-					help.List.ScrollDown()
+					help.ScrollDown()
 					ui.Render(help)
 				case "k", "<Up>":
-					help.List.ScrollUp()
+					help.ScrollUp()
 					ui.Render(help)
 				}
 			} else {
@@ -429,10 +429,10 @@ func RenderCPUinfo(ctx context.Context, dataChannel chan *general.CPULoad, refre
 					helpVisible = false
 					updateUI()
 				case "j", "<Down>":
-					help.List.ScrollDown()
+					help.ScrollDown()
 					ui.Render(help)
 				case "k", "<Up>":
-					help.List.ScrollUp()
+					help.ScrollUp()
 					ui.Render(help)
 				}
 			} else {
