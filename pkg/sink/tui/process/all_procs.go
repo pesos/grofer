@@ -33,22 +33,6 @@ import (
 	proc "github.com/shirou/gopsutil/process"
 )
 
-var runAllProc = true
-var helpVisible = false
-var sendSignal = false
-var sortIdx = -1
-var sortAsc = false
-var header = []string{
-	"PID",
-	"Command",
-	"CPU",
-	"Memory",
-	"Status",
-	"Foreground",
-	"Creation Time",
-	"Thread Count",
-}
-
 const (
 	UP_ARROW   = "▲"
 	DOWN_ARROW = "▼"
@@ -123,28 +107,52 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 	var signals *misc.SignalTable = misc.NewSignalTable()
 	var help *misc.HelpMenu = misc.NewHelpMenu().ForCommand(misc.ProcCommand)
 
-	myPage := NewAllProcsPage()
+	myPage := newAllProcPage()
+	utilitySelected := ""
+	selectedTable := myPage.ProcTable
+
+	sortIdx := -1
+	sortAsc := false
+	header := []string{
+		"PID",
+		"Command",
+		"CPU",
+		"Memory",
+		"Status",
+		"Foreground",
+		"Creation Time",
+		"Thread Count",
+	}
 
 	updateUI := func() {
+		// Adjust grid dimesnions
 		w, h := ui.TerminalDimensions()
 		myPage.Grid.SetRect(0, 0, w, h)
-		help.Resize(w, h)
-		if helpVisible {
-			ui.Clear()
+
+		// Clear UI
+		ui.Clear()
+
+		switch utilitySelected {
+		case "HELP":
+			help.Resize(w, h)
 			ui.Render(help)
-		} else {
-			if sendSignal {
-				signals.SetRect(0, 0, w/6, h)
-				myPage.Grid.SetRect(w/6, 0, w, h)
-				ui.Render(signals)
-			}
+
+		case "KILL":
+			signals.SetRect(0, 0, w/6, h)
+			myPage.Grid.SetRect(w/6, 0, w, h)
+			ui.Render(signals)
+			ui.Render(myPage.Grid)
+
+		default:
 			ui.Render(myPage.Grid)
 		}
 	}
 
 	updateUI() // Render empty UI
 
-	pauseProc := func() {
+	// variables to pause UI render
+	runAllProc := true
+	pause := func() {
 		runAllProc = !runAllProc
 	}
 
@@ -168,7 +176,6 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 	}
 
 	// whether a process is selected for killing (UI controls are paused)
-	killSelected := false
 	var pidToKill int32
 	var handledPreviousKey bool
 
@@ -182,68 +189,114 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 			switch e.ID {
 			case "q", "<C-c>": //q or Ctrl-C to quit
 				return core.ErrCanceledByUser
-			case "?":
-				helpVisible = !helpVisible
-				updateUI()
-			case "<Resize>":
-				updateUI() // updateUI only during resize event
-			}
-			if helpVisible { // keybindings for help menu
-				switch e.ID {
-				case "<Escape>":
-					helpVisible = false
-					updateUI()
-				case "j", "<Down>":
-					help.ScrollDown()
-					ui.Render(help)
-				case "k", "<Up>":
-					help.ScrollUp()
-					ui.Render(help)
-				}
-			} else {
-				if !killSelected { // keybindings for main proc table
-					switch e.ID {
-					case "s": //s to pause
-						pauseProc()
-					case "j", "<Down>":
-						myPage.ProcTable.ScrollDown()
-					case "k", "<Up>":
-						myPage.ProcTable.ScrollUp()
-					case "<C-d>":
-						myPage.ProcTable.ScrollHalfPageDown()
-					case "<C-u>":
-						myPage.ProcTable.ScrollHalfPageUp()
-					case "<C-f>":
-						myPage.ProcTable.ScrollPageDown()
-					case "<C-b>":
-						myPage.ProcTable.ScrollPageUp()
-					case "g":
-						if previousKey == "g" {
-							myPage.ProcTable.ScrollTop()
-							handledPreviousKey = true
-						}
-					case "<Home>":
-						myPage.ProcTable.ScrollTop()
-					case "G", "<End>":
-						myPage.ProcTable.ScrollBottom()
-					case "K", "<F9>":
-						if myPage.ProcTable.SelectedRow < len(myPage.ProcTable.Rows) {
-							// get PID from the data
-							row := myPage.ProcTable.Rows[myPage.ProcTable.SelectedRow]
-							pid, err := strconv.Atoi(row[0])
-							if err != nil {
-								return fmt.Errorf("failed to get PID of process: %v", err)
-							}
 
-							// Set pid to kill
-							pidToKill = int32(pid)
-							runAllProc = false
-							killSelected = true
-							myPage.ProcTable.CursorColor = killingStyle
-							// open the signal selector
-							sendSignal = true
-							updateUI()
+			case "<Resize>":
+				updateUI()
+
+			case "?":
+				selectedTable.ShowCursor = false
+				selectedTable = help.Table
+				selectedTable.ShowCursor = true
+				utilitySelected = "HELP"
+				updateUI()
+			case "p":
+				pause()
+
+			case "<Escape>":
+				utilitySelected = ""
+				selectedTable = myPage.ProcTable
+				selectedTable.ShowCursor = true
+				myPage.ProcTable.CursorColor = selectedStyle
+				runAllProc = true
+				updateUI()
+
+			// handle table navigations
+			case "j", "<Down>":
+				selectedTable.ScrollDown()
+
+			case "k", "<Up>":
+				selectedTable.ScrollUp()
+
+			case "<C-d>":
+				selectedTable.ScrollHalfPageDown()
+
+			case "<C-u>":
+				selectedTable.ScrollHalfPageUp()
+
+			case "<C-f>":
+				selectedTable.ScrollPageDown()
+
+			case "<C-b>":
+				selectedTable.ScrollPageUp()
+
+			case "g":
+				if previousKey == "g" {
+					selectedTable.ScrollTop()
+				}
+
+			case "<Home>":
+				selectedTable.ScrollTop()
+
+			case "G", "<End>":
+				selectedTable.ScrollBottom()
+
+			// handle actions
+			case "K", "<F9>":
+				if utilitySelected == "" {
+					if myPage.ProcTable.SelectedRow < len(myPage.ProcTable.Rows) {
+						// get PID from the data
+						row := myPage.ProcTable.Rows[myPage.ProcTable.SelectedRow]
+						pid, err := strconv.Atoi(row[0])
+						if err != nil {
+							return fmt.Errorf("failed to get PID of process: %v", err)
 						}
+
+						// Set pid to kill
+						pidToKill = int32(pid)
+						runAllProc = false
+						myPage.ProcTable.CursorColor = killingStyle
+
+						// open the signal selector
+						utilitySelected = "KILL"
+						selectedTable = signals.Table
+					}
+				} else {
+					// get process and kill it
+					procToKill, err := proc.NewProcess(pidToKill)
+					myPage.ProcTable.CursorColor = selectedStyle
+					if err == nil {
+						err = procToKill.SendSignal(syscall.SIGTERM)
+						if err != nil {
+							myPage.ProcTable.CursorColor = errorStyle
+						}
+					} else {
+						myPage.ProcTable.CursorColor = errorStyle
+					}
+					selectedTable = myPage.ProcTable
+					selectedTable.ShowCursor = true
+					runAllProc = true
+					updateProcs()
+				}
+
+			case "0", "1", "2", "3", "4", "5", "6", "7", "8", "9":
+				/*
+				* The signal selector can be navigated by entering the number beside the
+				* desired signal. Double digit numbers are handled by checking the previous
+				* key and, if it is among 1,2 and 3, navigate to the corresponding double
+				* digit number (as there are currently 31 supported signals).
+				* For example, pressing 25 would first navigate to signal 2, then to signal 25
+				 */
+				if utilitySelected == "KILL" {
+					scrollIdx, _ := strconv.Atoi(e.ID)
+					if _, checkPrev := map[string]bool{"1": true, "2": true, "3": true}[previousKey]; checkPrev {
+						prevIdx, _ := strconv.Atoi(previousKey)
+						scrollIdx = 10*prevIdx + scrollIdx
+						handledPreviousKey = true
+					}
+					signals.Table.ScrollToIndex(scrollIdx - 1) // account for 0-indexing
+					ui.Render(signals)
+				} else {
+					switch e.ID {
 					// Sort Ascending
 					case "1", "2", "3", "4", "5", "6", "7", "8":
 						myPage.ProcTable.Header = append([]string{}, header...)
@@ -253,95 +306,49 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 						sortAsc = true
 						utils.SortData(myPage.ProcTable.Rows, sortIdx, sortAsc, "PROCS")
 
-					// Sort Descending
-					case "<F1>", "<F2>", "<F3>", "<F4>", "<F5>", "<F6>", "<F7>", "<F8>":
-						myPage.ProcTable.Header = append([]string{}, header...)
-						idx, _ := strconv.Atoi(e.ID[2:3])
-						sortIdx = idx - 1
-						myPage.ProcTable.Header[sortIdx] = header[sortIdx] + " " + DOWN_ARROW
-						sortAsc = false
-						utils.SortData(myPage.ProcTable.Rows, sortIdx, sortAsc, "PROCS")
-
 					// Disable Sort
 					case "0":
 						myPage.ProcTable.Header = append([]string{}, header...)
 						sortIdx = -1
 					}
-				} else { // keybindings for signal menu
-					switch e.ID {
-					case "<Escape>":
-						if killSelected {
-							runAllProc = true
-							killSelected = false
-							myPage.ProcTable.CursorColor = selectedStyle
-						}
-						sendSignal = false
-						updateUI()
-					case "K", "<F9>":
-						// get process and kill it
-						procToKill, err := proc.NewProcess(pidToKill)
-						myPage.ProcTable.CursorColor = selectedStyle
-						if err == nil {
-							err = procToKill.SendSignal(syscall.SIGTERM)
-							if err != nil {
-								myPage.ProcTable.CursorColor = errorStyle
-							}
-						} else {
-							myPage.ProcTable.CursorColor = errorStyle
-						}
-						runAllProc = true
-						killSelected = false
-						updateProcs()
-						sendSignal = false
-						updateUI()
-					case "j", "<Down>":
-						signals.Table.ScrollDown()
-						ui.Render(signals)
-					case "k", "<Up>":
-						signals.Table.ScrollUp()
-						ui.Render(signals)
-					case "0", "1", "2", "3", "4", "5", "6", "7", "8", "9":
-						/*
-						* The signal selector can be navigated by entering the number beside the
-						* desired signal. Double digit numbers are handled by checking the previous
-						* key and, if it is among 1,2 and 3, navigate to the corresponding double
-						* digit number (as there are currently 31 supported signals).
-						* For example, pressing 25 would first navigate to signal 2, then to signal 25
-						 */
-						scrollIdx, _ := strconv.Atoi(e.ID)
-						if _, checkPrev := map[string]bool{"1": true, "2": true, "3": true}[previousKey]; checkPrev {
-							prevIdx, _ := strconv.Atoi(previousKey)
-							scrollIdx = 10*prevIdx + scrollIdx
-							handledPreviousKey = true
-						}
-						signals.Table.ScrollToIndex(scrollIdx - 1) // account for 0-indexing
-						ui.Render(signals)
-					case "<Enter>":
-						signalToSend := signals.SelectedSignal()
-						procToKill, err := proc.NewProcess(pidToKill)
-						myPage.ProcTable.CursorColor = selectedStyle
-						if err == nil {
-							err = procToKill.SendSignal(signalToSend)
-							if err != nil {
-								myPage.ProcTable.CursorColor = errorStyle
-							}
-						} else {
-							myPage.ProcTable.CursorColor = errorStyle
-						}
-						runAllProc = true
-						killSelected = false
-						updateProcs()
-						sendSignal = false
-						updateUI()
-					}
 				}
 
-				ui.Render(myPage.Grid)
-				if handledPreviousKey {
-					previousKey = ""
-				} else {
-					previousKey = e.ID
+			// Sort Descending
+			case "<F1>", "<F2>", "<F3>", "<F4>", "<F5>", "<F6>", "<F7>", "<F8>":
+				myPage.ProcTable.Header = append([]string{}, header...)
+				idx, _ := strconv.Atoi(e.ID[2:3])
+				sortIdx = idx - 1
+				myPage.ProcTable.Header[sortIdx] = header[sortIdx] + " " + DOWN_ARROW
+				sortAsc = false
+				utils.SortData(myPage.ProcTable.Rows, sortIdx, sortAsc, "PROCS")
+
+			case "<Enter>":
+				if utilitySelected == "KILL" {
+					signalToSend := signals.SelectedSignal()
+					procToKill, err := proc.NewProcess(pidToKill)
+					myPage.ProcTable.CursorColor = selectedStyle
+					if err == nil {
+						err = procToKill.SendSignal(signalToSend)
+						if err != nil {
+							myPage.ProcTable.CursorColor = errorStyle
+						}
+					} else {
+						myPage.ProcTable.CursorColor = errorStyle
+					}
+
+					runAllProc = true
+					utilitySelected = ""
+					updateProcs()
 				}
+				selectedTable = myPage.ProcTable
+				selectedTable.ShowCursor = true
+			}
+
+			updateUI()
+			if handledPreviousKey {
+				previousKey = ""
+			} else {
+				previousKey = e.ID
 			}
 
 		case data := <-dataChannel:
@@ -356,19 +363,20 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 			}
 
 		case <-tick: // Update page with new values
-			if killSelected {
+			if utilitySelected == "KILL" {
 				exists, _ := proc.PidExists(pidToKill)
 				if !exists {
 					runAllProc = true
-					killSelected = false
+					utilitySelected = ""
 					myPage.ProcTable.CursorColor = selectedStyle
 					updateProcs()
 				}
 			} else {
 				myPage.ProcTable.CursorColor = selectedStyle
 			}
-			if !helpVisible {
-				if sendSignal {
+
+			if utilitySelected != "HELP" {
+				if utilitySelected == "KILL" {
 					ui.Render(signals)
 				}
 				ui.Render(myPage.Grid)

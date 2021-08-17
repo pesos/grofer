@@ -29,8 +29,6 @@ import (
 	"github.com/pesos/grofer/pkg/utils"
 )
 
-var runProc = true
-
 func getChildProcs(proc *process.Process) [][]string {
 	childProcs := [][]string{}
 	for _, proc := range proc.Children {
@@ -59,8 +57,10 @@ func ProcVisuals(ctx context.Context,
 	var on sync.Once
 	var help *misc.HelpMenu = misc.NewHelpMenu().ForCommand(misc.PerProcCommand)
 
-	// Create new page
-	myPage := NewPerProcPage()
+	// Create new page and select default table
+	myPage := newPerProcPage()
+	utilitySelected := ""
+	selectedTable := myPage.ChildProcsTable
 
 	var statusMap map[string]string = map[string]string{
 		"R": "Running",
@@ -72,13 +72,15 @@ func ProcVisuals(ctx context.Context,
 		"L": "Lock",
 	}
 
+	// variables to pause UI render
+	runProc := true
 	pause := func() {
 		runProc = !runProc
 	}
 
 	updateUI := func() {
 
-		// Get Terminal Dimensions and clear the UI
+		// Get Terminal Dimensions
 		w, h := ui.TerminalDimensions()
 
 		// Adjust Memory Stats Bar graph values
@@ -92,11 +94,15 @@ func ProcVisuals(ctx context.Context,
 
 		// Adjust Grid dimensions
 		myPage.Grid.SetRect(0, 0, w, h)
-		help.Resize(w, h)
-		if helpVisible {
-			ui.Clear()
+
+		// Clear UI
+		ui.Clear()
+		switch utilitySelected {
+		case "HELP":
+			help.Resize(w, h)
 			ui.Render(help)
-		} else {
+
+		default:
 			ui.Render(myPage.Grid)
 		}
 	}
@@ -116,59 +122,62 @@ func ProcVisuals(ctx context.Context,
 			switch e.ID {
 			case "q", "<C-c>": //q or Ctrl-C to quit
 				return core.ErrCanceledByUser
+
 			case "<Resize>":
 				updateUI()
+
 			case "?":
-				helpVisible = !helpVisible
-			}
-			if helpVisible {
-				switch e.ID {
-				case "?":
-					updateUI()
-				case "<Escape>":
-					helpVisible = false
-					updateUI()
-				case "j", "<Down>":
-					help.ScrollDown()
-					ui.Render(help)
-				case "k", "<Up>":
-					help.ScrollUp()
-					ui.Render(help)
-				}
-			} else {
-				switch e.ID {
-				case "?":
-					updateUI()
-				case "s": //s to pause
-					pause()
-				case "j", "<Down>":
-					myPage.ChildProcsTable.ScrollDown()
-				case "k", "<Up>":
-					myPage.ChildProcsTable.ScrollUp()
-				case "<C-d>":
-					myPage.ChildProcsTable.ScrollHalfPageDown()
-				case "<C-u>":
-					myPage.ChildProcsTable.ScrollHalfPageUp()
-				case "<C-f>":
-					myPage.ChildProcsTable.ScrollPageDown()
-				case "<C-b>":
-					myPage.ChildProcsTable.ScrollPageUp()
-				case "g":
-					if previousKey == "g" {
-						myPage.ChildProcsTable.ScrollTop()
-					}
-				case "<Home>":
-					myPage.ChildProcsTable.ScrollTop()
-				case "G", "<End>":
-					myPage.ChildProcsTable.ScrollBottom()
+				selectedTable.ShowCursor = false
+				selectedTable = help.Table
+				selectedTable.ShowCursor = true
+				utilitySelected = "HELP"
+				updateUI()
+
+			case "p":
+				pause()
+
+			case "<Escape>":
+				utilitySelected = ""
+				selectedTable = myPage.ChildProcsTable
+				selectedTable.ShowCursor = true
+				updateUI()
+
+			// handle table navigations
+			case "j", "<Down>":
+				selectedTable.ScrollDown()
+
+			case "k", "<Up>":
+				selectedTable.ScrollUp()
+
+			case "<C-d>":
+				selectedTable.ScrollHalfPageDown()
+
+			case "<C-u>":
+				selectedTable.ScrollHalfPageUp()
+
+			case "<C-f>":
+				selectedTable.ScrollPageDown()
+
+			case "<C-b>":
+				selectedTable.ScrollPageUp()
+
+			case "g":
+				if previousKey == "g" {
+					selectedTable.ScrollTop()
 				}
 
-				ui.Render(myPage.Grid)
-				if previousKey == "g" {
-					previousKey = ""
-				} else {
-					previousKey = e.ID
-				}
+			case "<Home>":
+				selectedTable.ScrollTop()
+
+			case "G", "<End>":
+				selectedTable.ScrollBottom()
+			}
+
+			updateUI()
+			if previousKey == "g" {
+				previousKey = ""
+			} else {
+				previousKey = e.ID
 			}
 
 		case data := <-dataChannel:
@@ -187,17 +196,17 @@ func ProcVisuals(ctx context.Context,
 
 				// update proc info
 				myPage.PIDTable.Rows = [][]string{
-					{"[Name](fg:yellow)", data.Name},
-					{"[Command](fg:yellow)", data.Exe},
-					{"[Status](fg:yellow)", statusMap[data.Status] + " (" + data.Status + ")"},
-					{"[Background](fg:yellow)", strconv.FormatBool(data.Background)},
-					{"[Foreground](fg:yellow)", strconv.FormatBool(data.Foreground)},
-					{"[Running](fg:yellow)", strconv.FormatBool(data.IsRunning)},
-					{"[Creation Time](fg:yellow)", utils.GetDateFromUnix(data.CreateTime)},
-					{"[Nice value](fg:yellow)", strconv.Itoa(int(data.Nice))},
-					{"[Thread count](fg:yellow)", strconv.Itoa(int(data.NumThreads))},
-					{"[Child process count](fg:yellow)", strconv.Itoa(len(data.Children))},
-					{"[Last Update](fg:yellow)", time.Now().Format("15:04:05")},
+					{"[Name](fg:cyan)", data.Name},
+					{"[Command](fg:cyan)", data.Exe},
+					{"[Status](fg:cyan)", statusMap[data.Status] + " (" + data.Status + ")"},
+					{"[Background](fg:cyan)", strconv.FormatBool(data.Background)},
+					{"[Foreground](fg:cyan)", strconv.FormatBool(data.Foreground)},
+					{"[Running](fg:cyan)", strconv.FormatBool(data.IsRunning)},
+					{"[Creation Time](fg:cyan)", utils.GetDateFromUnix(data.CreateTime)},
+					{"[Nice value](fg:cyan)", strconv.Itoa(int(data.Nice))},
+					{"[Thread count](fg:cyan)", strconv.Itoa(int(data.NumThreads))},
+					{"[Child process count](fg:cyan)", strconv.Itoa(len(data.Children))},
+					{"[Last Update](fg:cyan)", time.Now().Format("15:04:05")},
 				}
 				myPage.PIDTable.Title = " PID: " + strconv.Itoa(int(data.Proc.Pid)) + " "
 
@@ -220,7 +229,7 @@ func ProcVisuals(ctx context.Context,
 			}
 
 		case <-tick:
-			if !helpVisible {
+			if utilitySelected == "" {
 				ui.Render(myPage.Grid)
 			}
 		}
