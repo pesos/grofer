@@ -84,7 +84,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 
 	updateUI := func() {
 
-		// Get Terminal Dimensions adn clear the UI
+		// Get Terminal Dimensions and clear the UI
 		w, h := ui.TerminalDimensions()
 
 		// Adjust Blk chart Bar graph values

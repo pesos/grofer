@@ -78,7 +78,7 @@ func ProcVisuals(ctx context.Context,
 
 	updateUI := func() {
 
-		// Get Terminal Dimensions adn clear the UI
+		// Get Terminal Dimensions and clear the UI
 		w, h := ui.TerminalDimensions()
 
 		// Adjust Memory Stats Bar graph values

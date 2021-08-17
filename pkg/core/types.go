@@ -40,7 +40,7 @@ type Sink int
 // metrics, and entities that consume them, allowing for addition
 // of Sinks independent of the metric producing entity.
 const (
-	// TUI reprents the terminal UI that consumes the metrics
+	// TUI represents the terminal UI that consumes the metrics
 	// generated.
 	TUI Sink = iota
 )

@@ -64,7 +64,7 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 
 	updateUI := func() {
 
-		// Get Terminal Dimensions adn clear the UI
+		// Get Terminal Dimensions and clear the UI
 		w, h := ui.TerminalDimensions()
 
 		// Adjust Blk chart Bar graph values

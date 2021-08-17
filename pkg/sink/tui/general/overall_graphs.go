@@ -108,10 +108,10 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 
 	updateUI := func() {
 
-		// Get Terminal Dimensions adn clear the UI
+		// Get Terminal Dimensions and clear the UI
 		w, h := ui.TerminalDimensions()
 
-		// Calculate Heigth offset
+		// Calculate Height offset
 		height := int(h / numCores)
 		heightOffset := h - (height * numCores)
 		_ = heightOffset

@@ -90,7 +90,7 @@ func (page *PerProcPage) InitPerProc() {
 		}
 	}
 
-	// Initialize Bar Chart for CTX Swicthes Chart
+	// Initialize Bar Chart for CTX Switches Chart
 	page.CTXSwitchesChart.Data = []float64{0, 0}
 	page.CTXSwitchesChart.Labels = []string{"Volun", "Involun"}
 	page.CTXSwitchesChart.Title = " Ctx switches "

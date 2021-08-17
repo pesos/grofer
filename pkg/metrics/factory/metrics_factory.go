@@ -32,7 +32,7 @@ import (
 // and returns it.
 type MetricScraperFactory struct {
 	// command is the command for which a MetricScraper
-	// be created. This defaults to core.MainCommand.
+	// is created. This defaults to core.MainCommand.
 	command core.Command
 	// singularEntityMetrics indicate whether metrics
 	// that need to be scraped are for a singular entity
