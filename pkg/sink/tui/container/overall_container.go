@@ -38,18 +38,6 @@ const (
 	DOWN_ARROW = "▼"
 )
 
-var header = []string{
-	"ID",
-	"Image",
-	"Name",
-	"Status",
-	"State",
-	"CPU",
-	"Memory",
-	"Net I/O",
-	"Block I/O",
-}
-
 // OverallVisuals provides the UI for overall container metrics
 func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChannel chan containerMetrics.ContainerMetrics, refreshRate uint64) error {
 	if err := ui.Init(); err != nil {
@@ -72,6 +60,17 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 	// variables for sorting
 	sortIdx := -1
 	sortAsc := false
+	header := []string{
+		"ID",
+		"Image",
+		"Name",
+		"Status",
+		"State",
+		"CPU",
+		"Memory",
+		"Net I/O",
+		"Block I/O",
+	}
 
 	// variables to pause UI rendering
 	runProc := true
