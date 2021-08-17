@@ -19,9 +19,7 @@ import (
 	"fmt"
 	"strings"
 
-	exportGeneral "github.com/pesos/grofer/src/export/general"
-	exportProc "github.com/pesos/grofer/src/export/proc"
-
+	"github.com/pesos/grofer/pkg/export"
 	"github.com/spf13/cobra"
 )
 
@@ -120,7 +118,7 @@ var exportCmd = &cobra.Command{
 		if exportPid == defaultExportPid {
 			switch exportType {
 			case "json":
-				return exportGeneral.ExportJSON(filename, iter, refreshRate)
+				return export.ExportJSON(filename, iter, refreshRate)
 
 			default:
 				return fmt.Errorf("invalid export type, see grofer export --help")
@@ -128,7 +126,7 @@ var exportCmd = &cobra.Command{
 		} else {
 			switch exportType {
 			case "json":
-				return exportProc.ExportPidJSON(exportPid, filename, iter, refreshRate)
+				return export.ExportPidJSON(exportPid, filename, iter, refreshRate)
 
 			default:
 				return fmt.Errorf("invalid export type, see grofer export --help")
