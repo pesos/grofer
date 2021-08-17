@@ -108,5 +108,47 @@ func (c *CpuTableChart) ScrollDown() {
 	}
 }
 
+func (c *CpuTableChart) ScrollTop() {
+	c.TopRow = 0
+}
+
+func (c *CpuTableChart) ScrollBottom() {
+	c.TopRow = len(c.Data) / c.NumCols
+}
+
+func (c *CpuTableChart) ScrollHalfPageUp() {
+	c.TopRow = c.TopRow - (c.Inner.Dy())/(2*c.CellSize)
+	if c.TopRow < 0 {
+		c.TopRow = 0
+	}
+}
+
+func (c *CpuTableChart) ScrollHalfPageDown() {
+	c.TopRow = c.TopRow + (c.Inner.Dy())/(2*c.CellSize)
+	if c.TopRow > len(c.Data)/c.NumCols {
+		c.TopRow = len(c.Data) / c.NumCols
+	}
+}
+
+func (c *CpuTableChart) ScrollPageUp() {
+	c.TopRow = c.TopRow - (c.Inner.Dy())/(c.CellSize)
+	if c.TopRow < 0 {
+		c.TopRow = 0
+	}
+}
+
+func (c *CpuTableChart) ScrollPageDown() {
+	c.TopRow = c.TopRow + (c.Inner.Dy())/(c.CellSize)
+	if c.TopRow > len(c.Data)/c.NumCols {
+		c.TopRow = len(c.Data) / c.NumCols
+	}
+}
+
+func (c *CpuTableChart) ScrollToIndex(idx int) {
+	if idx >= 0 && idx <= len(c.Data)/c.NumCols {
+		c.TopRow = idx
+	}
+}
+
 // ensure interface compliance.
 var _ ui.Drawable = (*CpuTableChart)(nil)

@@ -220,6 +220,12 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 						}
 						tableChange(selectedTable, numCores)
 						ui.Render(myPage.Grid)
+					case "<C-f>":
+						myPage.CPUTable.ScrollPageUp()
+						ui.Render(myPage.Grid)
+					case "<C-b>":
+						myPage.CPUTable.ScrollPageDown()
+						ui.Render(myPage.Grid)
 					}
 				} else {
 					switch e.ID {
