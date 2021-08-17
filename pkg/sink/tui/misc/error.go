@@ -26,8 +26,9 @@ import (
 // implements the ui.Drawable interface.
 type ErrorBox struct {
 	*vz.Table
-	errorString string
-	keybindings [][]string
+	errorMessage string
+	err          error
+	keybindings  [][]string
 }
 
 // NewErrorBox is a constructor for the ErrorBox type.
@@ -42,9 +43,9 @@ func NewErrorBox() *ErrorBox {
 // and height.
 func (errBox *ErrorBox) Resize(termWidth, termHeight int) {
 	textWidth := 50
-	for _, line := range errBox.keybindings {
-		if textWidth < len(line) {
-			textWidth = len(line) + 2
+	for _, line := range errBox.Rows {
+		if textWidth < len(line[0]) {
+			textWidth = len(line[0]) + 2
 		}
 	}
 	textHeight := len(errBox.keybindings) + 5
@@ -65,15 +66,22 @@ func (errBox *ErrorBox) Resize(termWidth, termHeight int) {
 // Draw puts the required text into the widget.
 func (errBox *ErrorBox) Draw(buf *ui.Buffer) {
 	errBox.Table.Title = " Error "
-
-	errBox.Table.Rows = [][]string{{errBox.errorString}, {""}}
+	errBox.Table.Header = []string{errBox.errorMessage}
+	errBox.Table.Rows = [][]string{{errBox.err.Error()}}
 	errBox.Table.Rows = append(errBox.Table.Rows, errBox.keybindings...)
+	errBox.Table.BorderStyle.Fg = ui.ColorCyan
+	errBox.Table.BorderStyle.Bg = ui.ColorClear
+	errBox.Table.ColResizer = func() {
+		x := errBox.Table.Inner.Dx()
+		errBox.Table.ColWidths = []int{x}
+	}
 	errBox.Table.Draw(buf)
 }
 
 // SetErrorString sets the error string to be displayed.
-func (errBox *ErrorBox) SetErrorString(errStr string) {
-	errBox.errorString = errStr
+func (errBox *ErrorBox) SetErrorString(errStr string, err error) {
+	errBox.errorMessage = errStr
+	errBox.err = err
 }
 
 // ensure interface compliance.

@@ -22,7 +22,7 @@ import (
 	viz "github.com/pesos/grofer/pkg/utils/visualization"
 )
 
-type OverallContainerPage struct {
+type overallContainerPage struct {
 	Grid         *ui.Grid
 	CPUChart     *widgets.Gauge
 	MemChart     *widgets.Gauge
@@ -31,9 +31,9 @@ type OverallContainerPage struct {
 	DetailsTable *viz.Table
 }
 
-// NewOverallContainerPage initializes a new page from the OverallContainerPage struct and returns it
-func NewOverallContainerPage() *OverallContainerPage {
-	page := &OverallContainerPage{
+// newOverallContainerPage initializes a new page from the overallContainerPage struct and returns it
+func newOverallContainerPage() *overallContainerPage {
+	page := &overallContainerPage{
 		Grid:         ui.NewGrid(),
 		CPUChart:     widgets.NewGauge(),
 		MemChart:     widgets.NewGauge(),
@@ -41,12 +41,12 @@ func NewOverallContainerPage() *OverallContainerPage {
 		BlkChart:     viz.NewBarChart(),
 		DetailsTable: viz.NewTable(),
 	}
-	page.InitOverallContainer()
+	page.init()
 	return page
 }
 
-// InitOverallContainer initializes and sets the ui and grid for grofer proc -p PID
-func (page *OverallContainerPage) InitOverallContainer() {
+// init initializes and sets the ui and grid for grofer proc -p PID
+func (page *overallContainerPage) init() {
 	// Initialize Gauge for CPU Chart
 	page.CPUChart.Title = " Total CPU % "
 	page.CPUChart.LabelStyle.Fg = ui.ColorClear
@@ -119,7 +119,7 @@ func (page *OverallContainerPage) InitOverallContainer() {
 	page.Grid.SetRect(0, 0, w, h)
 }
 
-type PerContainerPage struct {
+type perContainerPage struct {
 	Grid          *ui.Grid
 	DetailsTable  *viz.Table
 	CPUChart      *widgets.Gauge
@@ -133,9 +133,9 @@ type PerContainerPage struct {
 	ProcTable     *viz.Table
 }
 
-// NewPerContainerPage initializes a new page from the PerContainerPage struct and returns it
-func NewPerContainerPage() *PerContainerPage {
-	page := &PerContainerPage{
+// newPerContainerPage initializes a new page from the perContainerPage struct and returns it
+func newPerContainerPage() *perContainerPage {
+	page := &perContainerPage{
 		Grid:          ui.NewGrid(),
 		DetailsTable:  viz.NewTable(),
 		CPUChart:      widgets.NewGauge(),
@@ -148,12 +148,12 @@ func NewPerContainerPage() *PerContainerPage {
 		PortMapTable:  viz.NewTable(),
 		ProcTable:     viz.NewTable(),
 	}
-	page.InitPerContainer()
+	page.init()
 	return page
 }
 
-// InitPerContainer initializes and sets the ui and grid for grofer proc -p PID
-func (page *PerContainerPage) InitPerContainer() {
+// init initializes and sets the ui and grid for grofer proc -p PID
+func (page *perContainerPage) init() {
 	// Initialize Gauge for CPU Chart
 	page.CPUChart.Title = " CPU % "
 	page.CPUChart.BarColor = ui.ColorGreen
@@ -201,6 +201,7 @@ func (page *PerContainerPage) InitPerContainer() {
 			x / 2,
 		}
 	}
+	page.DetailsTable.ShowCursor = true
 
 	// Initialize Table for Mount Table
 	page.MountTable.Title = " Mounts "
