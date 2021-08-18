@@ -21,6 +21,19 @@ import (
 	viz "github.com/pesos/grofer/pkg/utils/visualization"
 )
 
+type scrollableWidget interface {
+	ScrollUp()
+	ScrollDown()
+	ScrollTop()
+	ScrollBottom()
+	ScrollHalfPageUp()
+	ScrollHalfPageDown()
+	ScrollPageUp()
+	ScrollPageDown()
+	DisableCursor()
+	EnableCursor()
+}
+
 // MainPage contains the ui widgets for the ui rendered by the grofer command
 type MainPage struct {
 	Grid             *ui.Grid
@@ -31,6 +44,8 @@ type MainPage struct {
 	CPUGauge         *viz.CpuGauge
 	AvgCPUGraph      *viz.LineGraph
 	TemperatureTable *viz.Table
+	selectedTable    int
+	cpuTableVisible  bool
 }
 
 type CPUPage struct {
@@ -88,6 +103,10 @@ func NewCPUPage(numCores int) *CPUPage {
 
 // InitGeneral initializes all ui elements for the ui rendered by the grofer command
 func (page *MainPage) InitGeneral(numCores int) {
+	if numCores > 8 {
+		page.cpuTableVisible = true
+	}
+
 	// Initialize Bar Graph for Memory Chart
 	page.initMemoryChartWidget()
 	// Initialize Table for Disk Chart
@@ -96,7 +115,8 @@ func (page *MainPage) InitGeneral(numCores int) {
 	page.initNetworkChartWidget()
 	// Initialize Graph for CPU Usage
 	page.initAvgCpuGraphWidget()
-	if numCores > 8 || cpuTableVisible {
+
+	if page.cpuTableVisible {
 		page.initCpuTableWidget(numCores)
 	} else {
 		page.initCpuGaugeWidget(numCores)
@@ -104,13 +124,27 @@ func (page *MainPage) InitGeneral(numCores int) {
 	// Initialize Graph for Temperature Table
 	page.initTemperatureTableWidget()
 	// Set page grid
-	page.initPageGrid(numCores)
+	page.initPageGrid()
 
 }
 
-func (page *MainPage) initPageGrid(numCores int) {
+func (page *MainPage) ToggleCPUWidget() scrollableWidget {
+	if page.cpuTableVisible {
+		page.cpuTableVisible = false
+		return page.DiskChart
+	} else {
+		page.cpuTableVisible = true
+		return page.CPUTable
+	}
+}
+
+func (page *MainPage) UpdateGrid() {
+	page.initPageGrid()
+}
+
+func (page *MainPage) initPageGrid() {
 	w, h := ui.TerminalDimensions()
-	if numCores > 8 || cpuTableVisible {
+	if page.cpuTableVisible {
 		page.Grid.Set(
 			ui.NewCol(
 				0.4,
@@ -230,6 +264,40 @@ func (page *MainPage) initAvgCpuGraphWidget() {
 	page.AvgCPUGraph.MaxVal = 100
 	page.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorClear
 	page.AvgCPUGraph.Data["Average CPU Load:"] = []float64{0}
+}
+
+func (page *MainPage) SwitchTableLeft(utilitySelected string) scrollableWidget {
+	switch utilitySelected {
+	case "CPU":
+		scrollableWidgets := []scrollableWidget{page.CPUTable, page.DiskChart, page.TemperatureTable}
+		page.selectedTable = (page.selectedTable + 1) % len(scrollableWidgets)
+		return scrollableWidgets[page.selectedTable]
+
+	default:
+		scrollableWidgets := []scrollableWidget{page.DiskChart, page.TemperatureTable}
+		page.selectedTable = (page.selectedTable + 1) % len(scrollableWidgets)
+		return scrollableWidgets[page.selectedTable]
+	}
+}
+
+func (page *MainPage) SwitchTableRight(utilitySelected string) scrollableWidget {
+	switch utilitySelected {
+	case "CPU":
+		scrollableWidgets := []scrollableWidget{page.CPUTable, page.DiskChart, page.TemperatureTable}
+		page.selectedTable = (page.selectedTable - 1)
+		if page.selectedTable < 0 {
+			page.selectedTable = len(scrollableWidgets) - 1
+		}
+		return scrollableWidgets[page.selectedTable]
+
+	default:
+		scrollableWidgets := []scrollableWidget{page.DiskChart, page.TemperatureTable}
+		page.selectedTable = (page.selectedTable - 1)
+		if page.selectedTable < 0 {
+			page.selectedTable = len(scrollableWidgets) - 1
+		}
+		return scrollableWidgets[page.selectedTable]
+	}
 }
 
 func (page *CPUPage) InitCPU(numCores int) {

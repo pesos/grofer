@@ -31,55 +31,8 @@ import (
 )
 
 var (
-	myPage          *MainPage
-	isCPUSet        = false
-	run             = true
-	helpVisible     = false
-	cpuTableVisible = false
+	run = true
 )
-
-// Function runs whenever user selects another table
-func tableChange(selectedTable int, numCores int) {
-	if numCores > 8 || cpuTableVisible {
-		switch selectedTable {
-		case 0:
-			myPage.CPUTable.BorderStyle.Fg = ui.ColorClear
-			myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-			myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
-			myPage.DiskChart.ShowCursor = false
-			myPage.TemperatureTable.ShowCursor = false
-
-		case 1:
-			myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
-			myPage.DiskChart.BorderStyle.Fg = ui.ColorClear
-			myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
-			myPage.DiskChart.ShowCursor = true
-			myPage.TemperatureTable.ShowCursor = false
-
-		case 2:
-			myPage.CPUTable.BorderStyle.Fg = ui.ColorCyan
-			myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-			myPage.TemperatureTable.BorderStyle.Fg = ui.ColorClear
-			myPage.DiskChart.ShowCursor = false
-			myPage.TemperatureTable.ShowCursor = true
-		}
-	} else {
-		switch selectedTable {
-		case 1:
-			myPage.DiskChart.BorderStyle.Fg = ui.ColorClear
-			myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
-			myPage.DiskChart.ShowCursor = true
-			myPage.TemperatureTable.ShowCursor = false
-
-		case 2:
-			myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-			myPage.TemperatureTable.BorderStyle.Fg = ui.ColorClear
-			myPage.DiskChart.ShowCursor = false
-			myPage.TemperatureTable.ShowCursor = true
-		}
-	}
-
-}
 
 // RenderCharts handles plotting graphs and charts for system stats in general.
 func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetrics, refreshRate uint64) error {
@@ -95,11 +48,13 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 
 	// Get number of cores in machine
 	numCores := runtime.NumCPU()
-	isCPUSet = true
 
 	// Create new page
-	myPage = NewPage(numCores)
-	selectedTable := 1 // Stores 0, 1, 2 for CPUTable, DiskChart and TemperatureTable
+	myPage := NewPage(numCores)
+
+	var scrollWidget scrollableWidget = myPage.DiskChart
+	utitlitySelected := ""
+	previousKey := ""
 
 	// Pause to pause updating data
 	pause := func() {
@@ -111,21 +66,17 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 		// Get Terminal Dimensions and clear the UI
 		w, h := ui.TerminalDimensions()
 
-		// Calculate Height offset
-		height := int(h / numCores)
-		heightOffset := h - (height * numCores)
-		_ = heightOffset
+		myPage.Grid.SetRect(0, 0, w, h)
 
-		if isCPUSet {
-			myPage.Grid.SetRect(0, 0, w, h)
-		}
+		ui.Clear()
 
-		help.Resize(w, h)
-
-		if helpVisible {
-			ui.Clear()
+		switch utitlitySelected {
+		case "HELP":
+			help.Resize(w, h)
 			ui.Render(help)
-		} else {
+
+		default:
+			myPage.UpdateGrid()
 			ui.Render(myPage.Grid)
 		}
 	}
@@ -148,132 +99,80 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 			case "<Resize>":
 				updateUI()
 
-			case "?": // s to stop
-				helpVisible = !helpVisible
+			case "<Escape>":
+				if utitlitySelected == "HELP" {
+					scrollWidget.DisableCursor()
+					scrollWidget = myPage.DiskChart
+					scrollWidget.EnableCursor()
+					utitlitySelected = ""
+				}
+
+			case "p":
+				pause()
+
+			case "?":
+				scrollWidget.DisableCursor()
+				scrollWidget = help.Table
+				scrollWidget.EnableCursor()
+				utitlitySelected = "HELP"
+
+			// handle table navigations
+			case "j", "<Down>":
+				scrollWidget.ScrollDown()
+
+			case "k", "<Up>":
+				scrollWidget.ScrollUp()
+
+			case "<C-d>":
+				scrollWidget.ScrollHalfPageDown()
+
+			case "<C-u>":
+				scrollWidget.ScrollHalfPageUp()
+
+			case "<C-f>":
+				scrollWidget.ScrollPageDown()
+
+			case "<C-b>":
+				scrollWidget.ScrollPageUp()
+
+			case "g":
+				if previousKey == "g" {
+					scrollWidget.ScrollTop()
+				}
+
+			case "<Home>":
+				scrollWidget.ScrollTop()
+
+			case "G", "<End>":
+				scrollWidget.ScrollBottom()
+
+			// handle table switching
+			case "<Left>", "h":
+				if utitlitySelected != "HELP" {
+					scrollWidget.DisableCursor()
+					scrollWidget = myPage.SwitchTableLeft(utitlitySelected)
+					scrollWidget.EnableCursor()
+				}
+
+			case "<Right>", "l":
+				if utitlitySelected != "HELP" {
+					scrollWidget.DisableCursor()
+					scrollWidget = myPage.SwitchTableRight(utitlitySelected)
+					scrollWidget.EnableCursor()
+				}
+
+			// handle actions
+			case "t":
+				scrollWidget.DisableCursor()
+				scrollWidget = myPage.ToggleCPUWidget()
 
 			}
-			if helpVisible {
-				switch e.ID {
-				case "?":
-					updateUI()
-				case "<Escape>":
-					helpVisible = false
-					updateUI()
-				case "j", "<Down>":
-					help.ScrollDown()
-					ui.Render(help)
-				case "k", "<Up>":
-					help.ScrollUp()
-					ui.Render(help)
-				}
+
+			updateUI()
+			if previousKey == "g" {
+				previousKey = ""
 			} else {
-				switch e.ID {
-				case "?":
-					updateUI()
-				case "s": //s to pause
-					pause()
-				case "t":
-					cpuTableVisible = !cpuTableVisible
-					selectedTable = 1
-					myPage = NewPage(numCores)
-				}
-				if numCores > 8 || cpuTableVisible {
-					switch e.ID {
-					case "<Down>", "j":
-						switch selectedTable {
-						case 0:
-							myPage.CPUTable.ScrollDown()
-						case 1:
-							myPage.DiskChart.ScrollDown()
-
-						case 2:
-							myPage.TemperatureTable.ScrollDown()
-
-						}
-						ui.Render(myPage.Grid)
-
-					case "<Up>", "k":
-						switch selectedTable {
-						case 0:
-							myPage.CPUTable.ScrollUp()
-						case 1:
-							myPage.DiskChart.ScrollUp()
-						case 2:
-							myPage.TemperatureTable.ScrollUp()
-						}
-						ui.Render(myPage.Grid)
-
-					case "<Left>", "h":
-						if selectedTable > 0 {
-							selectedTable -= 1
-						} else {
-							selectedTable = 2
-						}
-						tableChange(selectedTable, numCores)
-						ui.Render(myPage.Grid)
-
-					case "<Right>", "l":
-						if selectedTable < 2 {
-							selectedTable += 1
-						} else {
-							selectedTable = 0
-						}
-						tableChange(selectedTable, numCores)
-						ui.Render(myPage.Grid)
-					case "<C-f>":
-						myPage.CPUTable.ScrollPageUp()
-						ui.Render(myPage.Grid)
-					case "<C-b>":
-						myPage.CPUTable.ScrollPageDown()
-						ui.Render(myPage.Grid)
-					}
-				} else {
-					switch e.ID {
-					case "<Left>", "h":
-						if selectedTable > 1 {
-							selectedTable -= 1
-						} else {
-							selectedTable = 2
-						}
-						tableChange(selectedTable, numCores)
-						ui.Render(myPage.Grid)
-
-					case "<Right>", "l":
-						if selectedTable < 2 {
-							selectedTable += 1
-						} else {
-							selectedTable = 1
-						}
-						tableChange(selectedTable, numCores)
-						ui.Render(myPage.Grid)
-
-					case "j", "<Down>":
-						switch selectedTable {
-						case 1:
-							myPage.DiskChart.ScrollDown()
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorClear
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
-						case 2:
-							myPage.TemperatureTable.ScrollDown()
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorClear
-						}
-						ui.Render(myPage.Grid)
-
-					case "k", "<Up>":
-						switch selectedTable {
-						case 1:
-							myPage.DiskChart.ScrollUp()
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorClear
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorCyan
-						case 2:
-							myPage.TemperatureTable.ScrollUp()
-							myPage.DiskChart.BorderStyle.Fg = ui.ColorCyan
-							myPage.TemperatureTable.BorderStyle.Fg = ui.ColorClear
-						}
-						ui.Render(myPage.Grid)
-					}
-				}
+				previousKey = e.ID
 			}
 
 		case data := <-dataChannel:
@@ -289,7 +188,7 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 						avgLoad += x
 					}
 
-					if numCores > 8 || cpuTableVisible {
+					if myPage.cpuTableVisible {
 						myPage.CPUTable.Data = data.CpuStats
 					} else {
 						myPage.CPUGauge.Values = data.CpuStats
@@ -371,8 +270,8 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 			}
 
 		case <-tick: // Update page with new values
-			if !helpVisible {
-				ui.Render(myPage.Grid)
+			if utitlitySelected != "HELP" {
+				updateUI()
 			}
 		}
 	}
@@ -394,6 +293,7 @@ func RenderCPUinfo(ctx context.Context, dataChannel chan *general.CPULoad, refre
 		run = !run
 	}
 
+	helpVisible := false
 	// Re render UI
 	updateUI := func() {
 		w, h := ui.TerminalDimensions()

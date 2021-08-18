@@ -260,7 +260,7 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 						utilitySelected = "KILL"
 						selectedTable = signals.Table
 					}
-				} else {
+				} else if utilitySelected == "KILL" {
 					// get process and kill it
 					procToKill, err := proc.NewProcess(pidToKill)
 					myPage.ProcTable.CursorColor = selectedStyle

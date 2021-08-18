@@ -262,5 +262,13 @@ func (t *Table) HandleClick(x, y int) {
 	}
 }
 
+func (t *Table) DisableCursor() {
+	t.ShowCursor = false
+}
+
+func (t *Table) EnableCursor() {
+	t.ShowCursor = true
+}
+
 // ensure interface compliance.
 var _ ui.Drawable = (*Table)(nil)
