@@ -30,6 +30,7 @@ import (
 	"github.com/pesos/grofer/pkg/core"
 	"github.com/pesos/grofer/pkg/sink/tui/misc"
 	"github.com/pesos/grofer/pkg/utils"
+	viz "github.com/pesos/grofer/pkg/utils/visualization"
 	proc "github.com/shirou/gopsutil/process"
 )
 
@@ -109,7 +110,7 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 
 	myPage := newAllProcPage()
 	utilitySelected := ""
-	selectedTable := myPage.ProcTable
+	var scrollableWidget viz.ScrollableWidget = myPage.ProcTable
 
 	sortIdx := -1
 	sortAsc := false
@@ -194,9 +195,9 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 				updateUI()
 
 			case "?":
-				selectedTable.ShowCursor = false
-				selectedTable = help.Table
-				selectedTable.ShowCursor = true
+				scrollableWidget.DisableCursor()
+				scrollableWidget = help.Table
+				scrollableWidget.EnableCursor()
 				utilitySelected = "HELP"
 				updateUI()
 			case "p":
@@ -204,41 +205,42 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 
 			case "<Escape>":
 				utilitySelected = ""
-				selectedTable = myPage.ProcTable
-				selectedTable.ShowCursor = true
+				scrollableWidget.DisableCursor()
+				scrollableWidget = myPage.ProcTable
+				scrollableWidget.EnableCursor()
 				myPage.ProcTable.CursorColor = selectedStyle
 				runAllProc = true
 				updateUI()
 
 			// handle table navigations
 			case "j", "<Down>":
-				selectedTable.ScrollDown()
+				scrollableWidget.ScrollDown()
 
 			case "k", "<Up>":
-				selectedTable.ScrollUp()
+				scrollableWidget.ScrollUp()
 
 			case "<C-d>":
-				selectedTable.ScrollHalfPageDown()
+				scrollableWidget.ScrollHalfPageDown()
 
 			case "<C-u>":
-				selectedTable.ScrollHalfPageUp()
+				scrollableWidget.ScrollHalfPageUp()
 
 			case "<C-f>":
-				selectedTable.ScrollPageDown()
+				scrollableWidget.ScrollPageDown()
 
 			case "<C-b>":
-				selectedTable.ScrollPageUp()
+				scrollableWidget.ScrollPageUp()
 
 			case "g":
 				if previousKey == "g" {
-					selectedTable.ScrollTop()
+					scrollableWidget.ScrollTop()
 				}
 
 			case "<Home>":
-				selectedTable.ScrollTop()
+				scrollableWidget.ScrollTop()
 
 			case "G", "<End>":
-				selectedTable.ScrollBottom()
+				scrollableWidget.ScrollBottom()
 
 			// handle actions
 			case "K", "<F9>":
@@ -258,7 +260,7 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 
 						// open the signal selector
 						utilitySelected = "KILL"
-						selectedTable = signals.Table
+						scrollableWidget = signals.Table
 					}
 				} else if utilitySelected == "KILL" {
 					// get process and kill it
@@ -272,8 +274,8 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 					} else {
 						myPage.ProcTable.CursorColor = errorStyle
 					}
-					selectedTable = myPage.ProcTable
-					selectedTable.ShowCursor = true
+					scrollableWidget = myPage.ProcTable
+					scrollableWidget.EnableCursor()
 					runAllProc = true
 					updateProcs()
 				}
@@ -340,8 +342,8 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 					utilitySelected = ""
 					updateProcs()
 				}
-				selectedTable = myPage.ProcTable
-				selectedTable.ShowCursor = true
+				scrollableWidget = myPage.ProcTable
+				scrollableWidget.EnableCursor()
 			}
 
 			updateUI()

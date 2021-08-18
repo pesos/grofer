@@ -31,6 +31,7 @@ import (
 	containerMetrics "github.com/pesos/grofer/pkg/metrics/container"
 	"github.com/pesos/grofer/pkg/sink/tui/misc"
 	"github.com/pesos/grofer/pkg/utils"
+	viz "github.com/pesos/grofer/pkg/utils/visualization"
 )
 
 const (
@@ -54,7 +55,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 
 	// Create new page and select table
 	page := newOverallContainerPage()
-	selectedTable := page.DetailsTable
+	var scrollableWidget viz.ScrollableWidget = page.DetailsTable
 	utilitySelected := ""
 
 	// variables for sorting
@@ -197,14 +198,14 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 				}
 
 				utilitySelected = ""
-				selectedTable = page.DetailsTable
-				selectedTable.ShowCursor = true
+				scrollableWidget = page.DetailsTable
+				scrollableWidget.EnableCursor()
 				updateUI()
 
 			case "?":
-				selectedTable.ShowCursor = false
-				selectedTable = help.Table
-				selectedTable.ShowCursor = true
+				scrollableWidget.DisableCursor()
+				scrollableWidget = help.Table
+				scrollableWidget.EnableCursor()
 				utilitySelected = "HELP"
 				updateUI()
 
@@ -213,37 +214,37 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 
 			// handle table navigations
 			case "j", "<Down>":
-				selectedTable.ScrollDown()
+				scrollableWidget.ScrollDown()
 
 			case "k", "<Up>":
-				selectedTable.ScrollUp()
+				scrollableWidget.ScrollUp()
 
 			case "<C-d>":
-				selectedTable.ScrollHalfPageDown()
+				scrollableWidget.ScrollHalfPageDown()
 
 			case "<C-u>":
-				selectedTable.ScrollHalfPageUp()
+				scrollableWidget.ScrollHalfPageUp()
 
 			case "<C-f>":
-				selectedTable.ScrollPageDown()
+				scrollableWidget.ScrollPageDown()
 
 			case "<C-b>":
-				selectedTable.ScrollPageUp()
+				scrollableWidget.ScrollPageUp()
 
 			case "g":
 				if previousKey == "g" {
-					selectedTable.ScrollTop()
+					scrollableWidget.ScrollTop()
 				}
 
 			case "<Home>":
-				selectedTable.ScrollTop()
+				scrollableWidget.ScrollTop()
 
 			case "G", "<End>":
-				selectedTable.ScrollBottom()
+				scrollableWidget.ScrollBottom()
 
 			// Container Action Selction
 			case "P", "U", "S", "R", "K", "X":
-				if selectedTable == page.DetailsTable {
+				if scrollableWidget == page.DetailsTable {
 					if actionSelected == "" {
 						if page.DetailsTable.SelectedRow < len(page.DetailsTable.Rows) {
 							cid = page.DetailsTable.Rows[page.DetailsTable.SelectedRow][0]
@@ -332,8 +333,8 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 
 						if err != nil {
 							utilitySelected = "ERROR"
-							selectedTable = errorBox.Table
-							selectedTable.ShowCursor = false
+							scrollableWidget = errorBox.Table
+							scrollableWidget.DisableCursor()
 						} else {
 							utilitySelected = ""
 						}

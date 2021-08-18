@@ -48,7 +48,8 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 	// Create new page
 	page := newPerContainerPage()
 
-	selectedTable := page.DetailsTable
+	var scrollableWidget viz.ScrollableWidget = page.DetailsTable
+	scrollableWidget.EnableCursor()
 	tableMap := map[string]*viz.Table{
 		"1": page.DetailsTable,
 		"2": page.MountTable,
@@ -114,9 +115,9 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 				updateUI()
 
 			case "?":
-				selectedTable.ShowCursor = false
-				selectedTable = help.Table
-				selectedTable.ShowCursor = true
+				scrollableWidget.DisableCursor()
+				scrollableWidget = help.Table
+				scrollableWidget.EnableCursor()
 				utilitySelected = "HELP"
 				updateUI()
 
@@ -125,47 +126,47 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 
 			case "<Escape>":
 				utilitySelected = ""
-				selectedTable = page.DetailsTable
-				selectedTable.ShowCursor = true
+				scrollableWidget = page.DetailsTable
+				scrollableWidget.EnableCursor()
 				updateUI()
 
 			// handle table selection
 			case "1", "2", "3", "4", "5", "6":
 				if utilitySelected == "" {
-					selectedTable.ShowCursor = false
-					selectedTable = tableMap[e.ID]
-					selectedTable.ShowCursor = true
+					scrollableWidget.DisableCursor()
+					scrollableWidget = tableMap[e.ID]
+					scrollableWidget.EnableCursor()
 				}
 
 			// handle table navigations
 			case "j", "<Down>":
-				selectedTable.ScrollDown()
+				scrollableWidget.ScrollDown()
 
 			case "k", "<Up>":
-				selectedTable.ScrollUp()
+				scrollableWidget.ScrollUp()
 
 			case "<C-d>":
-				selectedTable.ScrollHalfPageDown()
+				scrollableWidget.ScrollHalfPageDown()
 
 			case "<C-u>":
-				selectedTable.ScrollHalfPageUp()
+				scrollableWidget.ScrollHalfPageUp()
 
 			case "<C-f>":
-				selectedTable.ScrollPageDown()
+				scrollableWidget.ScrollPageDown()
 
 			case "<C-b>":
-				selectedTable.ScrollPageUp()
+				scrollableWidget.ScrollPageUp()
 
 			case "g":
 				if previousKey == "g" {
-					selectedTable.ScrollTop()
+					scrollableWidget.ScrollTop()
 				}
 
 			case "<Home>":
-				selectedTable.ScrollTop()
+				scrollableWidget.ScrollTop()
 
 			case "G", "<End>":
-				selectedTable.ScrollBottom()
+				scrollableWidget.ScrollBottom()
 
 			}
 

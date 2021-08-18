@@ -28,6 +28,7 @@ import (
 	"github.com/pesos/grofer/pkg/metrics/general"
 	"github.com/pesos/grofer/pkg/sink/tui/misc"
 	"github.com/pesos/grofer/pkg/utils"
+	viz "github.com/pesos/grofer/pkg/utils/visualization"
 )
 
 var (
@@ -52,7 +53,7 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 	// Create new page
 	myPage := NewPage(numCores)
 
-	var scrollWidget scrollableWidget = myPage.DiskChart
+	var scrollWidget viz.ScrollableWidget = myPage.DiskChart
 	utitlitySelected := ""
 	previousKey := ""
 
@@ -287,7 +288,7 @@ func RenderCPUinfo(ctx context.Context, dataChannel chan *general.CPULoad, refre
 	numCores := runtime.NumCPU()
 	myPage := NewCPUPage(numCores)
 
-	var scrollWidget scrollableWidget = myPage.CPUTable
+	var scrollWidget viz.ScrollableWidget = myPage.CPUTable
 
 	previousKey := ""
 	utilitySelected := ""

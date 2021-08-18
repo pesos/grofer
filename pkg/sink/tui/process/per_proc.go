@@ -27,6 +27,7 @@ import (
 	"github.com/pesos/grofer/pkg/metrics/process"
 	"github.com/pesos/grofer/pkg/sink/tui/misc"
 	"github.com/pesos/grofer/pkg/utils"
+	viz "github.com/pesos/grofer/pkg/utils/visualization"
 )
 
 func getChildProcs(proc *process.Process) [][]string {
@@ -60,7 +61,7 @@ func ProcVisuals(ctx context.Context,
 	// Create new page and select default table
 	myPage := newPerProcPage()
 	utilitySelected := ""
-	selectedTable := myPage.ChildProcsTable
+	var scrollableWidget viz.ScrollableWidget = myPage.ChildProcsTable
 
 	var statusMap map[string]string = map[string]string{
 		"R": "Running",
@@ -127,9 +128,9 @@ func ProcVisuals(ctx context.Context,
 				updateUI()
 
 			case "?":
-				selectedTable.ShowCursor = false
-				selectedTable = help.Table
-				selectedTable.ShowCursor = true
+				scrollableWidget.DisableCursor()
+				scrollableWidget = help.Table
+				scrollableWidget.EnableCursor()
 				utilitySelected = "HELP"
 				updateUI()
 
@@ -138,39 +139,40 @@ func ProcVisuals(ctx context.Context,
 
 			case "<Escape>":
 				utilitySelected = ""
-				selectedTable = myPage.ChildProcsTable
-				selectedTable.ShowCursor = true
+				scrollableWidget.DisableCursor()
+				scrollableWidget = myPage.ChildProcsTable
+				scrollableWidget.EnableCursor()
 				updateUI()
 
 			// handle table navigations
 			case "j", "<Down>":
-				selectedTable.ScrollDown()
+				scrollableWidget.ScrollDown()
 
 			case "k", "<Up>":
-				selectedTable.ScrollUp()
+				scrollableWidget.ScrollUp()
 
 			case "<C-d>":
-				selectedTable.ScrollHalfPageDown()
+				scrollableWidget.ScrollHalfPageDown()
 
 			case "<C-u>":
-				selectedTable.ScrollHalfPageUp()
+				scrollableWidget.ScrollHalfPageUp()
 
 			case "<C-f>":
-				selectedTable.ScrollPageDown()
+				scrollableWidget.ScrollPageDown()
 
 			case "<C-b>":
-				selectedTable.ScrollPageUp()
+				scrollableWidget.ScrollPageUp()
 
 			case "g":
 				if previousKey == "g" {
-					selectedTable.ScrollTop()
+					scrollableWidget.ScrollTop()
 				}
 
 			case "<Home>":
-				selectedTable.ScrollTop()
+				scrollableWidget.ScrollTop()
 
 			case "G", "<End>":
-				selectedTable.ScrollBottom()
+				scrollableWidget.ScrollBottom()
 			}
 
 			updateUI()

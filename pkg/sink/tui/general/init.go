@@ -21,19 +21,6 @@ import (
 	viz "github.com/pesos/grofer/pkg/utils/visualization"
 )
 
-type scrollableWidget interface {
-	ScrollUp()
-	ScrollDown()
-	ScrollTop()
-	ScrollBottom()
-	ScrollHalfPageUp()
-	ScrollHalfPageDown()
-	ScrollPageUp()
-	ScrollPageDown()
-	DisableCursor()
-	EnableCursor()
-}
-
 // MainPage contains the ui widgets for the ui rendered by the grofer command
 type MainPage struct {
 	Grid             *ui.Grid
@@ -129,7 +116,7 @@ func (page *MainPage) init(numCores int) {
 }
 
 // ToggleCPUWidget helps toggle the widget on grid used to display CPU usage
-func (page *MainPage) ToggleCPUWidget() scrollableWidget {
+func (page *MainPage) ToggleCPUWidget() viz.ScrollableWidget {
 	defer page.initPageGrid()
 	if page.cpuTableVisible {
 		page.cpuTableVisible = false
@@ -263,22 +250,22 @@ func (page *MainPage) initAvgCpuGraphWidget() {
 	page.AvgCPUGraph.Data["Average CPU Load:"] = []float64{0}
 }
 
-func (page *MainPage) SwitchTableLeft(cpuTableVisible bool) scrollableWidget {
+func (page *MainPage) SwitchTableLeft(cpuTableVisible bool) viz.ScrollableWidget {
 	if cpuTableVisible {
-		scrollableWidgets := []scrollableWidget{page.CPUTable, page.DiskChart, page.TemperatureTable}
+		scrollableWidgets := []viz.ScrollableWidget{page.CPUTable, page.DiskChart, page.TemperatureTable}
 		page.selectedTable = (page.selectedTable + 1) % len(scrollableWidgets)
 		return scrollableWidgets[page.selectedTable]
 
 	} else {
-		scrollableWidgets := []scrollableWidget{page.DiskChart, page.TemperatureTable}
+		scrollableWidgets := []viz.ScrollableWidget{page.DiskChart, page.TemperatureTable}
 		page.selectedTable = (page.selectedTable + 1) % len(scrollableWidgets)
 		return scrollableWidgets[page.selectedTable]
 	}
 }
 
-func (page *MainPage) SwitchTableRight(cpuTableVisible bool) scrollableWidget {
+func (page *MainPage) SwitchTableRight(cpuTableVisible bool) viz.ScrollableWidget {
 	if cpuTableVisible {
-		scrollableWidgets := []scrollableWidget{page.TemperatureTable, page.DiskChart, page.CPUTable}
+		scrollableWidgets := []viz.ScrollableWidget{page.TemperatureTable, page.DiskChart, page.CPUTable}
 		page.selectedTable = (page.selectedTable - 1)
 		if page.selectedTable < 0 {
 			page.selectedTable = len(scrollableWidgets) - 1
@@ -286,7 +273,7 @@ func (page *MainPage) SwitchTableRight(cpuTableVisible bool) scrollableWidget {
 		return scrollableWidgets[page.selectedTable]
 
 	} else {
-		scrollableWidgets := []scrollableWidget{page.DiskChart, page.TemperatureTable}
+		scrollableWidgets := []viz.ScrollableWidget{page.DiskChart, page.TemperatureTable}
 		page.selectedTable = (page.selectedTable - 1)
 		if page.selectedTable < 0 {
 			page.selectedTable = len(scrollableWidgets) - 1
