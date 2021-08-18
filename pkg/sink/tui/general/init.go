@@ -79,7 +79,7 @@ func NewPage(numCores int) *MainPage {
 		AvgCPUGraph:      viz.NewLineGraph(),
 		TemperatureTable: viz.NewTable(),
 	}
-	page.InitGeneral(numCores)
+	page.init(numCores)
 	return page
 }
 
@@ -97,12 +97,12 @@ func NewCPUPage(numCores int) *CPUPage {
 		CPUChart:    widgets.NewTable(),
 		CPUTable:    viz.NewTable(),
 	}
-	page.InitCPU(numCores)
+	page.init(numCores)
 	return page
 }
 
-// InitGeneral initializes all ui elements for the ui rendered by the grofer command
-func (page *MainPage) InitGeneral(numCores int) {
+// init initializes all ui elements for the ui rendered by the grofer command
+func (page *MainPage) init(numCores int) {
 	if numCores > 8 {
 		page.cpuTableVisible = true
 	}
@@ -128,7 +128,9 @@ func (page *MainPage) InitGeneral(numCores int) {
 
 }
 
+// ToggleCPUWidget helps toggle the widget on grid used to display CPU usage
 func (page *MainPage) ToggleCPUWidget() scrollableWidget {
+	defer page.initPageGrid()
 	if page.cpuTableVisible {
 		page.cpuTableVisible = false
 		return page.DiskChart
@@ -138,12 +140,8 @@ func (page *MainPage) ToggleCPUWidget() scrollableWidget {
 	}
 }
 
-func (page *MainPage) UpdateGrid() {
-	page.initPageGrid()
-}
-
 func (page *MainPage) initPageGrid() {
-	w, h := ui.TerminalDimensions()
+	page.Grid = ui.NewGrid()
 	if page.cpuTableVisible {
 		page.Grid.Set(
 			ui.NewCol(
@@ -173,7 +171,6 @@ func (page *MainPage) initPageGrid() {
 			),
 		)
 	}
-	page.Grid.SetRect(0, 0, w, h)
 }
 
 func (page *MainPage) initMemoryChartWidget() {
@@ -266,31 +263,29 @@ func (page *MainPage) initAvgCpuGraphWidget() {
 	page.AvgCPUGraph.Data["Average CPU Load:"] = []float64{0}
 }
 
-func (page *MainPage) SwitchTableLeft(utilitySelected string) scrollableWidget {
-	switch utilitySelected {
-	case "CPU":
+func (page *MainPage) SwitchTableLeft(cpuTableVisible bool) scrollableWidget {
+	if cpuTableVisible {
 		scrollableWidgets := []scrollableWidget{page.CPUTable, page.DiskChart, page.TemperatureTable}
 		page.selectedTable = (page.selectedTable + 1) % len(scrollableWidgets)
 		return scrollableWidgets[page.selectedTable]
 
-	default:
+	} else {
 		scrollableWidgets := []scrollableWidget{page.DiskChart, page.TemperatureTable}
 		page.selectedTable = (page.selectedTable + 1) % len(scrollableWidgets)
 		return scrollableWidgets[page.selectedTable]
 	}
 }
 
-func (page *MainPage) SwitchTableRight(utilitySelected string) scrollableWidget {
-	switch utilitySelected {
-	case "CPU":
-		scrollableWidgets := []scrollableWidget{page.CPUTable, page.DiskChart, page.TemperatureTable}
+func (page *MainPage) SwitchTableRight(cpuTableVisible bool) scrollableWidget {
+	if cpuTableVisible {
+		scrollableWidgets := []scrollableWidget{page.TemperatureTable, page.DiskChart, page.CPUTable}
 		page.selectedTable = (page.selectedTable - 1)
 		if page.selectedTable < 0 {
 			page.selectedTable = len(scrollableWidgets) - 1
 		}
 		return scrollableWidgets[page.selectedTable]
 
-	default:
+	} else {
 		scrollableWidgets := []scrollableWidget{page.DiskChart, page.TemperatureTable}
 		page.selectedTable = (page.selectedTable - 1)
 		if page.selectedTable < 0 {
@@ -300,7 +295,7 @@ func (page *MainPage) SwitchTableRight(utilitySelected string) scrollableWidget 
 	}
 }
 
-func (page *CPUPage) InitCPU(numCores int) {
+func (page *CPUPage) init(numCores int) {
 	page.UsrChart.Title = " Usr "
 	page.UsrChart.Percent = 0
 	page.UsrChart.BarColor = ui.ColorBlue

@@ -264,10 +264,12 @@ func (t *Table) HandleClick(x, y int) {
 
 func (t *Table) DisableCursor() {
 	t.ShowCursor = false
+	t.BorderStyle.Fg = ui.ColorCyan
 }
 
 func (t *Table) EnableCursor() {
 	t.ShowCursor = true
+	t.BorderStyle.Fg = ui.ColorWhite
 }
 
 // ensure interface compliance.

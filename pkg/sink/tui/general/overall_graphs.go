@@ -66,8 +66,6 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 		// Get Terminal Dimensions and clear the UI
 		w, h := ui.TerminalDimensions()
 
-		myPage.Grid.SetRect(0, 0, w, h)
-
 		ui.Clear()
 
 		switch utitlitySelected {
@@ -76,7 +74,7 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 			ui.Render(help)
 
 		default:
-			myPage.UpdateGrid()
+			myPage.Grid.SetRect(0, 0, w, h)
 			ui.Render(myPage.Grid)
 		}
 	}
@@ -150,14 +148,14 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 			case "<Left>", "h":
 				if utitlitySelected != "HELP" {
 					scrollWidget.DisableCursor()
-					scrollWidget = myPage.SwitchTableLeft(utitlitySelected)
+					scrollWidget = myPage.SwitchTableLeft(myPage.cpuTableVisible)
 					scrollWidget.EnableCursor()
 				}
 
 			case "<Right>", "l":
 				if utitlitySelected != "HELP" {
 					scrollWidget.DisableCursor()
-					scrollWidget = myPage.SwitchTableRight(utitlitySelected)
+					scrollWidget = myPage.SwitchTableRight(myPage.cpuTableVisible)
 					scrollWidget.EnableCursor()
 				}
 
@@ -165,7 +163,7 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 			case "t":
 				scrollWidget.DisableCursor()
 				scrollWidget = myPage.ToggleCPUWidget()
-
+				scrollWidget.EnableCursor()
 			}
 
 			updateUI()
@@ -271,7 +269,7 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 
 		case <-tick: // Update page with new values
 			if utitlitySelected != "HELP" {
-				updateUI()
+				ui.Render(myPage.Grid)
 			}
 		}
 	}
@@ -289,20 +287,27 @@ func RenderCPUinfo(ctx context.Context, dataChannel chan *general.CPULoad, refre
 	numCores := runtime.NumCPU()
 	myPage := NewCPUPage(numCores)
 
+	var scrollWidget scrollableWidget = myPage.CPUTable
+
+	previousKey := ""
+	utilitySelected := ""
+
 	pause := func() {
 		run = !run
 	}
 
-	helpVisible := false
 	// Re render UI
 	updateUI := func() {
 		w, h := ui.TerminalDimensions()
 		myPage.Grid.SetRect(0, 0, w, h)
-		help.Resize(w, h)
-		if helpVisible {
-			ui.Clear()
+
+		ui.Clear()
+
+		switch utilitySelected {
+		case "HELP":
+			help.Resize(w, h)
 			ui.Render(help)
-		} else {
+		default:
 			ui.Render(myPage.Grid)
 		}
 	}
@@ -321,43 +326,62 @@ func RenderCPUinfo(ctx context.Context, dataChannel chan *general.CPULoad, refre
 			switch e.ID {
 			case "q", "<C-c>": // q or Ctrl-C to quit
 				return core.ErrCanceledByUser
+
 			case "<Resize>":
 				updateUI()
 
-			case "?": // s to stop
-				helpVisible = !helpVisible
+			case "<Escape>":
+				scrollWidget.DisableCursor()
+				scrollWidget = myPage.CPUTable
+				scrollWidget.EnableCursor()
+				utilitySelected = ""
+
+			case "p":
+				pause()
+
+			case "?":
+				scrollWidget.DisableCursor()
+				scrollWidget = help.Table
+				scrollWidget.EnableCursor()
+				utilitySelected = "HELP"
+
+			// handle table navigations
+			case "j", "<Down>":
+				scrollWidget.ScrollDown()
+
+			case "k", "<Up>":
+				scrollWidget.ScrollUp()
+
+			case "<C-d>":
+				scrollWidget.ScrollHalfPageDown()
+
+			case "<C-u>":
+				scrollWidget.ScrollHalfPageUp()
+
+			case "<C-f>":
+				scrollWidget.ScrollPageDown()
+
+			case "<C-b>":
+				scrollWidget.ScrollPageUp()
+
+			case "g":
+				if previousKey == "g" {
+					scrollWidget.ScrollTop()
+				}
+
+			case "<Home>":
+				scrollWidget.ScrollTop()
+
+			case "G", "<End>":
+				scrollWidget.ScrollBottom()
+
 			}
-			if helpVisible {
-				switch e.ID {
-				case "?":
-					updateUI()
-				case "<Escape>":
-					helpVisible = false
-					updateUI()
-				case "j", "<Down>":
-					help.ScrollDown()
-					ui.Render(help)
-				case "k", "<Up>":
-					help.ScrollUp()
-					ui.Render(help)
-				}
+
+			updateUI()
+			if previousKey == "g" {
+				previousKey = ""
 			} else {
-				switch e.ID {
-				case "?":
-					updateUI()
-				case "s": //s to pause
-					pause()
-				}
-				if numCores > 8 {
-					switch e.ID {
-					case "j", "<Down>":
-						myPage.CPUTable.ScrollDown()
-						ui.Render(myPage.Grid)
-					case "k", "<Up>":
-						myPage.CPUTable.ScrollUp()
-						ui.Render(myPage.Grid)
-					}
-				}
+				previousKey = e.ID
 			}
 
 		case data := <-dataChannel: // Update chart values
@@ -394,7 +418,7 @@ func RenderCPUinfo(ctx context.Context, dataChannel chan *general.CPULoad, refre
 			}
 
 		case <-tick:
-			if !helpVisible {
+			if utilitySelected != "HELP" {
 				ui.Render(myPage.Grid)
 			}
 		}

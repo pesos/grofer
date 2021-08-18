@@ -150,9 +150,13 @@ func (c *CpuTableChart) ScrollToIndex(idx int) {
 	}
 }
 
-func (c *CpuTableChart) DisableCursor() {}
+func (c *CpuTableChart) DisableCursor() {
+	c.BorderStyle.Fg = ui.ColorCyan
+}
 
-func (c *CpuTableChart) EnableCursor() {}
+func (c *CpuTableChart) EnableCursor() {
+	c.BorderStyle.Fg = ui.ColorClear
+}
 
 // ensure interface compliance.
 var _ ui.Drawable = (*CpuTableChart)(nil)
