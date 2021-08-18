@@ -53,21 +53,25 @@ type Table struct {
 	ColColor   map[int]ui.Color
 	ColResizer func()
 
-	IsHelp bool // indicates if table is a help widget
+	IsHelp             bool     // indicates if table is a help widget
+	DefaultBorderColor ui.Color // indicates default border color
+	ActiveBorderColor  ui.Color // indicates active border color
 }
 
 // NewTable returns a new Table instance
 func NewTable() *Table {
 	return &Table{
-		Block:       ui.NewBlock(),
-		HeaderStyle: ui.NewStyle(ui.ColorClear, ui.ColorClear, ui.ModifierBold),
-		RowStyle:    ui.NewStyle(ui.Theme.Default.Fg),
-		SelectedRow: 0,
-		TopRow:      0,
-		UniqueCol:   0,
-		ColResizer:  func() {},
-		ColColor:    make(map[int]ui.Color),
-		CursorColor: ui.ColorCyan,
+		Block:              ui.NewBlock(),
+		HeaderStyle:        ui.NewStyle(ui.ColorClear, ui.ColorClear, ui.ModifierBold),
+		RowStyle:           ui.NewStyle(ui.Theme.Default.Fg),
+		SelectedRow:        0,
+		TopRow:             0,
+		UniqueCol:          0,
+		ColResizer:         func() {},
+		ColColor:           make(map[int]ui.Color),
+		CursorColor:        ui.ColorCyan,
+		DefaultBorderColor: ui.ColorCyan,
+		ActiveBorderColor:  ui.ColorWhite,
 	}
 }
 
@@ -264,12 +268,12 @@ func (t *Table) HandleClick(x, y int) {
 
 func (t *Table) DisableCursor() {
 	t.ShowCursor = false
-	t.BorderStyle.Fg = ui.ColorCyan
+	t.BorderStyle.Fg = t.DefaultBorderColor
 }
 
 func (t *Table) EnableCursor() {
 	t.ShowCursor = true
-	t.BorderStyle.Fg = ui.ColorWhite
+	t.BorderStyle.Fg = t.ActiveBorderColor
 }
 
 // ensure interface compliance.

@@ -27,13 +27,15 @@ import (
 
 type CpuTableChart struct {
 	*ui.Block
-	Data        []float64
-	NumCores    int
-	CellSize    int
-	TopRow      int
-	StatusColor []ui.Color
-	NumRows     int
-	NumCols     int
+	Data               []float64
+	NumCores           int
+	CellSize           int
+	TopRow             int
+	StatusColor        []ui.Color
+	NumRows            int
+	NumCols            int
+	DefaultBorderColor ui.Color // indicates default border color
+	ActiveBorderColor  ui.Color // indicates active border color
 }
 
 func NewCpuTableChart() *CpuTableChart {
@@ -58,6 +60,8 @@ func NewCpuTableChart() *CpuTableChart {
 			ui.Color(196),
 			ui.Color(160),
 		},
+		DefaultBorderColor: ui.ColorCyan,
+		ActiveBorderColor:  ui.ColorWhite,
 	}
 }
 
@@ -151,11 +155,11 @@ func (c *CpuTableChart) ScrollToIndex(idx int) {
 }
 
 func (c *CpuTableChart) DisableCursor() {
-	c.BorderStyle.Fg = ui.ColorCyan
+	c.BorderStyle.Fg = c.DefaultBorderColor
 }
 
 func (c *CpuTableChart) EnableCursor() {
-	c.BorderStyle.Fg = ui.ColorClear
+	c.BorderStyle.Fg = c.ActiveBorderColor
 }
 
 // ensure interface compliance.
