@@ -51,9 +51,9 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 	numCores := runtime.NumCPU()
 
 	// Create new page
-	myPage := NewPage(numCores)
+	page := NewPage(numCores)
 
-	var scrollWidget viz.ScrollableWidget = myPage.DiskChart
+	var scrollWidget viz.ScrollableWidget = page.DiskChart
 	utitlitySelected := ""
 	previousKey := ""
 
@@ -75,8 +75,8 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 			ui.Render(help)
 
 		default:
-			myPage.Grid.SetRect(0, 0, w, h)
-			ui.Render(myPage.Grid)
+			page.Grid.SetRect(0, 0, w, h)
+			ui.Render(page.Grid)
 		}
 	}
 
@@ -101,7 +101,7 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 			case "<Escape>":
 				if utitlitySelected == "HELP" {
 					scrollWidget.DisableCursor()
-					scrollWidget = myPage.DiskChart
+					scrollWidget = page.DiskChart
 					scrollWidget.EnableCursor()
 					utitlitySelected = ""
 				}
@@ -149,21 +149,21 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 			case "<Left>", "h":
 				if utitlitySelected != "HELP" {
 					scrollWidget.DisableCursor()
-					scrollWidget = myPage.SwitchTableLeft(myPage.cpuTableVisible)
+					scrollWidget = page.SwitchTableLeft(page.cpuTableVisible)
 					scrollWidget.EnableCursor()
 				}
 
 			case "<Right>", "l":
 				if utitlitySelected != "HELP" {
 					scrollWidget.DisableCursor()
-					scrollWidget = myPage.SwitchTableRight(myPage.cpuTableVisible)
+					scrollWidget = page.SwitchTableRight(page.cpuTableVisible)
 					scrollWidget.EnableCursor()
 				}
 
 			// handle actions
 			case "t":
 				scrollWidget.DisableCursor()
-				scrollWidget = myPage.ToggleCPUWidget()
+				scrollWidget = page.ToggleCPUWidget()
 				scrollWidget.EnableCursor()
 			}
 
@@ -178,52 +178,48 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 			if run {
 				switch data.FieldSet {
 
+				case "INFO": // Update Info table
+					header, rows := data.HostInfo[0], data.HostInfo[1:]
+					page.InfoTable.Header = header
+					page.InfoTable.Rows = rows
+
+				case "BATTERY": // Update Battery Gauge
+					percent := data.BatteryPercent
+					page.BatteryGauge.Percent = percent
+					switch {
+					case percent < 33:
+						page.BatteryGauge.BarColor = ui.ColorRed
+					case percent < 67:
+						page.BatteryGauge.BarColor = ui.ColorYellow
+					default:
+						page.BatteryGauge.BarColor = ui.ColorGreen
+					}
+
 				case "CPU": // Update CPU stats
-					avgLoad := 0.0
-					myPage.CPUGauge.Labels = nil
-					// Individual line charts for each CPU core when < 8
-					for _, x := range data.CpuStats {
-						myPage.CPUGauge.Labels = append(myPage.CPUGauge.Labels, fmt.Sprintf("%.1f%%", x))
-						avgLoad += x
-					}
-
-					if myPage.cpuTableVisible {
-						myPage.CPUTable.Data = data.CpuStats
+					if page.cpuTableVisible {
+						page.CPUTable.Data = data.CpuStats
 					} else {
-						myPage.CPUGauge.Values = data.CpuStats
-					}
-					// Generate an Average Graph for CPUs when number of cores > 8
-					avgLoad /= float64(numCores)
-					if len(myPage.AvgCPUGraph.Data["Average CPU Load:"]) > 100 {
-						myPage.AvgCPUGraph.Data["Average CPU Load:"] = myPage.AvgCPUGraph.Data["Average CPU Load:"][1:]
-					}
-
-					myPage.AvgCPUGraph.Data["Average CPU Load:"] = append(myPage.AvgCPUGraph.Data["Average CPU Load:"], avgLoad)
-					myPage.AvgCPUGraph.Labels["Average CPU Load:"] = fmt.Sprintf("%3.2f%%", avgLoad)
-					// Change LineColor based on percentage
-					if avgLoad > 66.6 {
-						myPage.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorRed
-					} else if avgLoad > 33.3 {
-						myPage.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorYellow
-					} else {
-						myPage.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorGreen
+						for i, percent := range data.CpuStats {
+							cpu := fmt.Sprintf("CPU %d", i)
+							page.CPUChart.Data[cpu] = append(page.CPUChart.Data[cpu], percent)
+						}
 					}
 
 				case "MEM": // Update Memory stats
-					myPage.MemoryChart.MaxVal = data.MemStats[0]
-					myPage.MemoryChart.Data = data.MemStats[1:]
-					myPage.MemoryChart.Labels = append(myPage.MemoryChart.Labels, fmt.Sprintf("Used: %.2fG/%.2fG", data.MemStats[1], data.MemStats[0]))
-					myPage.MemoryChart.Labels = append(myPage.MemoryChart.Labels, fmt.Sprintf("Available: %.2fG/%.2fG", data.MemStats[2], data.MemStats[0]))
-					myPage.MemoryChart.Labels = append(myPage.MemoryChart.Labels, fmt.Sprintf("Free: %.2fG/%.2fG", data.MemStats[3], data.MemStats[0]))
-					myPage.MemoryChart.Labels = append(myPage.MemoryChart.Labels, fmt.Sprintf("Cached: %.2fG/%.2fG", data.MemStats[4], data.MemStats[0]))
+					page.MemoryChart.MaxVal = data.MemStats[0]
+					page.MemoryChart.Data = data.MemStats[1:]
+					page.MemoryChart.Labels = append(page.MemoryChart.Labels, fmt.Sprintf("Used: %.2fG/%.2fG", data.MemStats[1], data.MemStats[0]))
+					page.MemoryChart.Labels = append(page.MemoryChart.Labels, fmt.Sprintf("Available: %.2fG/%.2fG", data.MemStats[2], data.MemStats[0]))
+					page.MemoryChart.Labels = append(page.MemoryChart.Labels, fmt.Sprintf("Free: %.2fG/%.2fG", data.MemStats[3], data.MemStats[0]))
+					page.MemoryChart.Labels = append(page.MemoryChart.Labels, fmt.Sprintf("Cached: %.2fG/%.2fG", data.MemStats[4], data.MemStats[0]))
 
 				case "DISK": // Update Disk stats
-					myPage.DiskChart.Header = data.DiskStats[0]
-					myPage.DiskChart.Rows = data.DiskStats[1:]
+					page.DiskChart.Header = data.DiskStats[0]
+					page.DiskChart.Rows = data.DiskStats[1:]
 
 				case "TEMP":
-					myPage.TemperatureTable.Header = data.TempStats[0]
-					myPage.TemperatureTable.Rows = data.TempStats[1:]
+					page.TemperatureTable.Header = data.TempStats[0]
+					page.TemperatureTable.Rows = data.TempStats[1:]
 
 				case "NET": // Update Network stats
 					var curBytesRecv, curBytesSent float64
@@ -245,14 +241,14 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 						if int(recentBytesSent) < 0 {
 							recentBytesSent = 0
 						}
-						if len(myPage.NetworkChart.Sparklines[0].Data) > 100 {
-							myPage.NetworkChart.Sparklines[0].Data = myPage.NetworkChart.Sparklines[0].Data[1:]
+						if len(page.NetworkChart.Sparklines[0].Data) > 100 {
+							page.NetworkChart.Sparklines[0].Data = page.NetworkChart.Sparklines[0].Data[1:]
 						}
-						myPage.NetworkChart.Sparklines[0].Data = append(myPage.NetworkChart.Sparklines[0].Data, recentBytesRecv)
-						if len(myPage.NetworkChart.Sparklines[1].Data) > 100 {
-							myPage.NetworkChart.Sparklines[1].Data = myPage.NetworkChart.Sparklines[1].Data[1:]
+						page.NetworkChart.Sparklines[0].Data = append(page.NetworkChart.Sparklines[0].Data, recentBytesRecv)
+						if len(page.NetworkChart.Sparklines[1].Data) > 100 {
+							page.NetworkChart.Sparklines[1].Data = page.NetworkChart.Sparklines[1].Data[1:]
 						}
-						myPage.NetworkChart.Sparklines[1].Data = append(myPage.NetworkChart.Sparklines[1].Data, recentBytesSent)
+						page.NetworkChart.Sparklines[1].Data = append(page.NetworkChart.Sparklines[1].Data, recentBytesSent)
 
 					}
 
@@ -261,8 +257,8 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 
 					totalData, units := utils.RoundValues(totalBytesRecv, totalBytesSent, true)
 
-					myPage.NetworkChart.Sparklines[0].Title = fmt.Sprintf(" Total RX: %5.1f %s", totalData[0], units)
-					myPage.NetworkChart.Sparklines[1].Title = fmt.Sprintf(" Total TX: %5.1f %s", totalData[1], units)
+					page.NetworkChart.Sparklines[0].Title = fmt.Sprintf(" Total RX: %5.1f %s", totalData[0], units)
+					page.NetworkChart.Sparklines[1].Title = fmt.Sprintf(" Total TX: %5.1f %s", totalData[1], units)
 
 				}
 				on.Do(updateUI)
@@ -270,7 +266,7 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 
 		case <-tick: // Update page with new values
 			if utitlitySelected != "HELP" {
-				ui.Render(myPage.Grid)
+				ui.Render(page.Grid)
 			}
 		}
 	}
@@ -286,9 +282,9 @@ func RenderCPUinfo(ctx context.Context, dataChannel chan *general.CPULoad, refre
 	defer ui.Close()
 
 	numCores := runtime.NumCPU()
-	myPage := NewCPUPage(numCores)
+	page := NewCPUPage(numCores)
 
-	var scrollWidget viz.ScrollableWidget = myPage.CPUTable
+	var scrollWidget viz.ScrollableWidget = page.CPUTable
 
 	previousKey := ""
 	utilitySelected := ""
@@ -300,7 +296,7 @@ func RenderCPUinfo(ctx context.Context, dataChannel chan *general.CPULoad, refre
 	// Re render UI
 	updateUI := func() {
 		w, h := ui.TerminalDimensions()
-		myPage.Grid.SetRect(0, 0, w, h)
+		page.Grid.SetRect(0, 0, w, h)
 
 		ui.Clear()
 
@@ -309,7 +305,7 @@ func RenderCPUinfo(ctx context.Context, dataChannel chan *general.CPULoad, refre
 			help.Resize(w, h)
 			ui.Render(help)
 		default:
-			ui.Render(myPage.Grid)
+			ui.Render(page.Grid)
 		}
 	}
 
@@ -333,7 +329,7 @@ func RenderCPUinfo(ctx context.Context, dataChannel chan *general.CPULoad, refre
 
 			case "<Escape>":
 				scrollWidget.DisableCursor()
-				scrollWidget = myPage.CPUTable
+				scrollWidget = page.CPUTable
 				scrollWidget.EnableCursor()
 				utilitySelected = ""
 
@@ -387,14 +383,14 @@ func RenderCPUinfo(ctx context.Context, dataChannel chan *general.CPULoad, refre
 
 		case data := <-dataChannel: // Update chart values
 			if run {
-				myPage.UsrChart.Percent = data.Usr
-				myPage.NiceChart.Percent = data.Nice
-				myPage.SysChart.Percent = data.Sys
-				myPage.IowaitChart.Percent = data.Iowait
-				myPage.IrqChart.Percent = data.Irq
-				myPage.SoftChart.Percent = data.Soft
-				myPage.StealChart.Percent = data.Steal
-				myPage.IdleChart.Percent = data.Idle
+				page.UsrChart.Percent = data.Usr
+				page.NiceChart.Percent = data.Nice
+				page.SysChart.Percent = data.Sys
+				page.IowaitChart.Percent = data.Iowait
+				page.IrqChart.Percent = data.Irq
+				page.SoftChart.Percent = data.Soft
+				page.StealChart.Percent = data.Steal
+				page.IdleChart.Percent = data.Idle
 
 				if numCores > 8 {
 					rows := [][]string{}
@@ -405,22 +401,22 @@ func RenderCPUinfo(ctx context.Context, dataChannel chan *general.CPULoad, refre
 						})
 					}
 
-					myPage.CPUTable.Rows = rows
+					page.CPUTable.Rows = rows
 				} else {
-					myPage.CPUChart.Rows = data.CPURates
+					page.CPUChart.Rows = data.CPURates
 				}
 
 				on.Do(func() {
 					w, h := ui.TerminalDimensions()
 					ui.Clear()
-					myPage.Grid.SetRect(0, 0, w, h)
-					ui.Render(myPage.Grid)
+					page.Grid.SetRect(0, 0, w, h)
+					ui.Render(page.Grid)
 				})
 			}
 
 		case <-tick:
 			if utilitySelected != "HELP" {
-				ui.Render(myPage.Grid)
+				ui.Render(page.Grid)
 			}
 		}
 	}

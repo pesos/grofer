@@ -22,6 +22,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pesos/grofer/pkg/utils"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/host"
@@ -32,6 +33,50 @@ import (
 func roundOff(num uint64) float64 {
 	x := float64(num) / (1024 * 1024 * 1024)
 	return math.Round(x*10) / 10
+}
+
+func ServeInfo(ctx context.Context, cpuChannel chan AggregatedMetrics) error {
+	info, err := host.InfoWithContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	hostInfo := [][]string{
+		{"Hostname", info.Hostname},
+		{"Up Time", utils.SecondsToHuman(int(info.Uptime))},
+		{"Boot Time", utils.GetDateFromUnix(int64(info.BootTime))},
+		{"Processes", fmt.Sprintf("%d", info.Procs)},
+		{"OS/Platform", fmt.Sprintf("%s/%s %s", info.OS, info.Platform, info.PlatformVersion)},
+		{"Kernel/Arch", fmt.Sprintf("%s/%s", info.KernelVersion, info.KernelArch)},
+	}
+
+	data := AggregatedMetrics{
+		FieldSet: "INFO",
+		HostInfo: hostInfo,
+	}
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case cpuChannel <- data:
+		return nil
+	}
+}
+
+func ServeBattery(ctx context.Context, cpuChannel chan AggregatedMetrics) error {
+	// TODO: Fetch battery percent
+	data := AggregatedMetrics{
+		FieldSet:       "BATTERY",
+		BatteryPercent: 100,
+	}
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case cpuChannel <- data:
+		return nil
+	}
+
 }
 
 // GetCPURates fetches and returns the current cpu rate

@@ -108,9 +108,9 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 	var signals *misc.SignalTable = misc.NewSignalTable()
 	var help *misc.HelpMenu = misc.NewHelpMenu().ForCommand(misc.ProcCommand)
 
-	myPage := newAllProcPage()
+	page := newAllProcPage()
 	utilitySelected := ""
-	var scrollableWidget viz.ScrollableWidget = myPage.ProcTable
+	var scrollableWidget viz.ScrollableWidget = page.ProcTable
 
 	sortIdx := -1
 	sortAsc := false
@@ -128,7 +128,7 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 	updateUI := func() {
 		// Adjust grid dimesnions
 		w, h := ui.TerminalDimensions()
-		myPage.Grid.SetRect(0, 0, w, h)
+		page.Grid.SetRect(0, 0, w, h)
 
 		// Clear UI
 		ui.Clear()
@@ -140,12 +140,12 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 
 		case "KILL":
 			signals.SetRect(0, 0, w/6, h)
-			myPage.Grid.SetRect(w/6, 0, w, h)
+			page.Grid.SetRect(w/6, 0, w, h)
 			ui.Render(signals)
-			ui.Render(myPage.Grid)
+			ui.Render(page.Grid)
 
 		default:
-			ui.Render(myPage.Grid)
+			ui.Render(page.Grid)
 		}
 	}
 
@@ -162,7 +162,7 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 	tick := t.C
 
 	previousKey := ""
-	selectedStyle := myPage.ProcTable.CursorColor
+	selectedStyle := page.ProcTable.CursorColor
 	killingStyle := ui.ColorMagenta
 	errorStyle := ui.ColorRed
 
@@ -171,7 +171,7 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 		if runAllProc {
 			procs, err := proc.Processes()
 			if err == nil {
-				myPage.ProcTable.Rows = getData(procs)
+				page.ProcTable.Rows = getData(procs)
 			}
 		}
 	}
@@ -206,9 +206,9 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 			case "<Escape>":
 				utilitySelected = ""
 				scrollableWidget.DisableCursor()
-				scrollableWidget = myPage.ProcTable
+				scrollableWidget = page.ProcTable
 				scrollableWidget.EnableCursor()
-				myPage.ProcTable.CursorColor = selectedStyle
+				page.ProcTable.CursorColor = selectedStyle
 				runAllProc = true
 				updateUI()
 
@@ -245,9 +245,9 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 			// handle actions
 			case "K", "<F9>":
 				if utilitySelected == "" {
-					if myPage.ProcTable.SelectedRow < len(myPage.ProcTable.Rows) {
+					if page.ProcTable.SelectedRow < len(page.ProcTable.Rows) {
 						// get PID from the data
-						row := myPage.ProcTable.Rows[myPage.ProcTable.SelectedRow]
+						row := page.ProcTable.Rows[page.ProcTable.SelectedRow]
 						pid, err := strconv.Atoi(row[0])
 						if err != nil {
 							return fmt.Errorf("failed to get PID of process: %v", err)
@@ -256,7 +256,7 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 						// Set pid to kill
 						pidToKill = int32(pid)
 						runAllProc = false
-						myPage.ProcTable.CursorColor = killingStyle
+						page.ProcTable.CursorColor = killingStyle
 
 						// open the signal selector
 						utilitySelected = "KILL"
@@ -265,16 +265,16 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 				} else if utilitySelected == "KILL" {
 					// get process and kill it
 					procToKill, err := proc.NewProcess(pidToKill)
-					myPage.ProcTable.CursorColor = selectedStyle
+					page.ProcTable.CursorColor = selectedStyle
 					if err == nil {
 						err = procToKill.SendSignal(syscall.SIGTERM)
 						if err != nil {
-							myPage.ProcTable.CursorColor = errorStyle
+							page.ProcTable.CursorColor = errorStyle
 						}
 					} else {
-						myPage.ProcTable.CursorColor = errorStyle
+						page.ProcTable.CursorColor = errorStyle
 					}
-					scrollableWidget = myPage.ProcTable
+					scrollableWidget = page.ProcTable
 					scrollableWidget.EnableCursor()
 					runAllProc = true
 					updateProcs()
@@ -301,48 +301,48 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 					switch e.ID {
 					// Sort Ascending
 					case "1", "2", "3", "4", "5", "6", "7", "8":
-						myPage.ProcTable.Header = append([]string{}, header...)
+						page.ProcTable.Header = append([]string{}, header...)
 						idx, _ := strconv.Atoi(e.ID)
 						sortIdx = idx - 1
-						myPage.ProcTable.Header[sortIdx] = header[sortIdx] + " " + UP_ARROW
+						page.ProcTable.Header[sortIdx] = header[sortIdx] + " " + UP_ARROW
 						sortAsc = true
-						utils.SortData(myPage.ProcTable.Rows, sortIdx, sortAsc, "PROCS")
+						utils.SortData(page.ProcTable.Rows, sortIdx, sortAsc, "PROCS")
 
 					// Disable Sort
 					case "0":
-						myPage.ProcTable.Header = append([]string{}, header...)
+						page.ProcTable.Header = append([]string{}, header...)
 						sortIdx = -1
 					}
 				}
 
 			// Sort Descending
 			case "<F1>", "<F2>", "<F3>", "<F4>", "<F5>", "<F6>", "<F7>", "<F8>":
-				myPage.ProcTable.Header = append([]string{}, header...)
+				page.ProcTable.Header = append([]string{}, header...)
 				idx, _ := strconv.Atoi(e.ID[2:3])
 				sortIdx = idx - 1
-				myPage.ProcTable.Header[sortIdx] = header[sortIdx] + " " + DOWN_ARROW
+				page.ProcTable.Header[sortIdx] = header[sortIdx] + " " + DOWN_ARROW
 				sortAsc = false
-				utils.SortData(myPage.ProcTable.Rows, sortIdx, sortAsc, "PROCS")
+				utils.SortData(page.ProcTable.Rows, sortIdx, sortAsc, "PROCS")
 
 			case "<Enter>":
 				if utilitySelected == "KILL" {
 					signalToSend := signals.SelectedSignal()
 					procToKill, err := proc.NewProcess(pidToKill)
-					myPage.ProcTable.CursorColor = selectedStyle
+					page.ProcTable.CursorColor = selectedStyle
 					if err == nil {
 						err = procToKill.SendSignal(signalToSend)
 						if err != nil {
-							myPage.ProcTable.CursorColor = errorStyle
+							page.ProcTable.CursorColor = errorStyle
 						}
 					} else {
-						myPage.ProcTable.CursorColor = errorStyle
+						page.ProcTable.CursorColor = errorStyle
 					}
 
 					runAllProc = true
 					utilitySelected = ""
 					updateProcs()
 				}
-				scrollableWidget = myPage.ProcTable
+				scrollableWidget = page.ProcTable
 				scrollableWidget.EnableCursor()
 			}
 
@@ -355,11 +355,11 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 
 		case data := <-dataChannel:
 			if runAllProc {
-				myPage.ProcTable.CursorColor = selectedStyle
+				page.ProcTable.CursorColor = selectedStyle
 				procData := getData(data)
-				myPage.ProcTable.Rows = procData
+				page.ProcTable.Rows = procData
 				if sortIdx != -1 {
-					utils.SortData(myPage.ProcTable.Rows, sortIdx, sortAsc, "PROCS")
+					utils.SortData(page.ProcTable.Rows, sortIdx, sortAsc, "PROCS")
 				}
 				on.Do(updateUI)
 			}
@@ -370,18 +370,18 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 				if !exists {
 					runAllProc = true
 					utilitySelected = ""
-					myPage.ProcTable.CursorColor = selectedStyle
+					page.ProcTable.CursorColor = selectedStyle
 					updateProcs()
 				}
 			} else {
-				myPage.ProcTable.CursorColor = selectedStyle
+				page.ProcTable.CursorColor = selectedStyle
 			}
 
 			if utilitySelected != "HELP" {
 				if utilitySelected == "KILL" {
 					ui.Render(signals)
 				}
-				ui.Render(myPage.Grid)
+				ui.Render(page.Grid)
 			}
 		}
 	}

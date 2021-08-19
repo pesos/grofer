@@ -59,9 +59,9 @@ func ProcVisuals(ctx context.Context,
 	var help *misc.HelpMenu = misc.NewHelpMenu().ForCommand(misc.PerProcCommand)
 
 	// Create new page and select default table
-	myPage := newPerProcPage()
+	page := newPerProcPage()
 	utilitySelected := ""
-	var scrollableWidget viz.ScrollableWidget = myPage.ChildProcsTable
+	var scrollableWidget viz.ScrollableWidget = page.ChildProcsTable
 
 	var statusMap map[string]string = map[string]string{
 		"R": "Running",
@@ -85,16 +85,16 @@ func ProcVisuals(ctx context.Context,
 		w, h := ui.TerminalDimensions()
 
 		// Adjust Memory Stats Bar graph values
-		myPage.MemStatsChart.BarGap = ((w / 2) - (4 * myPage.MemStatsChart.BarWidth)) / 4
+		page.MemStatsChart.BarGap = ((w / 2) - (4 * page.MemStatsChart.BarWidth)) / 4
 
 		// Adjust Page Faults Bar graph values
-		myPage.PageFaultsChart.BarGap = ((w / 4) - (2 * myPage.PageFaultsChart.BarWidth)) / 2
+		page.PageFaultsChart.BarGap = ((w / 4) - (2 * page.PageFaultsChart.BarWidth)) / 2
 
 		// Adjust Context Switches Bar graph values
-		myPage.CTXSwitchesChart.BarGap = ((w / 4) - (2 * myPage.CTXSwitchesChart.BarWidth)) / 2
+		page.CTXSwitchesChart.BarGap = ((w / 4) - (2 * page.CTXSwitchesChart.BarWidth)) / 2
 
 		// Adjust Grid dimensions
-		myPage.Grid.SetRect(0, 0, w, h)
+		page.Grid.SetRect(0, 0, w, h)
 
 		// Clear UI
 		ui.Clear()
@@ -104,7 +104,7 @@ func ProcVisuals(ctx context.Context,
 			ui.Render(help)
 
 		default:
-			ui.Render(myPage.Grid)
+			ui.Render(page.Grid)
 		}
 	}
 
@@ -140,7 +140,7 @@ func ProcVisuals(ctx context.Context,
 			case "<Escape>":
 				utilitySelected = ""
 				scrollableWidget.DisableCursor()
-				scrollableWidget = myPage.ChildProcsTable
+				scrollableWidget = page.ChildProcsTable
 				scrollableWidget.EnableCursor()
 				updateUI()
 
@@ -187,17 +187,17 @@ func ProcVisuals(ctx context.Context,
 				// update ctx switches
 				switches, units := utils.RoundValues(float64(data.NumCtxSwitches.Voluntary), float64(data.NumCtxSwitches.Involuntary), false)
 
-				myPage.CTXSwitchesChart.Data = switches
-				myPage.CTXSwitchesChart.Title = " CTX Switches" + units
+				page.CTXSwitchesChart.Data = switches
+				page.CTXSwitchesChart.Title = " CTX Switches" + units
 
 				// update cpu %
-				myPage.CPUChart.Percent = int(data.CPUPercent)
+				page.CPUChart.Percent = int(data.CPUPercent)
 
 				// update mem %
-				myPage.MemChart.Percent = int(data.MemoryPercent)
+				page.MemChart.Percent = int(data.MemoryPercent)
 
 				// update proc info
-				myPage.PIDTable.Rows = [][]string{
+				page.PIDTable.Rows = [][]string{
 					{"[Name](fg:cyan)", data.Name},
 					{"[Command](fg:cyan)", data.Exe},
 					{"[Status](fg:cyan)", statusMap[data.Status] + " (" + data.Status + ")"},
@@ -210,7 +210,7 @@ func ProcVisuals(ctx context.Context,
 					{"[Child process count](fg:cyan)", strconv.Itoa(len(data.Children))},
 					{"[Last Update](fg:cyan)", time.Now().Format("15:04:05")},
 				}
-				myPage.PIDTable.Title = " PID: " + strconv.Itoa(int(data.Proc.Pid)) + " "
+				page.PIDTable.Title = " PID: " + strconv.Itoa(int(data.Proc.Pid)) + " "
 
 				//update memory stats
 				memData := []float64{utils.GetInMB(data.MemoryInfo.RSS, 1),
@@ -218,21 +218,21 @@ func ProcVisuals(ctx context.Context,
 					utils.GetInMB(data.MemoryInfo.Stack, 1),
 					utils.GetInMB(data.MemoryInfo.Swap, 1),
 				}
-				myPage.MemStatsChart.Data = memData
+				page.MemStatsChart.Data = memData
 
 				//update page faults
 				faults, units := utils.RoundValues(float64(data.PageFault.MinorFaults), float64(data.PageFault.MajorFaults), false)
 
-				myPage.PageFaultsChart.Data = faults
-				myPage.PageFaultsChart.Title = " Page Faults" + units
-				myPage.ChildProcsTable.Rows = getChildProcs(data)
+				page.PageFaultsChart.Data = faults
+				page.PageFaultsChart.Title = " Page Faults" + units
+				page.ChildProcsTable.Rows = getChildProcs(data)
 
 				on.Do(updateUI)
 			}
 
 		case <-tick:
 			if utilitySelected == "" {
-				ui.Render(myPage.Grid)
+				ui.Render(page.Grid)
 			}
 		}
 	}

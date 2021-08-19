@@ -18,6 +18,7 @@ package utils
 
 import (
 	"math"
+	"strconv"
 	"time"
 )
 
@@ -28,6 +29,48 @@ var (
 	T = math.Pow(10, 12)
 	Q = math.Pow(10, 15)
 )
+
+func plural(count int, singular string) (result string) {
+	if (count == 1) || (count == 0) {
+		result = strconv.Itoa(count) + " " + singular + " "
+	} else {
+		result = strconv.Itoa(count) + " " + singular + "s "
+	}
+	return
+}
+
+func SecondsToHuman(input int) (result string) {
+	years := math.Floor(float64(input) / 60 / 60 / 24 / 7 / 30 / 12)
+	seconds := input % (60 * 60 * 24 * 7 * 30 * 12)
+	months := math.Floor(float64(seconds) / 60 / 60 / 24 / 7 / 30)
+	seconds = input % (60 * 60 * 24 * 7 * 30)
+	weeks := math.Floor(float64(seconds) / 60 / 60 / 24 / 7)
+	seconds = input % (60 * 60 * 24 * 7)
+	days := math.Floor(float64(seconds) / 60 / 60 / 24)
+	seconds = input % (60 * 60 * 24)
+	hours := math.Floor(float64(seconds) / 60 / 60)
+	seconds = input % (60 * 60)
+	minutes := math.Floor(float64(seconds) / 60)
+	seconds = input % 60
+
+	if years > 0 {
+		result = plural(int(years), "y") + plural(int(months), "m") + plural(int(weeks), "w") + plural(int(days), "d") + plural(int(hours), "H") + plural(int(minutes), "M") + plural(int(seconds), "S")
+	} else if months > 0 {
+		result = plural(int(months), "m") + plural(int(weeks), "w") + plural(int(days), "d") + plural(int(hours), "H") + plural(int(minutes), "M") + plural(int(seconds), "S")
+	} else if weeks > 0 {
+		result = plural(int(weeks), "w") + plural(int(days), "d") + plural(int(hours), "H") + plural(int(minutes), "M") + plural(int(seconds), "S")
+	} else if days > 0 {
+		result = plural(int(days), "d") + plural(int(hours), "H") + plural(int(minutes), "M") + plural(int(seconds), "S")
+	} else if hours > 0 {
+		result = plural(int(hours), "H") + plural(int(minutes), "M") + plural(int(seconds), "S")
+	} else if minutes > 0 {
+		result = plural(int(minutes), "M") + plural(int(seconds), "S")
+	} else {
+		result = plural(int(seconds), "S")
+	}
+
+	return
+}
 
 func roundOffNearestTen(num float64, divisor float64) float64 {
 	x := num / divisor

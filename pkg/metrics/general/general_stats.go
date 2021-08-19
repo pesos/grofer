@@ -24,12 +24,14 @@ import (
 
 // AggregatedMetrics represents global metrics to be consumed.
 type AggregatedMetrics struct {
-	NetStats  map[string][]float64
-	FieldSet  string
-	CpuStats  []float64
-	MemStats  []float64
-	DiskStats [][]string
-	TempStats [][]string
+	NetStats       map[string][]float64
+	FieldSet       string
+	CpuStats       []float64
+	MemStats       []float64
+	DiskStats      [][]string
+	TempStats      [][]string
+	HostInfo       [][]string
+	BatteryPercent int
 }
 
 type serveFunc func(context.Context, chan AggregatedMetrics) error
@@ -42,6 +44,8 @@ func GlobalStats(ctx context.Context, dataChannel chan AggregatedMetrics, refres
 		ServeDiskRates,
 		ServeNetRates,
 		ServeTemperatureRates,
+		ServeInfo,
+		ServeBattery,
 	}
 
 	return utils.TickUntilDone(ctx, refreshRate, func() error {
