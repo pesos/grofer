@@ -24,4 +24,5 @@ var (
 	ErrCanceledByUser   = errors.New("canceled by user")
 	ErrInvalidPID       = errors.New("PID does not exist")
 	ErrInvalidContainer = errors.New("container does not exist")
+	ErrBatteryNotFound  = errors.New("could not read from /sys/class/power_supply/BAT0")
 )

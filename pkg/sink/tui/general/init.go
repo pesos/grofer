@@ -171,10 +171,10 @@ func (page *MainPage) initPageGrid() {
 }
 
 func (page *MainPage) initBatteryGuage() {
-	page.BatteryGauge.Title = " Battery % "
+	page.BatteryGauge.Title = " Battery Not Found "
 	page.BatteryGauge.BorderStyle.Fg = ui.ColorCyan
 	page.BatteryGauge.BarColor = ui.ColorGreen
-	page.BatteryGauge.Percent = 100
+	page.BatteryGauge.Percent = 0
 }
 
 func (page *MainPage) initInfoTableWidget() {

@@ -19,6 +19,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/pesos/grofer/pkg/core"
 	"github.com/pesos/grofer/pkg/utils"
 )
 
@@ -65,7 +66,11 @@ func GlobalStats(ctx context.Context, dataChannel chan AggregatedMetrics, refres
 		close(errCh)
 		for err := range errCh {
 			if err != nil {
-				return err
+				if err == core.ErrBatteryNotFound {
+					serveFuncs = serveFuncs[:len(serveFuncs)-1]
+				} else {
+					return err
+				}
 			}
 		}
 

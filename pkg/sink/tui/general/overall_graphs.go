@@ -184,6 +184,8 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 					page.InfoTable.Rows = rows
 
 				case "BATTERY": // Update Battery Gauge
+					page.BatteryGauge.Title = " Battery % "
+
 					percent := data.BatteryPercent
 					page.BatteryGauge.Percent = percent
 					switch {
