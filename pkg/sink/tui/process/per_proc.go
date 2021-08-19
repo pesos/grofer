@@ -198,17 +198,17 @@ func ProcVisuals(ctx context.Context,
 
 				// update proc info
 				page.PIDTable.Rows = [][]string{
-					{"[Name](fg:cyan)", data.Name},
-					{"[Command](fg:cyan)", data.Exe},
-					{"[Status](fg:cyan)", statusMap[data.Status] + " (" + data.Status + ")"},
-					{"[Background](fg:cyan)", strconv.FormatBool(data.Background)},
-					{"[Foreground](fg:cyan)", strconv.FormatBool(data.Foreground)},
-					{"[Running](fg:cyan)", strconv.FormatBool(data.IsRunning)},
-					{"[Creation Time](fg:cyan)", utils.GetDateFromUnix(data.CreateTime)},
-					{"[Nice value](fg:cyan)", strconv.Itoa(int(data.Nice))},
-					{"[Thread count](fg:cyan)", strconv.Itoa(int(data.NumThreads))},
-					{"[Child process count](fg:cyan)", strconv.Itoa(len(data.Children))},
-					{"[Last Update](fg:cyan)", time.Now().Format("15:04:05")},
+					{"[Name](fg:green)", data.Name},
+					{"[Command](fg:green)", data.Exe},
+					{"[Status](fg:green)", statusMap[data.Status] + " (" + data.Status + ")"},
+					{"[Background](fg:green)", strconv.FormatBool(data.Background)},
+					{"[Foreground](fg:green)", strconv.FormatBool(data.Foreground)},
+					{"[Running](fg:green)", strconv.FormatBool(data.IsRunning)},
+					{"[Creation Time](fg:green)", utils.GetDateFromUnix(data.CreateTime)},
+					{"[Nice value](fg:green)", strconv.Itoa(int(data.Nice))},
+					{"[Thread count](fg:green)", strconv.Itoa(int(data.NumThreads))},
+					{"[Child process count](fg:green)", strconv.Itoa(len(data.Children))},
+					{"[Last Update](fg:green)", time.Now().Format("15:04:05")},
 				}
 				page.PIDTable.Title = " PID: " + strconv.Itoa(int(data.Proc.Pid)) + " "
 
