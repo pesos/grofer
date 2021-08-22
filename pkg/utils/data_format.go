@@ -17,8 +17,8 @@ limitations under the License.
 package utils
 
 import (
+	"fmt"
 	"math"
-	"strconv"
 	"time"
 )
 
@@ -29,15 +29,6 @@ var (
 	T = math.Pow(10, 12)
 	Q = math.Pow(10, 15)
 )
-
-func plural(count int, singular string) (result string) {
-	if (count == 1) || (count == 0) {
-		result = strconv.Itoa(count) + " " + singular + " "
-	} else {
-		result = strconv.Itoa(count) + " " + singular + "s "
-	}
-	return
-}
 
 func SecondsToHuman(input int) (result string) {
 	years := math.Floor(float64(input) / 60 / 60 / 24 / 7 / 30 / 12)
@@ -54,19 +45,54 @@ func SecondsToHuman(input int) (result string) {
 	seconds = input % 60
 
 	if years > 0 {
-		result = plural(int(years), "y") + plural(int(months), "m") + plural(int(weeks), "w") + plural(int(days), "d") + plural(int(hours), "H") + plural(int(minutes), "M") + plural(int(seconds), "S")
+		result = fmt.Sprintf("%d y %d m %d w %d d %d H %d M %d S",
+			int(years),
+			int(months),
+			int(weeks),
+			int(days),
+			int(hours),
+			int(minutes),
+			int(seconds),
+		)
 	} else if months > 0 {
-		result = plural(int(months), "m") + plural(int(weeks), "w") + plural(int(days), "d") + plural(int(hours), "H") + plural(int(minutes), "M") + plural(int(seconds), "S")
+		result = fmt.Sprintf("%d m %d w %d d %d H %d M %d S",
+			int(months),
+			int(weeks),
+			int(days),
+			int(hours),
+			int(minutes),
+			int(seconds),
+		)
 	} else if weeks > 0 {
-		result = plural(int(weeks), "w") + plural(int(days), "d") + plural(int(hours), "H") + plural(int(minutes), "M") + plural(int(seconds), "S")
+		result = fmt.Sprintf("%d w %d d %d H %d M %d S",
+			int(weeks),
+			int(days),
+			int(hours),
+			int(minutes),
+			int(seconds),
+		)
 	} else if days > 0 {
-		result = plural(int(days), "d") + plural(int(hours), "H") + plural(int(minutes), "M") + plural(int(seconds), "S")
+		result = fmt.Sprintf("%d d %d H %d M %d S",
+			int(days),
+			int(hours),
+			int(minutes),
+			int(seconds),
+		)
 	} else if hours > 0 {
-		result = plural(int(hours), "H") + plural(int(minutes), "M") + plural(int(seconds), "S")
+		result = fmt.Sprintf("%d H %d M %d S",
+			int(hours),
+			int(minutes),
+			int(seconds),
+		)
 	} else if minutes > 0 {
-		result = plural(int(minutes), "M") + plural(int(seconds), "S")
+		result = fmt.Sprintf("%d M %d S",
+			int(minutes),
+			int(seconds),
+		)
 	} else {
-		result = plural(int(seconds), "S")
+		result = fmt.Sprintf("%d S",
+			int(seconds),
+		)
 	}
 
 	return

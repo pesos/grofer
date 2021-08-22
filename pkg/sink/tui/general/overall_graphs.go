@@ -204,6 +204,7 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 						for i, percent := range data.CpuStats {
 							cpu := fmt.Sprintf("CPU %d", i)
 							page.CPUChart.Data[cpu] = append(page.CPUChart.Data[cpu], percent)
+							page.CPUChart.Labels[cpu] = fmt.Sprintf("\t%5.2f %%", percent)
 						}
 					}
 

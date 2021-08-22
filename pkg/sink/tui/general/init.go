@@ -107,7 +107,7 @@ func (page *MainPage) init(numCores int) {
 	// Initialize Table for Info Table
 	page.initInfoTableWidget()
 	// Initialise Battery Gauge
-	page.initBatteryGuage()
+	page.initBatteryGauge()
 
 	if page.cpuTableVisible {
 		page.initCpuTableWidget(numCores)
@@ -170,7 +170,7 @@ func (page *MainPage) initPageGrid() {
 	}
 }
 
-func (page *MainPage) initBatteryGuage() {
+func (page *MainPage) initBatteryGauge() {
 	page.BatteryGauge.Title = " Battery Not Found "
 	page.BatteryGauge.BorderStyle.Fg = ui.ColorCyan
 	page.BatteryGauge.BarColor = ui.ColorGreen
