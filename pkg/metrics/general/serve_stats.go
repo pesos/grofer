@@ -49,7 +49,7 @@ func ServeInfo(ctx context.Context, cpuChannel chan AggregatedMetrics) error {
 	hostInfo := [][]string{
 		{"Hostname", info.Hostname},
 		{"Up Time", utils.SecondsToHuman(int(info.Uptime))},
-		{"Boot Time", utils.GetDateFromUnix(int64(info.BootTime))},
+		{"Boot Time", utils.GetDateFromUnix(int64(info.BootTime * 1000))},
 		{"Processes", fmt.Sprintf("%d", info.Procs)},
 		{"OS/Platform", fmt.Sprintf("%s/%s %s", info.OS, info.Platform, info.PlatformVersion)},
 		{"Kernel/Arch", fmt.Sprintf("%s/%s", info.KernelVersion, info.KernelArch)},
