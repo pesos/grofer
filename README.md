@@ -49,81 +49,81 @@ go build grofer.go
 
 1.	Get docker image using
 
-```
-   docker pull ghcr.io/pesos/grofer
-```
+	```
+	  docker pull ghcr.io/pesos/grofer
+	```
 
-Note: This will use the `latest` image which is built from the main branch. For stable releases, you will need to use the version number as the tag. Example: `docker pull ghcr.io/pesos/grofer:1.3.0`
+	Note: This will use the `latest` image which is built from the main branch. For stable releases, you will need to use the version number as the tag. Example: `docker pull ghcr.io/pesos/grofer:1.3.0`
 
-1.	Run using
+2.	Run using
 
-```bash
-   docker run \
-    --name grofer \
-    --rm -it \
-    -v /:/host:ro \
-    -v /var/run/docker.sock:/var/run/docker.sock:ro \
-    --privileged \
-    --pid=host \
-    --network=host \
-    ghcr.io/pesos/grofer
-```
+	```bash
+	     docker run \
+	      --name grofer \
+	      --rm -it \
+	      -v /:/host:ro \
+	      -v /var/run/docker.sock:/var/run/docker.sock:ro \
+	      --privileged \
+	      --pid=host \
+	      --network=host \
+	      ghcr.io/pesos/grofer
+	```
 
-Additional subcommands and flags to `grofer` can be passed directly at the end of the above command:
+	Additional subcommands and flags to `grofer` can be passed directly at the end of the above command:
 
-```bash
-   docker run \
-    --name grofer \
-    --rm -it \
-    -v /:/host:ro \
-    -v /var/run/docker.sock:/var/run/docker.sock:ro \
-    --privileged \
-    --pid=host \
-    --network=host \
-    ghcr.io/pesos/grofer proc
-```
+	```bash
+	     docker run \
+	      --name grofer \
+	      --rm -it \
+	      -v /:/host:ro \
+	      -v /var/run/docker.sock:/var/run/docker.sock:ro \
+	      --privileged \
+	      --pid=host \
+	      --network=host \
+	      ghcr.io/pesos/grofer proc
+	```
 
-```bash
-   docker run \
-    --name grofer \
-    --rm -it \
-    -v /:/host:ro \
-    -v /var/run/docker.sock:/var/run/docker.sock:ro \
-    --privileged \
-    --pid=host \
-    --network=host \
-    ghcr.io/pesos/grofer --help
-```
+	```bash
+	     docker run \
+	      --name grofer \
+	      --rm -it \
+	      -v /:/host:ro \
+	      -v /var/run/docker.sock:/var/run/docker.sock:ro \
+	      --privileged \
+	      --pid=host \
+	      --network=host \
+	      ghcr.io/pesos/grofer --help
+	```
 
-1.	(Optional) create an alias for `docker run` to be able to run it using just `grofer`
+3.	(Optional) create an alias for `docker run` to be able to run it using just `grofer`
 
-```zsh
-   alias grofer="docker run \
-    --name grofer \
-    --rm -it \
-    -v /:/host:ro \
-    -v /var/run/docker.sock:/var/run/docker.sock:ro \
-    --privileged \
-    --pid=host \
-    --network=host \
-    ghcr.io/pesos/grofer"
-```
+	```zsh
+	     alias grofer="docker run \
+	      --name grofer \
+	      --rm -it \
+	      -v /:/host:ro \
+	      -v /var/run/docker.sock:/var/run/docker.sock:ro \
+	      --privileged \
+	      --pid=host \
+	      --network=host \
+	      ghcr.io/pesos/grofer"
+	```
 
-Then use `grofer` as normal:
+	Then use `grofer` as normal:
 
-```bash
-   grofer --help
-```
+	```bash
+	     grofer --help
+	```
 
-```bash
-   grofer proc
-```
+	```bash
+	     grofer proc
+	```
 
-Container metrics also work inside docker:
+	Container metrics also work inside docker:
 
-```bash
-   grofer container
-```
+	```bash
+	     grofer container
+	```
 
 #### Building Docker image
 
