@@ -3,6 +3,8 @@ Grofer
 
 [![Go Checks](https://github.com/pesos/grofer/actions/workflows/go-checks.yml/badge.svg)](https://github.com/pesos/grofer/actions/workflows/go-checks.yml) [![License Check](https://github.com/pesos/grofer/actions/workflows/license-check.yml/badge.svg)](https://github.com/pesos/grofer/actions/workflows/license-check.yml) [![GoDoc reference example](https://img.shields.io/badge/godoc-reference-blue.svg)](https://pkg.go.dev/github.com/pesos/grofer)
 
+### Latest Stable Version: ![Version](https://img.shields.io/badge/version-v1.3.0-blue)
+
 A clean and modern system and resource monitor written purely in golang using [termui](https://github.com/gizak/termui) and [gopsutil](https://github.com/shirou/gopsutil)!
 
 Currently compatible with Linux only.
@@ -22,8 +24,6 @@ As an executable:
 curl -sSL https://github.com/pesos/grofer/releases/download/<version tag>/grofer_<architecture> --output grofer
 chmod +x grofer
 ```
-
-Latest version: `v1.3.0`
 
 `architecture`: underlying system architecture on which grofer will be run  
  - grofer_386  
@@ -53,7 +53,11 @@ go build grofer.go
 	  docker pull ghcr.io/pesos/grofer
 	```
 
-	Note: This will use the `latest` image which is built from the main branch. For stable releases, you will need to use the version number as the tag. Example: `docker pull ghcr.io/pesos/grofer:1.3.0`
+	Note: This will use the `latest` image which is built from the stable branch.
+
+	For previous releases, you will need to use the version number as the tag. Example: `docker pull ghcr.io/pesos/grofer:v1.2.0`
+
+	For the latest image from the `main` branch (development image). The tag `main` can be used. Example: `docker pull ghcr.io/pesos/grofer:main`
 
 2.	Run using
 
