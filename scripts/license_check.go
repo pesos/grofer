@@ -17,7 +17,6 @@ limitations under the License.
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -75,6 +74,6 @@ func main() {
 	if !verified {
 		os.Exit(1)
 	} else {
-		fmt.Println("All files have license verified.")
+		log.Println("All files have license verified.")
 	}
 }
