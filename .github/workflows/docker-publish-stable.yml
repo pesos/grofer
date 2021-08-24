@@ -1,9 +1,9 @@
-name: Publish Development Docker Image
+name: Publish Stable Docker Image
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - "v*"
 
 jobs:
   push:
@@ -26,9 +26,6 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: pesos/grofer
-
-      - name: Build image
-        run: docker build . --file Dockerfile --tag $IMAGE_NAME
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
