@@ -25,7 +25,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: pesos/grofer
+          images: ghcr.io/pesos/grofer
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
