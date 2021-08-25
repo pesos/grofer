@@ -17,6 +17,7 @@ limitations under the License.
 package utils
 
 import (
+	"fmt"
 	"math"
 	"time"
 )
@@ -29,11 +30,81 @@ var (
 	Q = math.Pow(10, 15)
 )
 
+// Convert a given UNIX epoch in seconds to human readble format
+func SecondsToHuman(input int) (result string) {
+	years := math.Floor(float64(input) / 60 / 60 / 24 / 7 / 30 / 12)
+	seconds := input % (60 * 60 * 24 * 7 * 30 * 12)
+	months := math.Floor(float64(seconds) / 60 / 60 / 24 / 7 / 30)
+	seconds = input % (60 * 60 * 24 * 7 * 30)
+	weeks := math.Floor(float64(seconds) / 60 / 60 / 24 / 7)
+	seconds = input % (60 * 60 * 24 * 7)
+	days := math.Floor(float64(seconds) / 60 / 60 / 24)
+	seconds = input % (60 * 60 * 24)
+	hours := math.Floor(float64(seconds) / 60 / 60)
+	seconds = input % (60 * 60)
+	minutes := math.Floor(float64(seconds) / 60)
+	seconds = input % 60
+
+	if years > 0 {
+		result = fmt.Sprintf("%dy %dm %dw %dd %dH %dM %dS",
+			int(years),
+			int(months),
+			int(weeks),
+			int(days),
+			int(hours),
+			int(minutes),
+			int(seconds),
+		)
+	} else if months > 0 {
+		result = fmt.Sprintf("%dm %dw %dd %dH %dM %dS",
+			int(months),
+			int(weeks),
+			int(days),
+			int(hours),
+			int(minutes),
+			int(seconds),
+		)
+	} else if weeks > 0 {
+		result = fmt.Sprintf("%dw %dd %dH %dM %dS",
+			int(weeks),
+			int(days),
+			int(hours),
+			int(minutes),
+			int(seconds),
+		)
+	} else if days > 0 {
+		result = fmt.Sprintf("%dd %dH %dM %dS",
+			int(days),
+			int(hours),
+			int(minutes),
+			int(seconds),
+		)
+	} else if hours > 0 {
+		result = fmt.Sprintf("%dH %dM %dS",
+			int(hours),
+			int(minutes),
+			int(seconds),
+		)
+	} else if minutes > 0 {
+		result = fmt.Sprintf("%dM %dS",
+			int(minutes),
+			int(seconds),
+		)
+	} else {
+		result = fmt.Sprintf("%dS",
+			int(seconds),
+		)
+	}
+
+	return
+}
+
 func roundOffNearestTen(num float64, divisor float64) float64 {
 	x := num / divisor
 	return math.Round(x*10) / 10
 }
 
+// Round off values to nearest K, G, M, etc. Returns the rounded values and the unit. If inBytes is set to true, units are returned as B, kB, gB, etc.
 func RoundValues(num1, num2 float64, inBytes bool) ([]float64, string) {
 	nums := []float64{}
 	var units string
@@ -113,13 +184,14 @@ func GetInMB(bytes uint64, precision int) float64 {
 	return Trim(temp, precision)
 }
 
-// GetDateFromUnix gets a date and time in RFC822 format from a unix epoch
+// GetDateFromUnix gets a date and time in RFC822 format from a unix epoch in millisecond
 func GetDateFromUnix(createTime int64) string {
 	t := time.Unix(createTime/1000, 0)
 	date := t.Format(time.RFC822)
 	return date
 }
 
+// RoundFloat rounds off a float to a given base and precision
 func RoundFloat(num float64, base string, precision int) float64 {
 	x := num
 	div := math.Pow10(precision)
@@ -134,6 +206,7 @@ func RoundFloat(num float64, base string, precision int) float64 {
 	return math.Round(x*div) / div
 }
 
+// RoundUint rounds a float by making use of RoundFloat
 func RoundUint(num uint64, base string, precision int) float64 {
 	x := float64(num)
 	return RoundFloat(x, base, precision)

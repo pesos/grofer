@@ -18,10 +18,15 @@ package general
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"math"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/pesos/grofer/pkg/core"
+	"github.com/pesos/grofer/pkg/utils"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/host"
@@ -32,6 +37,79 @@ import (
 func roundOff(num uint64) float64 {
 	x := float64(num) / (1024 * 1024 * 1024)
 	return math.Round(x*10) / 10
+}
+
+// ServeInfo provides information about the system such as OS info, uptime, boot time, etc.
+func ServeInfo(ctx context.Context, cpuChannel chan AggregatedMetrics) error {
+	info, err := host.InfoWithContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	hostInfo := [][]string{
+		{"Hostname", info.Hostname},
+		{"Up Time", utils.SecondsToHuman(int(info.Uptime))},
+		{"Boot Time", utils.GetDateFromUnix(int64(info.BootTime * 1000))},
+		{"Processes", fmt.Sprintf("%d", info.Procs)},
+		{"OS/Platform", fmt.Sprintf("%s/%s %s", info.OS, info.Platform, info.PlatformVersion)},
+		{"Kernel/Arch", fmt.Sprintf("%s/%s", info.KernelVersion, info.KernelArch)},
+	}
+
+	data := AggregatedMetrics{
+		FieldSet: "INFO",
+		HostInfo: hostInfo,
+	}
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case cpuChannel <- data:
+		return nil
+	}
+}
+
+// ServeBattery serves battery percentage information
+func ServeBattery(ctx context.Context, cpuChannel chan AggregatedMetrics) error {
+
+	_, err1 := os.Stat("/sys/class/power_supply/BAT0/charge_now")
+	_, err2 := os.Stat("/sys/class/power_supply/BAT0/charge_full")
+
+	data := AggregatedMetrics{
+		FieldSet:       "BATTERY",
+		BatteryPercent: 0,
+	}
+
+	if err1 == nil && err2 == nil {
+		currentBS, _ := ioutil.ReadFile("/sys/class/power_supply/BAT0/charge_now")
+		fullBS, _ := ioutil.ReadFile("/sys/class/power_supply/BAT0/charge_full")
+
+		current, err1 := strconv.ParseFloat(strings.Trim(string(currentBS), "\t\n "), 64)
+		if err1 != nil {
+			return err1
+		}
+
+		full, err2 := strconv.ParseFloat(strings.Trim(string(fullBS), "\t\n "), 64)
+		if err2 != nil {
+			return err2
+		}
+
+		if full == 0 {
+			full = 1
+		}
+
+		data.BatteryPercent = int((current / full) * 100)
+
+	} else if os.IsNotExist(err1) || os.IsNotExist(err2) {
+		return core.ErrBatteryNotFound
+	}
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case cpuChannel <- data:
+		return nil
+	}
+
 }
 
 // GetCPURates fetches and returns the current cpu rate

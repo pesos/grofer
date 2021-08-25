@@ -52,20 +52,26 @@ type Table struct {
 	// Map that stores custom column colors
 	ColColor   map[int]ui.Color
 	ColResizer func()
+
+	IsHelp             bool     // indicates if table is a help widget
+	DefaultBorderColor ui.Color // indicates default border color
+	ActiveBorderColor  ui.Color // indicates active border color
 }
 
 // NewTable returns a new Table instance
 func NewTable() *Table {
 	return &Table{
-		Block:       ui.NewBlock(),
-		HeaderStyle: ui.NewStyle(ui.ColorClear, ui.ColorClear, ui.ModifierBold),
-		RowStyle:    ui.NewStyle(ui.Theme.Default.Fg),
-		SelectedRow: 0,
-		TopRow:      0,
-		UniqueCol:   0,
-		ColResizer:  func() {},
-		ColColor:    make(map[int]ui.Color),
-		CursorColor: ui.ColorCyan,
+		Block:              ui.NewBlock(),
+		HeaderStyle:        ui.NewStyle(ui.ColorClear, ui.ColorClear, ui.ModifierBold),
+		RowStyle:           ui.NewStyle(ui.Theme.Default.Fg),
+		SelectedRow:        0,
+		TopRow:             0,
+		UniqueCol:          0,
+		ColResizer:         func() {},
+		ColColor:           make(map[int]ui.Color),
+		CursorColor:        ui.ColorCyan,
+		DefaultBorderColor: ui.ColorCyan,
+		ActiveBorderColor:  ui.ColorWhite,
 	}
 }
 
@@ -114,6 +120,11 @@ func (t *Table) Draw(buf *ui.Buffer) {
 		y := (rowNum + 2) - t.TopRow
 		// prints cursor
 		style := t.RowStyle
+		if t.IsHelp {
+			if len(t.Rows[rowNum][0]) > 0 && string(t.Rows[rowNum][0][0]) != " " {
+				style = t.HeaderStyle
+			}
+		}
 		if t.ShowCursor {
 			if (t.SelectedItem == "" && rowNum == t.SelectedRow) || (t.SelectedItem != "" && t.SelectedItem == row[t.UniqueCol]) {
 				style.Fg = t.CursorColor
@@ -140,7 +151,7 @@ func (t *Table) Draw(buf *ui.Buffer) {
 			style.Bg = tempBgColor
 			// Change Foreground color if the column number is in the ColColor list
 			if val, ok := t.ColColor[i]; ok {
-				if rowNum == t.SelectedRow {
+				if rowNum == t.SelectedRow && t.ShowCursor {
 					style.Fg = t.CursorColor
 				} else {
 					style.Fg = val
@@ -253,6 +264,16 @@ func (t *Table) HandleClick(x, y int) {
 		t.SelectedRow = (t.TopRow + y) - 2
 		t.calcPos()
 	}
+}
+
+func (t *Table) DisableCursor() {
+	t.ShowCursor = false
+	t.BorderStyle.Fg = t.DefaultBorderColor
+}
+
+func (t *Table) EnableCursor() {
+	t.ShowCursor = true
+	t.BorderStyle.Fg = t.ActiveBorderColor
 }
 
 // ensure interface compliance.

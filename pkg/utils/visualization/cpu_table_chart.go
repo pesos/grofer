@@ -27,13 +27,15 @@ import (
 
 type CpuTableChart struct {
 	*ui.Block
-	Data        []float64
-	NumCores    int
-	CellSize    int
-	TopRow      int
-	StatusColor []ui.Color
-	NumRows     int
-	NumCols     int
+	Data               []float64
+	NumCores           int
+	CellSize           int
+	TopRow             int
+	StatusColor        []ui.Color
+	NumRows            int
+	NumCols            int
+	DefaultBorderColor ui.Color // indicates default border color
+	ActiveBorderColor  ui.Color // indicates active border color
 }
 
 func NewCpuTableChart() *CpuTableChart {
@@ -58,6 +60,8 @@ func NewCpuTableChart() *CpuTableChart {
 			ui.Color(196),
 			ui.Color(160),
 		},
+		DefaultBorderColor: ui.ColorCyan,
+		ActiveBorderColor:  ui.ColorWhite,
 	}
 }
 
@@ -106,6 +110,56 @@ func (c *CpuTableChart) ScrollDown() {
 	if len(c.Data)-(c.TopRow+1)*c.NumCols > 0 {
 		c.TopRow++
 	}
+}
+
+func (c *CpuTableChart) ScrollTop() {
+	c.TopRow = 0
+}
+
+func (c *CpuTableChart) ScrollBottom() {
+	c.TopRow = len(c.Data) / c.NumCols
+}
+
+func (c *CpuTableChart) ScrollHalfPageUp() {
+	c.TopRow = c.TopRow - (c.Inner.Dy())/(2*c.CellSize)
+	if c.TopRow < 0 {
+		c.TopRow = 0
+	}
+}
+
+func (c *CpuTableChart) ScrollHalfPageDown() {
+	c.TopRow = c.TopRow + (c.Inner.Dy())/(2*c.CellSize)
+	if c.TopRow > len(c.Data)/c.NumCols {
+		c.TopRow = len(c.Data) / c.NumCols
+	}
+}
+
+func (c *CpuTableChart) ScrollPageUp() {
+	c.TopRow = c.TopRow - (c.Inner.Dy())/(c.CellSize)
+	if c.TopRow < 0 {
+		c.TopRow = 0
+	}
+}
+
+func (c *CpuTableChart) ScrollPageDown() {
+	c.TopRow = c.TopRow + (c.Inner.Dy())/(c.CellSize)
+	if c.TopRow > len(c.Data)/c.NumCols {
+		c.TopRow = len(c.Data) / c.NumCols
+	}
+}
+
+func (c *CpuTableChart) ScrollToIndex(idx int) {
+	if idx >= 0 && idx <= len(c.Data)/c.NumCols {
+		c.TopRow = idx
+	}
+}
+
+func (c *CpuTableChart) DisableCursor() {
+	c.BorderStyle.Fg = c.DefaultBorderColor
+}
+
+func (c *CpuTableChart) EnableCursor() {
+	c.BorderStyle.Fg = c.ActiveBorderColor
 }
 
 // ensure interface compliance.

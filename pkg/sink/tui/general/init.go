@@ -16,6 +16,8 @@ limitations under the License.
 package general
 
 import (
+	"fmt"
+
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 	viz "github.com/pesos/grofer/pkg/utils/visualization"
@@ -28,9 +30,12 @@ type MainPage struct {
 	DiskChart        *viz.Table
 	NetworkChart     *viz.SparklineGroup
 	CPUTable         *viz.CpuTableChart
-	CPUGauge         *viz.CpuGauge
-	AvgCPUGraph      *viz.LineGraph
+	CPUChart         *viz.LineGraph
 	TemperatureTable *viz.Table
+	InfoTable        *viz.Table
+	BatteryGauge     *widgets.Gauge
+	selectedTable    int
+	cpuTableVisible  bool
 }
 
 type CPUPage struct {
@@ -60,11 +65,12 @@ func NewPage(numCores int) *MainPage {
 		DiskChart:        viz.NewTable(),
 		NetworkChart:     viz.NewSparklineGroup(rxSparkLine, txSparkLine),
 		CPUTable:         viz.NewCpuTableChart(),
-		CPUGauge:         viz.NewCpuGauge(),
-		AvgCPUGraph:      viz.NewLineGraph(),
+		CPUChart:         viz.NewLineGraph(),
 		TemperatureTable: viz.NewTable(),
+		InfoTable:        viz.NewTable(),
+		BatteryGauge:     widgets.NewGauge(),
 	}
-	page.InitGeneral(numCores)
+	page.init(numCores)
 	return page
 }
 
@@ -82,45 +88,66 @@ func NewCPUPage(numCores int) *CPUPage {
 		CPUChart:    widgets.NewTable(),
 		CPUTable:    viz.NewTable(),
 	}
-	page.InitCPU(numCores)
+	page.init(numCores)
 	return page
 }
 
-// InitGeneral initializes all ui elements for the ui rendered by the grofer command
-func (page *MainPage) InitGeneral(numCores int) {
+// init initializes all ui elements for the ui rendered by the grofer command
+func (page *MainPage) init(numCores int) {
+	if numCores > 8 {
+		page.cpuTableVisible = true
+	}
+
 	// Initialize Bar Graph for Memory Chart
 	page.initMemoryChartWidget()
 	// Initialize Table for Disk Chart
 	page.initDiskChartWidget()
 	// Initialize Plot for Network Chart
 	page.initNetworkChartWidget()
-	// Initialize Graph for CPU Usage
-	page.initAvgCpuGraphWidget()
-	if numCores > 8 || cpuTableVisible {
+	// Initialize Table for Info Table
+	page.initInfoTableWidget()
+	// Initialise Battery Gauge
+	page.initBatteryGauge()
+
+	if page.cpuTableVisible {
 		page.initCpuTableWidget(numCores)
 	} else {
-		page.initCpuGaugeWidget(numCores)
+		page.initCpuChartWidget(numCores)
 	}
 	// Initialize Graph for Temperature Table
 	page.initTemperatureTableWidget()
 	// Set page grid
-	page.initPageGrid(numCores)
+	page.initPageGrid()
 
 }
 
-func (page *MainPage) initPageGrid(numCores int) {
-	w, h := ui.TerminalDimensions()
-	if numCores > 8 || cpuTableVisible {
+// ToggleCPUWidget helps toggle the widget on grid used to display CPU usage
+func (page *MainPage) ToggleCPUWidget() viz.ScrollableWidget {
+	defer page.initPageGrid()
+	if page.cpuTableVisible {
+		page.cpuTableVisible = false
+		return page.DiskChart
+	} else {
+		page.cpuTableVisible = true
+		return page.CPUTable
+	}
+}
+
+func (page *MainPage) initPageGrid() {
+	page.Grid = ui.NewGrid()
+	if page.cpuTableVisible {
 		page.Grid.Set(
 			ui.NewCol(
 				0.4,
-				ui.NewRow(0.5, page.AvgCPUGraph),
-				ui.NewRow(0.5, page.CPUTable),
+				ui.NewRow(0.1, page.BatteryGauge),
+				ui.NewRow(0.2, page.InfoTable),
+				ui.NewRow(0.3, page.TemperatureTable),
+				ui.NewRow(0.4, page.MemoryChart),
 			),
 			ui.NewCol(
 				0.6,
-				ui.NewRow(0.4, page.MemoryChart),
-				ui.NewRow(0.3, ui.NewCol(0.5, page.NetworkChart), ui.NewCol(0.5, page.TemperatureTable)),
+				ui.NewRow(0.4, page.CPUTable),
+				ui.NewRow(0.3, page.NetworkChart),
 				ui.NewRow(0.3, page.DiskChart),
 			),
 		)
@@ -128,18 +155,38 @@ func (page *MainPage) initPageGrid(numCores int) {
 		page.Grid.Set(
 			ui.NewCol(
 				0.4,
-				ui.NewRow(0.5, page.AvgCPUGraph),
-				ui.NewRow(0.5, page.CPUGauge),
+				ui.NewRow(0.1, page.BatteryGauge),
+				ui.NewRow(0.2, page.InfoTable),
+				ui.NewRow(0.3, page.TemperatureTable),
+				ui.NewRow(0.4, page.MemoryChart),
 			),
 			ui.NewCol(
 				0.6,
-				ui.NewRow(0.4, page.MemoryChart),
-				ui.NewRow(0.3, ui.NewCol(0.5, page.NetworkChart), ui.NewCol(0.5, page.TemperatureTable)),
+				ui.NewRow(0.4, page.CPUChart),
+				ui.NewRow(0.3, page.NetworkChart),
 				ui.NewRow(0.3, page.DiskChart),
 			),
 		)
 	}
-	page.Grid.SetRect(0, 0, w, h)
+}
+
+func (page *MainPage) initBatteryGauge() {
+	page.BatteryGauge.Title = " Battery Not Found "
+	page.BatteryGauge.BorderStyle.Fg = ui.ColorCyan
+	page.BatteryGauge.BarColor = ui.ColorGreen
+	page.BatteryGauge.Percent = 0
+}
+
+func (page *MainPage) initInfoTableWidget() {
+	page.InfoTable.Title = " System Info "
+	page.InfoTable.TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.InfoTable.BorderStyle.Fg = ui.ColorCyan
+	page.InfoTable.HeaderStyle = ui.NewStyle(ui.ColorClear, ui.ColorClear, ui.ModifierBold)
+	page.InfoTable.ShowCursor = false
+	page.InfoTable.ColResizer = func() {
+		x := page.InfoTable.Inner.Dx()
+		page.InfoTable.ColWidths = []int{x / 2, x / 2}
+	}
 }
 
 func (page *MainPage) initMemoryChartWidget() {
@@ -197,19 +244,19 @@ func (page *MainPage) initNetworkChartWidget() {
 	page.NetworkChart.Sparklines[0].LineColor = ui.ColorRed
 	page.NetworkChart.Sparklines[1].TitleStyle.Fg = ui.ColorGreen
 	page.NetworkChart.Sparklines[1].LineColor = ui.ColorGreen
+	page.NetworkChart.Sparklines[1].Reverse = true
 }
 
-func (page *MainPage) initCpuGaugeWidget(numCores int) {
-	page.CPUGauge.Title = " Per CPU Usage "
-	page.CPUGauge.TitleStyle = ui.NewStyle(ui.ColorClear)
-	page.CPUGauge.BorderStyle.Fg = ui.ColorCyan
-	page.CPUGauge.ColResizer = func() {
-		page.CPUGauge.BarWidth = page.CPUGauge.Inner.Dy() / numCores
-		if page.CPUGauge.Inner.Dy()-page.CPUGauge.BarWidth*numCores >= numCores-1 {
-			page.CPUGauge.BarGap = 1
-		} else {
-			page.CPUGauge.BarGap = 0
-		}
+func (page *MainPage) initCpuChartWidget(numCores int) {
+	page.CPUChart.Title = " CPU Usage "
+	page.CPUChart.TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.CPUChart.BorderStyle.Fg = ui.ColorCyan
+	page.CPUChart.DefaultLineColor = ui.ColorClear
+	page.CPUChart.MaxVal = 100
+	for i := 0; i < numCores; i++ {
+		cpu := fmt.Sprintf("CPU %d", i)
+		page.CPUChart.Data[cpu] = []float64{0}
+		page.CPUChart.LineColors[cpu] = ui.SelectColor(ui.StandardColors, i)
 	}
 }
 
@@ -220,18 +267,39 @@ func (page *MainPage) initCpuTableWidget(numCores int) {
 	page.CPUTable.NumCores = numCores
 }
 
-func (page *MainPage) initAvgCpuGraphWidget() {
-	page.AvgCPUGraph.Title = " Average CPU Usage "
-	page.AvgCPUGraph.TitleStyle = ui.NewStyle(ui.ColorClear)
-	page.AvgCPUGraph.HorizontalScale = 10
-	page.AvgCPUGraph.BorderStyle.Fg = ui.ColorCyan
-	page.AvgCPUGraph.DefaultLineColor = ui.ColorClear
-	page.AvgCPUGraph.MaxVal = 100
-	page.AvgCPUGraph.LineColors["Average CPU Load:"] = ui.ColorClear
-	page.AvgCPUGraph.Data["Average CPU Load:"] = []float64{0}
+func (page *MainPage) SwitchTableLeft(cpuTableVisible bool) viz.ScrollableWidget {
+	if cpuTableVisible {
+		scrollableWidgets := []viz.ScrollableWidget{page.InfoTable, page.CPUTable, page.DiskChart, page.TemperatureTable}
+		page.selectedTable = (page.selectedTable + 1) % len(scrollableWidgets)
+		return scrollableWidgets[page.selectedTable]
+
+	} else {
+		scrollableWidgets := []viz.ScrollableWidget{page.InfoTable, page.DiskChart, page.TemperatureTable}
+		page.selectedTable = (page.selectedTable + 1) % len(scrollableWidgets)
+		return scrollableWidgets[page.selectedTable]
+	}
 }
 
-func (page *CPUPage) InitCPU(numCores int) {
+func (page *MainPage) SwitchTableRight(cpuTableVisible bool) viz.ScrollableWidget {
+	if cpuTableVisible {
+		scrollableWidgets := []viz.ScrollableWidget{page.InfoTable, page.TemperatureTable, page.DiskChart, page.CPUTable}
+		page.selectedTable = (page.selectedTable - 1)
+		if page.selectedTable < 0 {
+			page.selectedTable = len(scrollableWidgets) - 1
+		}
+		return scrollableWidgets[page.selectedTable]
+
+	} else {
+		scrollableWidgets := []viz.ScrollableWidget{page.InfoTable, page.DiskChart, page.TemperatureTable}
+		page.selectedTable = (page.selectedTable - 1)
+		if page.selectedTable < 0 {
+			page.selectedTable = len(scrollableWidgets) - 1
+		}
+		return scrollableWidgets[page.selectedTable]
+	}
+}
+
+func (page *CPUPage) init(numCores int) {
 	page.UsrChart.Title = " Usr "
 	page.UsrChart.Percent = 0
 	page.UsrChart.BarColor = ui.ColorBlue

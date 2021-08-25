@@ -101,7 +101,7 @@ func (s *SparklineGroup) Draw(buf *ui.Buffer) {
 				if sl.Reverse {
 					sparkChar = ui.IRREGULAR_BLOCKS[3]
 				} else {
-					sparkChar = ui.BARS[1]
+					sparkChar = ui.IRREGULAR_BLOCKS[12]
 				}
 				buf.SetCell(
 					ui.NewCell(sparkChar, ui.NewStyle(sl.LineColor)),

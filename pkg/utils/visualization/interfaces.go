@@ -13,16 +13,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+package utils
 
-package core
-
-import (
-	"errors"
-)
-
-var (
-	ErrCanceledByUser   = errors.New("canceled by user")
-	ErrInvalidPID       = errors.New("PID does not exist")
-	ErrInvalidContainer = errors.New("container does not exist")
-	ErrBatteryNotFound  = errors.New("could not read from /sys/class/power_supply/BAT0")
-)
+type ScrollableWidget interface {
+	ScrollUp()
+	ScrollDown()
+	ScrollTop()
+	ScrollBottom()
+	ScrollHalfPageUp()
+	ScrollHalfPageDown()
+	ScrollPageUp()
+	ScrollPageDown()
+	DisableCursor()
+	EnableCursor()
+}

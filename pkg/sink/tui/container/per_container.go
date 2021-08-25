@@ -42,22 +42,27 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 
 	defer ui.Close()
 
-	var selectedTable *viz.Table
 	var on sync.Once
 	var help *misc.HelpMenu = misc.NewHelpMenu().ForCommand(misc.PerContainerCommand)
 
 	// Create new page
-	myPage := NewPerContainerPage()
+	page := newPerContainerPage()
 
+	var scrollableWidget viz.ScrollableWidget = page.DetailsTable
+	scrollableWidget.EnableCursor()
 	tableMap := map[string]*viz.Table{
-		"0": nil,
-		"1": myPage.MountTable,
-		"2": myPage.NetworkTable,
-		"3": myPage.CPUUsageTable,
-		"4": myPage.PortMapTable,
-		"5": myPage.ProcTable,
+		"1": page.DetailsTable,
+		"2": page.MountTable,
+		"3": page.NetworkTable,
+		"4": page.CPUUsageTable,
+		"5": page.PortMapTable,
+		"6": page.ProcTable,
 	}
 
+	utilitySelected := ""
+
+	// variables to pause UI rendering
+	runProc := true
 	pause := func() {
 		runProc = !runProc
 	}
@@ -68,20 +73,24 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 		w, h := ui.TerminalDimensions()
 
 		// Adjust Blk chart Bar graph values
-		myPage.BlkChart.BarGap = ((w / 4) - (2 * myPage.BlkChart.BarWidth)) / 2
+		page.BlkChart.BarGap = ((w / 4) - (2 * page.BlkChart.BarWidth)) / 2
 
 		// Adjust Net chart Bar graph values
-		myPage.NetChart.BarGap = ((w / 4) - (2 * myPage.NetChart.BarWidth)) / 2
+		page.NetChart.BarGap = ((w / 4) - (2 * page.NetChart.BarWidth)) / 2
 
 		// Adjust Grid dimensions
-		myPage.Grid.SetRect(0, 0, w, h)
+		page.Grid.SetRect(0, 0, w, h)
 
-		help.Resize(w, h)
-		if helpVisible {
-			ui.Clear()
+		// Clear UI
+		ui.Clear()
+
+		switch utilitySelected {
+		case "HELP":
+			help.Resize(w, h)
 			ui.Render(help)
-		} else {
-			ui.Render(myPage.Grid)
+
+		default:
+			ui.Render(page.Grid)
 		}
 	}
 
@@ -101,100 +110,95 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 			switch e.ID {
 			case "q", "<C-c>": //q or Ctrl-C to quit
 				return core.ErrCanceledByUser
+
 			case "<Resize>":
 				updateUI()
+
 			case "?":
-				helpVisible = !helpVisible
-			case "0", "1", "2", "3", "4", "5":
-				if !helpVisible {
-					if selectedTable != nil {
-						selectedTable.ShowCursor = false
-					}
-					selectedTable = tableMap[e.ID]
-				}
-			}
-			if helpVisible {
-				switch e.ID {
-				case "?":
-					updateUI()
-				case "<Escape>":
-					helpVisible = false
-					updateUI()
-				case "j", "<Down>":
-					help.List.ScrollDown()
-					ui.Render(help)
-				case "k", "<Up>":
-					help.List.ScrollUp()
-					ui.Render(help)
-				}
-			} else if selectedTable != nil {
-				selectedTable.ShowCursor = true
-				switch e.ID {
-				case "j", "<Down>":
-					selectedTable.ScrollDown()
-				case "k", "<Up>":
-					selectedTable.ScrollUp()
-				case "<C-d>":
-					selectedTable.ScrollHalfPageDown()
-				case "<C-u>":
-					selectedTable.ScrollHalfPageUp()
-				case "<C-f>":
-					selectedTable.ScrollPageDown()
-				case "<C-b>":
-					selectedTable.ScrollPageUp()
-				case "g":
-					if previousKey == "g" {
-						selectedTable.ScrollTop()
-					}
-				case "<Home>":
-					selectedTable.ScrollTop()
-				case "G", "<End>":
-					selectedTable.ScrollBottom()
-				}
-				ui.Render(myPage.Grid)
-				if previousKey == "g" {
-					previousKey = ""
-				} else {
-					previousKey = e.ID
-				}
-			} else {
-				switch e.ID {
-				case "?":
-					updateUI()
-				case "s": //s to pause
-					pause()
+				scrollableWidget.DisableCursor()
+				scrollableWidget = help.Table
+				scrollableWidget.EnableCursor()
+				utilitySelected = "HELP"
+				updateUI()
+
+			case "p":
+				pause()
+
+			case "<Escape>":
+				utilitySelected = ""
+				scrollableWidget = page.DetailsTable
+				scrollableWidget.EnableCursor()
+				updateUI()
+
+			// handle table selection
+			case "1", "2", "3", "4", "5", "6":
+				if utilitySelected == "" {
+					scrollableWidget.DisableCursor()
+					scrollableWidget = tableMap[e.ID]
+					scrollableWidget.EnableCursor()
 				}
 
-				ui.Render(myPage.Grid)
+			// handle table navigations
+			case "j", "<Down>":
+				scrollableWidget.ScrollDown()
+
+			case "k", "<Up>":
+				scrollableWidget.ScrollUp()
+
+			case "<C-d>":
+				scrollableWidget.ScrollHalfPageDown()
+
+			case "<C-u>":
+				scrollableWidget.ScrollHalfPageUp()
+
+			case "<C-f>":
+				scrollableWidget.ScrollPageDown()
+
+			case "<C-b>":
+				scrollableWidget.ScrollPageUp()
+
+			case "g":
 				if previousKey == "g" {
-					previousKey = ""
-				} else {
-					previousKey = e.ID
+					scrollableWidget.ScrollTop()
 				}
+
+			case "<Home>":
+				scrollableWidget.ScrollTop()
+
+			case "G", "<End>":
+				scrollableWidget.ScrollBottom()
+
+			}
+
+			updateUI()
+			if previousKey == "g" {
+				previousKey = ""
+			} else {
+				previousKey = e.ID
 			}
 
 		case data := <-dataChannel:
-			// myPage.BodyList.SelectedRowStyle = selectedStyle
+			// page.BodyList.SelectedRowStyle = selectedStyle
 			if runProc {
 				// update cpu %
-				myPage.CPUChart.Percent = int(data.Cpu)
+				page.CPUChart.Percent = int(data.Cpu)
 
 				// update mem %
-				myPage.MemChart.Percent = int(data.Mem)
+				page.MemChart.Percent = int(data.Mem)
 
 				// update Net RX and TX
 				netVals, units := utils.RoundValues(data.Net.Rx, data.Net.Tx, true)
-				myPage.NetChart.Data = netVals
-				myPage.NetChart.Title = " Net I/O " + units
+				page.NetChart.Data = netVals
+				page.NetChart.Title = " Net I/O " + units
 
 				// update Block IO
 				blkVals, units := utils.RoundValues(float64(data.Blk.Read), float64(data.Blk.Write), true)
-				myPage.BlkChart.Data = blkVals
-				myPage.BlkChart.Title = " Block I/O " + units
+				page.BlkChart.Data = blkVals
+				page.BlkChart.Title = " Block I/O " + units
 
 				// update details table
-				myPage.DetailsTable.Header = []string{"Name", data.Name}
-				myPage.DetailsTable.Rows = [][]string{
+				page.DetailsTable.Header = []string{"Name", data.Name}
+				page.DetailsTable.Rows = [][]string{
 					{"Image", data.Image},
 					{"ID", data.ID},
 					{"Status", data.Status},
@@ -211,7 +215,7 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 						m.Mode,
 					})
 				}
-				myPage.MountTable.Rows = mountData
+				page.MountTable.Rows = mountData
 
 				// update network settings table
 				netData := [][]string{}
@@ -223,7 +227,7 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 						strconv.FormatBool(n.Ingress),
 					})
 				}
-				myPage.NetworkTable.Rows = netData
+				page.NetworkTable.Rows = netData
 
 				// update per cpu table
 				cpuData := [][]string{}
@@ -233,7 +237,7 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 						c,
 					})
 				}
-				myPage.CPUUsageTable.Rows = cpuData
+				page.CPUUsageTable.Rows = cpuData
 
 				// Update port map table
 				portData := [][]string{}
@@ -245,7 +249,7 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 						p.Protocol,
 					})
 				}
-				myPage.PortMapTable.Rows = portData
+				page.PortMapTable.Rows = portData
 
 				// Update proc table
 				procData := [][]string{}
@@ -256,14 +260,14 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 						p.CMD,
 					})
 				}
-				myPage.ProcTable.Rows = procData
+				page.ProcTable.Rows = procData
 
 				on.Do(updateUI)
 			}
 
 		case <-tick:
-			if !helpVisible {
-				ui.Render(myPage.Grid)
+			if utilitySelected == "" {
+				ui.Render(page.Grid)
 			}
 		}
 	}

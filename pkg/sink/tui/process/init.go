@@ -22,8 +22,8 @@ import (
 	viz "github.com/pesos/grofer/pkg/utils/visualization"
 )
 
-// PerProcPage holds the ui elements rendered by the command grofer proc -p PID
-type PerProcPage struct {
+// perProcPage holds the ui elements rendered by the command grofer proc -p PID
+type perProcPage struct {
 	Grid             *ui.Grid
 	CPUChart         *widgets.Gauge
 	MemChart         *widgets.Gauge
@@ -34,9 +34,9 @@ type PerProcPage struct {
 	MemStatsChart    *viz.BarChart
 }
 
-// NewProcPage initializes a new page from the PerProcPage struct and returns it
-func NewPerProcPage() *PerProcPage {
-	page := &PerProcPage{
+// newPerProcPage initializes a new page from the perProcPage struct and returns it
+func newPerProcPage() *perProcPage {
+	page := &perProcPage{
 		Grid:             ui.NewGrid(),
 		CPUChart:         widgets.NewGauge(),
 		MemChart:         widgets.NewGauge(),
@@ -46,12 +46,12 @@ func NewPerProcPage() *PerProcPage {
 		PageFaultsChart:  viz.NewBarChart(),
 		MemStatsChart:    viz.NewBarChart(),
 	}
-	page.InitPerProc()
+	page.init()
 	return page
 }
 
-// InitPerProc initializes and sets the ui and grid for grofer proc -p PID
-func (page *PerProcPage) InitPerProc() {
+// init initializes and sets the ui and grid for grofer proc -p PID
+func (page *perProcPage) init() {
 	// Initialize Gauge for CPU Chart
 	page.CPUChart.Title = " CPU % "
 	page.CPUChart.LabelStyle.Fg = ui.ColorClear
@@ -144,24 +144,24 @@ func (page *PerProcPage) InitPerProc() {
 	page.Grid.SetRect(0, 0, w, h)
 }
 
-// AllProcPage struct holds the ui elements rendered by the grofer proc command
-type AllProcPage struct {
+// allProcPage struct holds the ui elements rendered by the grofer proc command
+type allProcPage struct {
 	Grid      *ui.Grid
 	ProcTable *viz.Table
 }
 
-// NewAllProcsPage initializes a new page from the AllProcPage struct and returns it
-func NewAllProcsPage() *AllProcPage {
-	page := &AllProcPage{
+// newAllProcPage initializes a new page from the allProcPage struct and returns it
+func newAllProcPage() *allProcPage {
+	page := &allProcPage{
 		Grid:      ui.NewGrid(),
 		ProcTable: viz.NewTable(),
 	}
-	page.InitAllProc()
+	page.init()
 	return page
 }
 
-// InitAllProc initializes and sets the ui and grid for grofer proc
-func (page *AllProcPage) InitAllProc() {
+// init initializes and sets the ui and grid for grofer proc
+func (page *allProcPage) init() {
 	page.ProcTable.Header = []string{
 		"PID",
 		"Command",

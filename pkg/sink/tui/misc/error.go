@@ -18,22 +18,23 @@ package misc
 
 import (
 	ui "github.com/gizak/termui/v3"
-	"github.com/gizak/termui/v3/widgets"
+	vz "github.com/pesos/grofer/pkg/utils/visualization"
 )
 
 // ErrorBox is a wrapper widget around a List
 // meant to display error messages if any. It
 // implements the ui.Drawable interface.
 type ErrorBox struct {
-	*widgets.List
-	errorString string
-	keybindings []string
+	*vz.Table
+	errorMessage string
+	err          error
+	keybindings  [][]string
 }
 
 // NewErrorBox is a constructor for the ErrorBox type.
 func NewErrorBox() *ErrorBox {
 	return &ErrorBox{
-		List:        widgets.NewList(),
+		Table:       vz.NewTable(),
 		keybindings: getErrorKeybindings(),
 	}
 }
@@ -42,9 +43,9 @@ func NewErrorBox() *ErrorBox {
 // and height.
 func (errBox *ErrorBox) Resize(termWidth, termHeight int) {
 	textWidth := 50
-	for _, line := range errBox.keybindings {
-		if textWidth < len(line) {
-			textWidth = len(line) + 2
+	for _, line := range errBox.Rows {
+		if textWidth < len(line[0]) {
+			textWidth = len(line[0]) + 2
 		}
 	}
 	textHeight := len(errBox.keybindings) + 5
@@ -59,23 +60,28 @@ func (errBox *ErrorBox) Resize(termWidth, termHeight int) {
 		textHeight = termHeight
 	}
 
-	errBox.List.SetRect(x, y, textWidth+x, textHeight+y)
+	errBox.Table.SetRect(x, y, textWidth+x, textHeight+y)
 }
 
 // Draw puts the required text into the widget.
 func (errBox *ErrorBox) Draw(buf *ui.Buffer) {
-	errBox.List.Title = " Error "
-
-	errBox.List.Rows = []string{errBox.errorString, ""}
-	errBox.List.Rows = append(errBox.List.Rows, errBox.keybindings...)
-	errBox.List.TextStyle = ui.NewStyle(ui.ColorYellow)
-	errBox.List.WrapText = false
-	errBox.List.Draw(buf)
+	errBox.Table.Title = " Error "
+	errBox.Table.Header = []string{errBox.errorMessage}
+	errBox.Table.Rows = [][]string{{errBox.err.Error()}}
+	errBox.Table.Rows = append(errBox.Table.Rows, errBox.keybindings...)
+	errBox.Table.BorderStyle.Fg = ui.ColorCyan
+	errBox.Table.BorderStyle.Bg = ui.ColorClear
+	errBox.Table.ColResizer = func() {
+		x := errBox.Table.Inner.Dx()
+		errBox.Table.ColWidths = []int{x}
+	}
+	errBox.Table.Draw(buf)
 }
 
 // SetErrorString sets the error string to be displayed.
-func (errBox *ErrorBox) SetErrorString(errStr string) {
-	errBox.errorString = errStr
+func (errBox *ErrorBox) SetErrorString(errStr string, err error) {
+	errBox.errorMessage = errStr
+	errBox.err = err
 }
 
 // ensure interface compliance.
