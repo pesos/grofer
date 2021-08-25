@@ -50,7 +50,7 @@ type MetricScraperFactory struct {
 	scrapeIntervalMillisecond uint64
 }
 
-// NewMetricScraperFactory is a constructor for the NewMetricScraperFactory type.
+// NewMetricScraperFactory is a constructor for the MetricScraperFactory type.
 // By default, this will be for the core.MainCommand command.
 func NewMetricScraperFactory() *MetricScraperFactory {
 	return &MetricScraperFactory{}
