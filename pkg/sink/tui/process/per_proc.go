@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package process
 
 import (
@@ -64,7 +65,7 @@ func ProcVisuals(ctx context.Context,
 	var scrollableWidget viz.ScrollableWidget = page.ChildProcsTable
 	scrollableWidget.EnableCursor()
 
-	var statusMap map[string]string = map[string]string{
+	var statusMap = map[string]string{
 		"R": "Running",
 		"S": "Sleep",
 		"Z": "Zombie",

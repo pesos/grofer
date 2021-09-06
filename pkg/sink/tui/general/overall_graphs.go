@@ -149,14 +149,14 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 			case "<Left>", "h":
 				if utitlitySelected != "HELP" {
 					scrollWidget.DisableCursor()
-					scrollWidget = page.SwitchTableLeft(page.cpuTableVisible)
+					scrollWidget = page.switchTableLeft(page.cpuTableVisible)
 					scrollWidget.EnableCursor()
 				}
 
 			case "<Right>", "l":
 				if utitlitySelected != "HELP" {
 					scrollWidget.DisableCursor()
-					scrollWidget = page.SwitchTableRight(page.cpuTableVisible)
+					scrollWidget = page.switchTableRight(page.cpuTableVisible)
 					scrollWidget.EnableCursor()
 				}
 
@@ -199,9 +199,9 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 
 				case "CPU": // Update CPU stats
 					if page.cpuTableVisible {
-						page.CPUTable.Data = data.CpuStats
+						page.CPUTable.Data = data.CPUStats
 					} else {
-						for i, percent := range data.CpuStats {
+						for i, percent := range data.CPUStats {
 							cpu := fmt.Sprintf("CPU %d", i)
 							page.CPUChart.Data[cpu] = append(page.CPUChart.Data[cpu], percent)
 							page.CPUChart.Labels[cpu] = fmt.Sprintf("\t%5.2f %%", percent)
@@ -275,6 +275,7 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 	}
 }
 
+// RenderCPUinfo displays the CPU info page
 func RenderCPUinfo(ctx context.Context, dataChannel chan *general.CPULoad, refreshRate uint64) error {
 	var on sync.Once
 	var help *misc.HelpMenu = misc.NewHelpMenu().ForCommand(misc.RootCommand)

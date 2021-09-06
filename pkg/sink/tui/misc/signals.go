@@ -234,10 +234,12 @@ func NewSignalTable() *SignalTable {
 	return sigTable
 }
 
+// SignalFromRow returns the symbol at a given row index
 func (sigTable *SignalTable) SignalFromRow(rowIndex int) syscall.Signal {
 	return signalMap[sigTable.Rows[rowIndex][sigNameIdx]]
 }
 
+// SelectedSignal returns the signal at the currently selected row index
 func (sigTable *SignalTable) SelectedSignal() syscall.Signal {
 	return signalMap[sigTable.Rows[sigTable.SelectedRow][sigNameIdx]]
 }

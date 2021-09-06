@@ -33,8 +33,8 @@ import (
 	viz "github.com/pesos/grofer/pkg/utils/visualization"
 )
 
-// ContainerVisuals provides the UI for per container metrics
-func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContainerMetrics, refreshRate uint64) error {
+// PerContainerVisuals provides the UI for per container metrics
+func PerContainerVisuals(ctx context.Context, dataChannel chan container.PerContainerMetrics, refreshRate uint64) error {
 
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
@@ -181,7 +181,7 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 			// page.BodyList.SelectedRowStyle = selectedStyle
 			if runProc {
 				// update cpu %
-				page.CPUChart.Percent = int(data.Cpu)
+				page.CPUChart.Percent = int(data.CPU)
 
 				// update mem %
 				page.MemChart.Percent = int(data.Mem)
@@ -223,7 +223,7 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 					netData = append(netData, []string{
 						n.Name,
 						n.Driver,
-						n.Ip,
+						n.IP,
 						strconv.FormatBool(n.Ingress),
 					})
 				}

@@ -16,11 +16,11 @@ limitations under the License.
 
 package factory
 
-// FactoryOption is used to inject command specific configuration.
-type FactoryOption func(MetricScraper)
+// Option is used to inject command specific configuration.
+type Option func(MetricScraper)
 
 // WithAllAs sets the all flag value for the ContainerCommand.
-func WithAllAs(all bool) FactoryOption {
+func WithAllAs(all bool) Option {
 	return func(ms MetricScraper) {
 		cms := ms.(*containerMetrics)
 		cms.all = all
@@ -28,7 +28,7 @@ func WithAllAs(all bool) FactoryOption {
 }
 
 // WithCPUInfoAs sets the cpuinfo flag value for the RootCommand.
-func WithCPUInfoAs(cpuInfo bool) FactoryOption {
+func WithCPUInfoAs(cpuInfo bool) Option {
 	return func(ms MetricScraper) {
 		swm := ms.(*systemWideMetrics)
 		swm.cpuInfo = cpuInfo

@@ -21,8 +21,12 @@ import (
 )
 
 var (
-	ErrCanceledByUser   = errors.New("canceled by user")
-	ErrInvalidPID       = errors.New("PID does not exist")
+	// ErrCanceledByUser is used when the UI is closed by the user
+	ErrCanceledByUser = errors.New("canceled by user")
+	// ErrInvalidPID is used when the user provided PID does not match a running process
+	ErrInvalidPID = errors.New("PID does not exist")
+	// ErrInvalidContainer is used when the user provided Container ID does not match an existing container
 	ErrInvalidContainer = errors.New("container does not exist")
-	ErrBatteryNotFound  = errors.New("could not read from /sys/class/power_supply/BAT0")
+	// ErrBatteryNotFound is used when the host does not have a `/sys/class/power_supply/BAT0` directory tor ead battery info from
+	ErrBatteryNotFound = errors.New("could not read from /sys/class/power_supply/BAT0")
 )

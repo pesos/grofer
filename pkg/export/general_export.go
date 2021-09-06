@@ -55,9 +55,9 @@ type memStats struct {
 // OverallStats describes the structure of each exported json object.
 type OverallStats struct {
 	NetStats  map[string]netStats `json:"net"`
-	CpuStats  []float64           `json:"cpu"`
+	CPUStats  []float64           `json:"cpu"`
 	DiskStats []diskStats         `json:"disk"`
-	CpuLoad   cpuInfo.CPULoad     `json:"cpuLoad"`
+	CPULoad   cpuInfo.CPULoad     `json:"cpuLoad"`
 	MemStats  memStats            `json:"mem"`
 	Epoch     uint64              `json:"epoch"`
 }
@@ -76,7 +76,7 @@ func (data *OverallStats) updateData() error {
 		for i, rate := range cpuRates {
 			cpuRates[i] = utils.RoundFloat(rate, "NONE", 2)
 		}
-		data.CpuStats = cpuRates
+		data.CPUStats = cpuRates
 	} else {
 		return err
 	}
@@ -144,7 +144,7 @@ func (data *OverallStats) updateData() error {
 	if err != nil {
 		return err
 	}
-	data.CpuLoad = *cpuLoad
+	data.CPULoad = *cpuLoad
 
 	endUpdateTime := uint64(time.Now().Unix())
 	avg := uint64((startUpdateTime + endUpdateTime) / 2)
@@ -153,9 +153,9 @@ func (data *OverallStats) updateData() error {
 	return nil
 }
 
-// ExportJSON exports data to a JSON file for a specified number of iterations
+// ToJSON exports data to a JSON file for a specified number of iterations
 // and a specified refreshed rate.
-func ExportJSON(filename string, iter uint32, refreshRate uint64) error {
+func ToJSON(filename string, iter uint32, refreshRate uint64) error {
 	// Verify if previous profile exists and whether or not to overwrite
 	if _, err := os.Stat(filename); err == nil {
 		fmt.Printf("Previous metric file with name %s exists. Overwrite? (Y/N) ", filename)
@@ -165,9 +165,8 @@ func ExportJSON(filename string, iter uint32, refreshRate uint64) error {
 		choice = strings.ToLower(choice)
 		if choice != "y" {
 			return nil
-		} else {
-			os.Remove(filename)
 		}
+		os.Remove(filename)
 	}
 
 	// Open file pointer to file to be written

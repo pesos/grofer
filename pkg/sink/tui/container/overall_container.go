@@ -34,13 +34,8 @@ import (
 	viz "github.com/pesos/grofer/pkg/utils/visualization"
 )
 
-const (
-	UP_ARROW   = "▲"
-	DOWN_ARROW = "▼"
-)
-
 // OverallVisuals provides the UI for overall container metrics
-func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChannel chan containerMetrics.ContainerMetrics, refreshRate uint64) error {
+func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChannel chan containerMetrics.OverallMetrics, refreshRate uint64) error {
 	if err := ui.Init(); err != nil {
 		return err
 	}
@@ -118,7 +113,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 		}
 	}
 
-	updateDetails := func(data containerMetrics.ContainerMetrics) {
+	updateDetails := func(data containerMetrics.OverallMetrics) {
 		// update cpu %
 		page.CPUChart.Percent = int(data.TotalCPU)
 
@@ -149,7 +144,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 				c.Name,
 				c.Status,
 				c.State,
-				fmt.Sprintf("%.2f%%", c.Cpu),
+				fmt.Sprintf("%.2f%%", c.CPU),
 				fmt.Sprintf("%.2f%%", c.Mem),
 				net,
 				blk,
@@ -256,7 +251,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 						scrollableWidget.EnableCursor()
 					}
 				} else if utilitySelected == "ACTION" {
-					var err error = nil
+					var err error
 
 					actionSelected := actions.SelectedAction()
 
@@ -265,7 +260,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 					case "PAUSE":
 						err = cli.ContainerPause(ctx, cid)
 						if err == nil {
-							err = containerMetrics.ContainerWait(ctx, cli, cid, "paused")
+							err = containerMetrics.Wait(ctx, cli, cid, "paused")
 						} else {
 							errorBox.SetErrorString(fmt.Sprintf("Error pausing container with ID: %s", cid), err)
 						}
@@ -274,7 +269,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 					case "UNPAUSE":
 						err = cli.ContainerUnpause(ctx, cid)
 						if err == nil {
-							err = containerMetrics.ContainerWait(ctx, cli, cid, "running")
+							err = containerMetrics.Wait(ctx, cli, cid, "running")
 						} else {
 							errorBox.SetErrorString(fmt.Sprintf("Error un-pausing container with ID: %s", cid), err)
 						}
@@ -283,7 +278,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 					case "RESTART":
 						err = cli.ContainerRestart(ctx, cid, nil)
 						if err == nil {
-							err = containerMetrics.ContainerWait(ctx, cli, cid, "running")
+							err = containerMetrics.Wait(ctx, cli, cid, "running")
 						} else {
 							errorBox.SetErrorString(fmt.Sprintf("Error restarting container with ID: %s", cid), err)
 						}
@@ -292,7 +287,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 					case "STOP":
 						err = cli.ContainerStop(ctx, cid, nil)
 						if err == nil {
-							err = containerMetrics.ContainerWait(ctx, cli, cid, "exited")
+							err = containerMetrics.Wait(ctx, cli, cid, "exited")
 						} else {
 							errorBox.SetErrorString(fmt.Sprintf("Error stopping container with ID: %s", cid), err)
 						}
@@ -301,7 +296,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 					case "KILL":
 						err = cli.ContainerKill(ctx, cid, "")
 						if err == nil {
-							err = containerMetrics.ContainerWait(ctx, cli, cid, "exited")
+							err = containerMetrics.Wait(ctx, cli, cid, "exited")
 						} else {
 							errorBox.SetErrorString(fmt.Sprintf("Error killing container with ID: %s", cid), err)
 						}
@@ -313,7 +308,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 							Force:         true,
 						})
 						if err == nil {
-							containerMetrics.ContainerWait(ctx, cli, cid, "removed")
+							err = containerMetrics.Wait(ctx, cli, cid, "removed")
 						} else {
 							errorBox.SetErrorString(fmt.Sprintf("Error removing container with ID: %s", cid), err)
 						}
@@ -326,7 +321,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 
 					// Display error box if action failed/timed out
 					if err != nil {
-						errorBox.SetErrorString(fmt.Sprint("Timeout Error"), err)
+						errorBox.SetErrorString("Timeout Error", err)
 						utilitySelected = "ERROR"
 						scrollableWidget.DisableCursor()
 						scrollableWidget = errorBox.Table
@@ -352,7 +347,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 					page.DetailsTable.Header = append([]string{}, header...)
 					idx, _ := strconv.Atoi(e.ID)
 					sortIdx = idx - 1
-					page.DetailsTable.Header[sortIdx] = header[sortIdx] + " " + UP_ARROW
+					page.DetailsTable.Header[sortIdx] = header[sortIdx] + " " + viz.UpArrow
 					sortAsc = true
 					utils.SortData(page.DetailsTable.Rows, sortIdx, sortAsc, "CONTAINER")
 				}
@@ -363,7 +358,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 					page.DetailsTable.Header = append([]string{}, header...)
 					idx, _ := strconv.Atoi(e.ID[2:3])
 					sortIdx = idx - 1
-					page.DetailsTable.Header[sortIdx] = header[sortIdx] + " " + DOWN_ARROW
+					page.DetailsTable.Header[sortIdx] = header[sortIdx] + " " + viz.DownArrow
 					sortAsc = false
 					utils.SortData(page.DetailsTable.Rows, sortIdx, sortAsc, "CONTAINER")
 				}

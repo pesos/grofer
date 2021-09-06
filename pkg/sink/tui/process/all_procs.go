@@ -34,11 +34,6 @@ import (
 	proc "github.com/shirou/gopsutil/process"
 )
 
-const (
-	UP_ARROW   = "▲"
-	DOWN_ARROW = "▼"
-)
-
 func getData(procs []*proc.Process) [][]string {
 	procData := [][]string{}
 	for _, p := range procs {
@@ -97,6 +92,7 @@ func getData(procs []*proc.Process) [][]string {
 	return procData
 }
 
+// AllProcVisuals renders the all process page
 func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refreshRate uint64) error {
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
@@ -262,6 +258,7 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 						// open the signal selector
 						utilitySelected = "KILL"
 						scrollableWidget = signals.Table
+						scrollableWidget.EnableCursor()
 					}
 				} else if utilitySelected == "KILL" {
 					// get process and kill it
@@ -305,7 +302,7 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 						page.ProcTable.Header = append([]string{}, header...)
 						idx, _ := strconv.Atoi(e.ID)
 						sortIdx = idx - 1
-						page.ProcTable.Header[sortIdx] = header[sortIdx] + " " + UP_ARROW
+						page.ProcTable.Header[sortIdx] = header[sortIdx] + " " + viz.UpArrow
 						sortAsc = true
 						utils.SortData(page.ProcTable.Rows, sortIdx, sortAsc, "PROCS")
 
@@ -322,7 +319,7 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 					page.ProcTable.Header = append([]string{}, header...)
 					idx, _ := strconv.Atoi(e.ID[2:3])
 					sortIdx = idx - 1
-					page.ProcTable.Header[sortIdx] = header[sortIdx] + " " + DOWN_ARROW
+					page.ProcTable.Header[sortIdx] = header[sortIdx] + " " + viz.DownArrow
 					sortAsc = false
 					utils.SortData(page.ProcTable.Rows, sortIdx, sortAsc, "PROCS")
 				}

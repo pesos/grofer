@@ -22,6 +22,7 @@ import (
 	ui "github.com/gizak/termui/v3"
 )
 
+// HorizontalBarChart is a custom widget to display a horizontal bar graph
 type HorizontalBarChart struct {
 	*ui.Block
 	BarColors   []ui.Color // Custom bar colors
@@ -34,6 +35,7 @@ type HorizontalBarChart struct {
 	ColResizer  func() // Function to resize bar
 }
 
+// NewHorizontalBarChart is a constructor for the type HorizontalBarChart
 func NewHorizontalBarChart() *HorizontalBarChart {
 	return &HorizontalBarChart{
 		Block:       ui.NewBlock(),
@@ -46,6 +48,7 @@ func NewHorizontalBarChart() *HorizontalBarChart {
 	}
 }
 
+// Draw helps draw the Horizontal Bar Chart widget onto the UI buffer
 func (h *HorizontalBarChart) Draw(buf *ui.Buffer) {
 	h.Block.Draw(buf)
 	// Call function to resize columns depending on term size

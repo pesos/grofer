@@ -38,7 +38,7 @@ type PerContainerMetrics struct {
 	Name   string
 	Status string
 	State  string
-	Cpu    float64
+	CPU    float64
 	Mem    float64
 	Net    netStat
 	Blk    blkStat
@@ -64,7 +64,7 @@ type blkStat struct {
 type netInfo struct {
 	Name    string
 	Driver  string
-	Ip      string
+	IP      string
 	Ingress bool
 }
 
@@ -106,32 +106,32 @@ func getPerCPUPercents(data *types.StatsJSON) []string {
 	postLen := len(data.CPUStats.CPUUsage.PercpuUsage)
 	numCPUs := ui.MaxInt(preLen, postLen)
 
-	perCpuPercents := make([]string, numCPUs)
+	perCPUPercents := make([]string, numCPUs)
 	systemDelta := float64(data.CPUStats.SystemUsage) - float64(data.PreCPUStats.SystemUsage)
 
 	// If first run, skip percpu metrics
 	if preLen != postLen {
-		for i := range perCpuPercents {
-			perCpuPercents[i] = "NA"
+		for i := range perCPUPercents {
+			perCPUPercents[i] = "NA"
 		}
 	} else {
 		for i, usage := range data.CPUStats.CPUUsage.PercpuUsage {
-			perCpuPercent := 0.0
+			perCPUPercent := 0.0
 
 			cpuDelta := float64(usage) - float64(data.PreCPUStats.CPUUsage.PercpuUsage[i])
 
 			if cpuDelta > 0.0 && systemDelta > 0.0 {
-				perCpuPercent = (cpuDelta / systemDelta) * float64(numCPUs) * 100.0
+				perCPUPercent = (cpuDelta / systemDelta) * float64(numCPUs) * 100.0
 			}
-			perCpuPercents[i] = fmt.Sprintf("%.2f%%", perCpuPercent)
+			perCPUPercents[i] = fmt.Sprintf("%.2f%%", perCPUPercent)
 		}
 	}
-	return perCpuPercents
+	return perCPUPercents
 }
 
-// ContainerWait waits for a container of given container id to reach a specified state.
+// Wait waits for a container of given container id to reach a specified state.
 // If an error is encountered during the wait, it is returned.
-func ContainerWait(ctx context.Context, cli *client.Client, cid, state string) error {
+func Wait(ctx context.Context, cli *client.Client, cid, state string) error {
 
 	t := time.NewTicker(100 * time.Millisecond)
 	tick := t.C
@@ -204,7 +204,7 @@ func GetContainerMetrics(ctx context.Context, cli *client.Client, cid string) (P
 	cpuPercent := getCPUPercent(&data)
 
 	// Get Per CPU utilizations
-	perCpuPercents := getPerCPUPercents(&data)
+	perCPUPercents := getPerCPUPercents(&data)
 
 	// Calculate Memory usage
 	memPercent := float64(data.MemoryStats.Usage) / float64(data.MemoryStats.Limit) * 100
@@ -240,7 +240,7 @@ func GetContainerMetrics(ctx context.Context, cli *client.Client, cid string) (P
 		n := netInfo{
 			Name:    net.Name,
 			Driver:  net.Driver,
-			Ip:      network.IPAddress,
+			IP:      network.IPAddress,
 			Ingress: net.Ingress,
 		}
 
@@ -296,13 +296,13 @@ func GetContainerMetrics(ctx context.Context, cli *client.Client, cid string) (P
 		Name:    strings.TrimLeft(strings.Join(c.Names, ","), "/"),
 		Status:  c.Status,
 		State:   c.State,
-		Cpu:     cpuPercent,
+		CPU:     cpuPercent,
 		Mem:     memPercent,
 		Net:     netStat{Rx: rx, Tx: tx},
 		Blk:     blkStat{Read: blkRead, Write: blkWrite},
 		Pid:     fmt.Sprintf("%d", inspectData.State.Pid),
 		NetInfo: netData,
-		PerCPU:  perCpuPercents,
+		PerCPU:  perCPUPercents,
 		PortMap: portData,
 		Mounts:  mountData,
 		Procs:   procData,

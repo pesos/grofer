@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 // This particularar widget is inspired and borrowed from the implementation of https://github.com/cjbassi/gotop
+
 package utils
 
 import (
@@ -52,6 +53,7 @@ func NewLineGraph() *LineGraph {
 	}
 }
 
+// Draw helps draw the Line Graph widget onto the UI buffer
 func (l *LineGraph) Draw(buf *ui.Buffer) {
 	l.Block.Draw(buf)
 	// we render each data point on to the canvas then copy over the braille to the buffer at the end

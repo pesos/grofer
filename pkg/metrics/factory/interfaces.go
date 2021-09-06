@@ -26,7 +26,7 @@ type MetricScraper interface {
 	// Serve serves the metrics to a 'sink', which can be a TUI or
 	// logic that exports these served metrics to either a file or
 	// maybe even served over an endpoint (some day).
-	Serve(opts ...FactoryOption) error
+	Serve(opts ...Option) error
 	// SetSink sets the Sink that consumes the metrics produced
 	// by the MetricScraper.
 	SetSink(core.Sink)
