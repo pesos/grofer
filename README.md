@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="images/README/logo.png" style="width:300px;" />
+</p>
+
 Grofer
 ======
 
@@ -409,3 +413,8 @@ To load completions for each session, the generated script must be moved to the 
 ```sh
 grofer completion fish > ~/.config/fish/completions/grofer.fish
 ```
+
+Credits
+=======
+
+-	Gopher [artwork](images/README/logo.png) credits to [Amandeep Kaur](https://instagram.com/_amankaur._)
