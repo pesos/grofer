@@ -61,7 +61,7 @@ func ProcVisuals(ctx context.Context,
 
 	// Create new page and select default table
 	page := newPerProcPage()
-	utilitySelected := ""
+	utilitySelected := core.None
 	var scrollableWidget viz.ScrollableWidget = page.ChildProcsTable
 	scrollableWidget.EnableCursor()
 
@@ -101,7 +101,7 @@ func ProcVisuals(ctx context.Context,
 		// Clear UI
 		ui.Clear()
 		switch utilitySelected {
-		case "HELP":
+		case core.Help:
 			help.Resize(w, h)
 			ui.Render(help)
 
@@ -133,14 +133,14 @@ func ProcVisuals(ctx context.Context,
 				scrollableWidget.DisableCursor()
 				scrollableWidget = help.Table
 				scrollableWidget.EnableCursor()
-				utilitySelected = "HELP"
+				utilitySelected = core.Help
 				updateUI()
 
 			case "p":
 				pause()
 
 			case "<Escape>":
-				utilitySelected = ""
+				utilitySelected = core.None
 				scrollableWidget.DisableCursor()
 				scrollableWidget = page.ChildProcsTable
 				scrollableWidget.EnableCursor()
@@ -233,7 +233,7 @@ func ProcVisuals(ctx context.Context,
 			}
 
 		case <-tick:
-			if utilitySelected == "" {
+			if utilitySelected == core.None {
 				ui.Render(page.Grid)
 			}
 		}

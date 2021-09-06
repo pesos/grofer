@@ -44,3 +44,19 @@ const (
 	// generated.
 	TUI Sink = iota
 )
+
+// Utility represents a utilty displayed in the UI
+type Utility int
+
+const (
+	// None is when no utility is being displayed and the page is visible
+	None Utility = iota
+	// Help is when the help box is displayed
+	Help
+	// Action is specific to `grofer container` and is used to select an action to perform
+	Action
+	// Error is specific to `grofer container` and is used when an action fails/ times out
+	Error
+	// Kill is specific to `grofer proc` and is used to select a kill signal
+	Kill
+)

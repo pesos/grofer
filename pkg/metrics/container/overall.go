@@ -19,6 +19,7 @@ package container
 import (
 	"context"
 	"encoding/json"
+	"runtime"
 	"strings"
 
 	"github.com/docker/docker/api/types"
@@ -72,7 +73,10 @@ func GetOverallMetrics(ctx context.Context, cli *client.Client, all bool) (Overa
 		metrics.PerContainer = append(metrics.PerContainer, metric)
 	}
 
-	metrics.TotalCPU = totalCPU
+	// Get number of cores in machine
+	numCores := runtime.NumCPU()
+
+	metrics.TotalCPU = totalCPU / float64(numCores)
 	metrics.TotalMem = totalMem
 	metrics.TotalNet = totalNet
 	metrics.TotalBlk = totalBlk

@@ -54,7 +54,7 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 	page := NewPage(numCores)
 
 	var scrollWidget viz.ScrollableWidget = page.DiskChart
-	utitlitySelected := ""
+	utitlitySelected := core.None
 	previousKey := ""
 
 	// Pause to pause updating data
@@ -70,7 +70,7 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 		ui.Clear()
 
 		switch utitlitySelected {
-		case "HELP":
+		case core.Help:
 			help.Resize(w, h)
 			ui.Render(help)
 
@@ -99,11 +99,11 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 				updateUI()
 
 			case "<Escape>":
-				if utitlitySelected == "HELP" {
+				if utitlitySelected == core.Help {
 					scrollWidget.DisableCursor()
 					scrollWidget = page.DiskChart
 					scrollWidget.EnableCursor()
-					utitlitySelected = ""
+					utitlitySelected = core.None
 				}
 
 			case "p":
@@ -113,7 +113,7 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 				scrollWidget.DisableCursor()
 				scrollWidget = help.Table
 				scrollWidget.EnableCursor()
-				utitlitySelected = "HELP"
+				utitlitySelected = core.Help
 
 			// handle table navigations
 			case "j", "<Down>":
@@ -147,14 +147,14 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 
 			// handle table switching
 			case "<Left>", "h":
-				if utitlitySelected != "HELP" {
+				if utitlitySelected != core.Help {
 					scrollWidget.DisableCursor()
 					scrollWidget = page.switchTableLeft(page.cpuTableVisible)
 					scrollWidget.EnableCursor()
 				}
 
 			case "<Right>", "l":
-				if utitlitySelected != "HELP" {
+				if utitlitySelected != core.Help {
 					scrollWidget.DisableCursor()
 					scrollWidget = page.switchTableRight(page.cpuTableVisible)
 					scrollWidget.EnableCursor()
@@ -268,7 +268,7 @@ func RenderCharts(ctx context.Context, dataChannel chan general.AggregatedMetric
 			}
 
 		case <-tick: // Update page with new values
-			if utitlitySelected != "HELP" {
+			if utitlitySelected != core.Help {
 				ui.Render(page.Grid)
 			}
 		}
@@ -291,7 +291,7 @@ func RenderCPUinfo(ctx context.Context, dataChannel chan *general.CPULoad, refre
 	var scrollWidget viz.ScrollableWidget = page.CPUTable
 
 	previousKey := ""
-	utilitySelected := ""
+	utilitySelected := core.None
 
 	pause := func() {
 		run = !run
@@ -305,7 +305,7 @@ func RenderCPUinfo(ctx context.Context, dataChannel chan *general.CPULoad, refre
 		ui.Clear()
 
 		switch utilitySelected {
-		case "HELP":
+		case core.Help:
 			help.Resize(w, h)
 			ui.Render(help)
 		default:
@@ -335,7 +335,7 @@ func RenderCPUinfo(ctx context.Context, dataChannel chan *general.CPULoad, refre
 				scrollWidget.DisableCursor()
 				scrollWidget = page.CPUTable
 				scrollWidget.EnableCursor()
-				utilitySelected = ""
+				utilitySelected = core.None
 
 			case "p":
 				pause()
@@ -344,7 +344,7 @@ func RenderCPUinfo(ctx context.Context, dataChannel chan *general.CPULoad, refre
 				scrollWidget.DisableCursor()
 				scrollWidget = help.Table
 				scrollWidget.EnableCursor()
-				utilitySelected = "HELP"
+				utilitySelected = core.Help
 
 			// handle table navigations
 			case "j", "<Down>":
@@ -419,7 +419,7 @@ func RenderCPUinfo(ctx context.Context, dataChannel chan *general.CPULoad, refre
 			}
 
 		case <-tick:
-			if utilitySelected != "HELP" {
+			if utilitySelected != core.Help {
 				ui.Render(page.Grid)
 			}
 		}

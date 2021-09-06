@@ -59,7 +59,7 @@ func PerContainerVisuals(ctx context.Context, dataChannel chan container.PerCont
 		"6": page.ProcTable,
 	}
 
-	utilitySelected := ""
+	utilitySelected := core.None
 
 	// variables to pause UI rendering
 	runProc := true
@@ -85,7 +85,7 @@ func PerContainerVisuals(ctx context.Context, dataChannel chan container.PerCont
 		ui.Clear()
 
 		switch utilitySelected {
-		case "HELP":
+		case core.Help:
 			help.Resize(w, h)
 			ui.Render(help)
 
@@ -118,21 +118,21 @@ func PerContainerVisuals(ctx context.Context, dataChannel chan container.PerCont
 				scrollableWidget.DisableCursor()
 				scrollableWidget = help.Table
 				scrollableWidget.EnableCursor()
-				utilitySelected = "HELP"
+				utilitySelected = core.Help
 				updateUI()
 
 			case "p":
 				pause()
 
 			case "<Escape>":
-				utilitySelected = ""
+				utilitySelected = core.None
 				scrollableWidget = page.DetailsTable
 				scrollableWidget.EnableCursor()
 				updateUI()
 
 			// handle table selection
 			case "1", "2", "3", "4", "5", "6":
-				if utilitySelected == "" {
+				if utilitySelected == core.None {
 					scrollableWidget.DisableCursor()
 					scrollableWidget = tableMap[e.ID]
 					scrollableWidget.EnableCursor()
@@ -266,7 +266,7 @@ func PerContainerVisuals(ctx context.Context, dataChannel chan container.PerCont
 			}
 
 		case <-tick:
-			if utilitySelected == "" {
+			if utilitySelected == core.None {
 				ui.Render(page.Grid)
 			}
 		}

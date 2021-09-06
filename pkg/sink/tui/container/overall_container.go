@@ -53,7 +53,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 	page := newOverallContainerPage()
 	var scrollableWidget viz.ScrollableWidget = page.DetailsTable
 	scrollableWidget.EnableCursor()
-	utilitySelected := ""
+	utilitySelected := core.None
 
 	// variables for sorting
 	sortIdx := -1
@@ -94,15 +94,15 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 		ui.Clear()
 
 		switch utilitySelected {
-		case "HELP":
+		case core.Help:
 			help.Resize(w, h)
 			ui.Render(help)
 
-		case "ERROR":
+		case core.Error:
 			errorBox.Resize(w, h)
 			ui.Render(errorBox)
 
-		case "ACTION":
+		case core.Action:
 			actions.SetRect(0, 0, w/6, h)
 			page.Grid.SetRect(w/6, 0, w, h)
 			ui.Render(actions)
@@ -185,12 +185,12 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 				updateUI()
 
 			case "<Escape>":
-				if utilitySelected != "" {
+				if utilitySelected != core.None {
 					runProc = true
 					page.DetailsTable.CursorColor = selectedStyle
 				}
 
-				utilitySelected = ""
+				utilitySelected = core.None
 				scrollableWidget = page.DetailsTable
 				scrollableWidget.EnableCursor()
 				updateUI()
@@ -199,7 +199,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 				scrollableWidget.DisableCursor()
 				scrollableWidget = help.Table
 				scrollableWidget.EnableCursor()
-				utilitySelected = "HELP"
+				utilitySelected = core.Help
 				updateUI()
 
 			case "p":
@@ -237,7 +237,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 
 			// Container Action Selction
 			case "<Enter>":
-				if utilitySelected == "" {
+				if utilitySelected == core.None {
 					if page.DetailsTable.SelectedRow < len(page.DetailsTable.Rows) {
 						// get CID from the data
 						cid = page.DetailsTable.Rows[page.DetailsTable.SelectedRow][0]
@@ -246,11 +246,11 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 						page.DetailsTable.CursorColor = actionStyle
 
 						// open the signal selector
-						utilitySelected = "ACTION"
+						utilitySelected = core.Action
 						scrollableWidget = actions.Table
 						scrollableWidget.EnableCursor()
 					}
-				} else if utilitySelected == "ACTION" {
+				} else if utilitySelected == core.Action {
 					var err error
 
 					actionSelected := actions.SelectedAction()
@@ -322,11 +322,11 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 					// Display error box if action failed/timed out
 					if err != nil {
 						errorBox.SetErrorString("Timeout Error", err)
-						utilitySelected = "ERROR"
+						utilitySelected = core.Error
 						scrollableWidget.DisableCursor()
 						scrollableWidget = errorBox.Table
 					} else {
-						utilitySelected = ""
+						utilitySelected = core.None
 						scrollableWidget.DisableCursor()
 						scrollableWidget = page.DetailsTable
 						scrollableWidget.EnableCursor()
@@ -343,7 +343,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 
 			// Sort Ascending
 			case "1", "2", "3", "4", "5", "6", "7":
-				if utilitySelected == "" {
+				if utilitySelected == core.None {
 					page.DetailsTable.Header = append([]string{}, header...)
 					idx, _ := strconv.Atoi(e.ID)
 					sortIdx = idx - 1
@@ -354,7 +354,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 
 			// Sort Descending
 			case "<F1>", "<F2>", "<F3>", "<F4>", "<F5>", "<F6>", "<F7>":
-				if utilitySelected == "" {
+				if utilitySelected == core.None {
 					page.DetailsTable.Header = append([]string{}, header...)
 					idx, _ := strconv.Atoi(e.ID[2:3])
 					sortIdx = idx - 1
@@ -383,7 +383,7 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 			}
 
 		case <-tick:
-			if utilitySelected == "" {
+			if utilitySelected == core.None {
 				ui.Render(page.Grid)
 			}
 		}

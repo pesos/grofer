@@ -105,7 +105,7 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 	var help *misc.HelpMenu = misc.NewHelpMenu().ForCommand(misc.ProcCommand)
 
 	page := newAllProcPage()
-	utilitySelected := ""
+	utilitySelected := core.None
 	var scrollableWidget viz.ScrollableWidget = page.ProcTable
 	scrollableWidget.EnableCursor()
 
@@ -131,11 +131,11 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 		ui.Clear()
 
 		switch utilitySelected {
-		case "HELP":
+		case core.Help:
 			help.Resize(w, h)
 			ui.Render(help)
 
-		case "KILL":
+		case core.Kill:
 			signals.SetRect(0, 0, w/6, h)
 			page.Grid.SetRect(w/6, 0, w, h)
 			ui.Render(signals)
@@ -195,13 +195,13 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 				scrollableWidget.DisableCursor()
 				scrollableWidget = help.Table
 				scrollableWidget.EnableCursor()
-				utilitySelected = "HELP"
+				utilitySelected = core.Help
 				updateUI()
 			case "p":
 				pause()
 
 			case "<Escape>":
-				utilitySelected = ""
+				utilitySelected = core.None
 				scrollableWidget.DisableCursor()
 				scrollableWidget = page.ProcTable
 				scrollableWidget.EnableCursor()
@@ -241,7 +241,7 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 
 			// handle actions
 			case "K", "<F9>":
-				if utilitySelected == "" {
+				if utilitySelected == core.None {
 					if page.ProcTable.SelectedRow < len(page.ProcTable.Rows) {
 						// get PID from the data
 						row := page.ProcTable.Rows[page.ProcTable.SelectedRow]
@@ -256,11 +256,11 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 						page.ProcTable.CursorColor = killingStyle
 
 						// open the signal selector
-						utilitySelected = "KILL"
+						utilitySelected = core.Kill
 						scrollableWidget = signals.Table
 						scrollableWidget.EnableCursor()
 					}
-				} else if utilitySelected == "KILL" {
+				} else if utilitySelected == core.Kill {
 					// get process and kill it
 					procToKill, err := proc.NewProcess(pidToKill)
 					page.ProcTable.CursorColor = selectedStyle
@@ -286,7 +286,7 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 				* digit number (as there are currently 31 supported signals).
 				* For example, pressing 25 would first navigate to signal 2, then to signal 25
 				 */
-				if utilitySelected == "KILL" {
+				if utilitySelected == core.Kill {
 					scrollIdx, _ := strconv.Atoi(e.ID)
 					if _, checkPrev := map[string]bool{"1": true, "2": true, "3": true}[previousKey]; checkPrev {
 						prevIdx, _ := strconv.Atoi(previousKey)
@@ -295,7 +295,7 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 					}
 					signals.Table.ScrollToIndex(scrollIdx - 1) // account for 0-indexing
 					ui.Render(signals)
-				} else if utilitySelected == "" {
+				} else if utilitySelected == core.None {
 					switch e.ID {
 					// Sort Ascending
 					case "1", "2", "3", "4", "5", "6", "7", "8":
@@ -315,7 +315,7 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 
 			// Sort Descending
 			case "<F1>", "<F2>", "<F3>", "<F4>", "<F5>", "<F6>", "<F7>", "<F8>":
-				if utilitySelected == "" {
+				if utilitySelected == core.None {
 					page.ProcTable.Header = append([]string{}, header...)
 					idx, _ := strconv.Atoi(e.ID[2:3])
 					sortIdx = idx - 1
@@ -325,7 +325,7 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 				}
 
 			case "<Enter>":
-				if utilitySelected == "KILL" {
+				if utilitySelected == core.Kill {
 					signalToSend := signals.SelectedSignal()
 					procToKill, err := proc.NewProcess(pidToKill)
 					page.ProcTable.CursorColor = selectedStyle
@@ -339,7 +339,7 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 					}
 
 					runAllProc = true
-					utilitySelected = ""
+					utilitySelected = core.None
 					updateProcs()
 				}
 				scrollableWidget = page.ProcTable
@@ -365,11 +365,11 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 			}
 
 		case <-tick: // Update page with new values
-			if utilitySelected == "KILL" {
+			if utilitySelected == core.Kill {
 				exists, _ := proc.PidExists(pidToKill)
 				if !exists {
 					runAllProc = true
-					utilitySelected = ""
+					utilitySelected = core.None
 					page.ProcTable.CursorColor = selectedStyle
 					updateProcs()
 				}
@@ -377,8 +377,8 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 				page.ProcTable.CursorColor = selectedStyle
 			}
 
-			if utilitySelected != "HELP" {
-				if utilitySelected == "KILL" {
+			if utilitySelected != core.Help {
+				if utilitySelected == core.Kill {
 					ui.Render(signals)
 				}
 				ui.Render(page.Grid)
