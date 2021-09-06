@@ -49,13 +49,15 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 
 	var on sync.Once
 
-	// create widgets for help and error
+	// create widgets for help, actions and error
 	var help *misc.HelpMenu = misc.NewHelpMenu().ForCommand(misc.ContainerCommand)
 	var errorBox *misc.ErrorBox = misc.NewErrorBox()
+	var actions *misc.ActionTable = misc.NewActionTable()
 
 	// Create new page and select table
 	page := newOverallContainerPage()
 	var scrollableWidget viz.ScrollableWidget = page.DetailsTable
+	scrollableWidget.EnableCursor()
 	utilitySelected := ""
 
 	// variables for sorting
@@ -104,6 +106,12 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 		case "ERROR":
 			errorBox.Resize(w, h)
 			ui.Render(errorBox)
+
+		case "ACTION":
+			actions.SetRect(0, 0, w/6, h)
+			page.Grid.SetRect(w/6, 0, w, h)
+			ui.Render(actions)
+			ui.Render(page.Grid)
 
 		default:
 			ui.Render(page.Grid)
@@ -167,15 +175,6 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 	actionStyle := ui.ColorMagenta
 
 	cid := ""
-	actionSelected := ""
-	actions := map[string]string{
-		"P": "pause",
-		"U": "unpause",
-		"R": "restart",
-		"S": "stop",
-		"K": "kill",
-		"X": "remove",
-	}
 
 	for {
 		select {
@@ -191,9 +190,8 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 				updateUI()
 
 			case "<Escape>":
-				if actionSelected != "" {
+				if utilitySelected != "" {
 					runProc = true
-					actionSelected = ""
 					page.DetailsTable.CursorColor = selectedStyle
 				}
 
@@ -243,131 +241,132 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 				scrollableWidget.ScrollBottom()
 
 			// Container Action Selction
-			case "P", "U", "S", "R", "K", "X":
-				if scrollableWidget == page.DetailsTable {
-					if actionSelected == "" {
-						if page.DetailsTable.SelectedRow < len(page.DetailsTable.Rows) {
-							cid = page.DetailsTable.Rows[page.DetailsTable.SelectedRow][0]
+			case "<Enter>":
+				if utilitySelected == "" {
+					if page.DetailsTable.SelectedRow < len(page.DetailsTable.Rows) {
+						// get CID from the data
+						cid = page.DetailsTable.Rows[page.DetailsTable.SelectedRow][0]
 
-							runProc = false
-							actionSelected = actions[e.ID]
-							page.DetailsTable.CursorColor = actionStyle
-						}
-					} else {
-						var err error = nil
+						runProc = false
+						page.DetailsTable.CursorColor = actionStyle
 
-						switch e.ID {
-						// Pause Action
-						case "P":
-							if actionSelected == "pause" {
-								err = cli.ContainerPause(ctx, cid)
-								if err == nil {
-									err = containerMetrics.ContainerWait(ctx, cli, cid, "paused")
-								} else {
-									errorBox.SetErrorString(fmt.Sprintf("Error pausing container with ID: %s", cid), err)
-								}
-							}
-
-						// Unpause Action
-						case "U":
-							if actionSelected == "unpause" {
-								err = cli.ContainerUnpause(ctx, cid)
-								if err == nil {
-									err = containerMetrics.ContainerWait(ctx, cli, cid, "running")
-								} else {
-									errorBox.SetErrorString(fmt.Sprintf("Error un-pausing container with ID: %s", cid), err)
-								}
-							}
-
-						// Restart Action
-						case "R":
-							if actionSelected == "restart" {
-								err = cli.ContainerRestart(ctx, cid, nil)
-								if err == nil {
-									err = containerMetrics.ContainerWait(ctx, cli, cid, "running")
-								} else {
-									errorBox.SetErrorString(fmt.Sprintf("Error restarting container with ID: %s", cid), err)
-								}
-							}
-
-						// Stop Action
-						case "S":
-							if actionSelected == "stop" {
-								err = cli.ContainerStop(ctx, cid, nil)
-								if err == nil {
-									err = containerMetrics.ContainerWait(ctx, cli, cid, "exited")
-								} else {
-									errorBox.SetErrorString(fmt.Sprintf("Error stopping container with ID: %s", cid), err)
-								}
-							}
-
-						// Kill action
-						case "K":
-							if actionSelected == "kill" {
-								err = cli.ContainerKill(ctx, cid, "")
-								if err == nil {
-									err = containerMetrics.ContainerWait(ctx, cli, cid, "exited")
-								} else {
-									errorBox.SetErrorString(fmt.Sprintf("Error killing container with ID: %s", cid), err)
-								}
-							}
-
-						// Remove action
-						case "X":
-							if actionSelected == "remove" {
-								err = cli.ContainerRemove(ctx, cid, types.ContainerRemoveOptions{
-									RemoveVolumes: true,
-									Force:         true,
-								})
-								if err == nil {
-									containerMetrics.ContainerWait(ctx, cli, cid, "removed")
-								} else {
-									errorBox.SetErrorString(fmt.Sprintf("Error removing container with ID: %s", cid), err)
-								}
-							}
-						}
-
-						<-dataChannel
-						data, _ := containerMetrics.GetOverallMetrics(ctx, cli, all)
-						updateDetails(data)
-
-						if err != nil {
-							utilitySelected = "ERROR"
-							scrollableWidget = errorBox.Table
-							scrollableWidget.DisableCursor()
-						} else {
-							utilitySelected = ""
-						}
-
-						page.DetailsTable.CursorColor = selectedStyle
-
-						updateUI()
-
-						runProc = true
-						actionSelected = ""
-
+						// open the signal selector
+						utilitySelected = "ACTION"
+						scrollableWidget = actions.Table
+						scrollableWidget.EnableCursor()
 					}
+				} else if utilitySelected == "ACTION" {
+					var err error = nil
+
+					actionSelected := actions.SelectedAction()
+
+					switch actionSelected {
+					// Pause Action
+					case "PAUSE":
+						err = cli.ContainerPause(ctx, cid)
+						if err == nil {
+							err = containerMetrics.ContainerWait(ctx, cli, cid, "paused")
+						} else {
+							errorBox.SetErrorString(fmt.Sprintf("Error pausing container with ID: %s", cid), err)
+						}
+
+					// Unpause Action
+					case "UNPAUSE":
+						err = cli.ContainerUnpause(ctx, cid)
+						if err == nil {
+							err = containerMetrics.ContainerWait(ctx, cli, cid, "running")
+						} else {
+							errorBox.SetErrorString(fmt.Sprintf("Error un-pausing container with ID: %s", cid), err)
+						}
+
+					// Restart Action
+					case "RESTART":
+						err = cli.ContainerRestart(ctx, cid, nil)
+						if err == nil {
+							err = containerMetrics.ContainerWait(ctx, cli, cid, "running")
+						} else {
+							errorBox.SetErrorString(fmt.Sprintf("Error restarting container with ID: %s", cid), err)
+						}
+
+					// Stop action
+					case "STOP":
+						err = cli.ContainerStop(ctx, cid, nil)
+						if err == nil {
+							err = containerMetrics.ContainerWait(ctx, cli, cid, "exited")
+						} else {
+							errorBox.SetErrorString(fmt.Sprintf("Error stopping container with ID: %s", cid), err)
+						}
+
+					// Kill action
+					case "KILL":
+						err = cli.ContainerKill(ctx, cid, "")
+						if err == nil {
+							err = containerMetrics.ContainerWait(ctx, cli, cid, "exited")
+						} else {
+							errorBox.SetErrorString(fmt.Sprintf("Error killing container with ID: %s", cid), err)
+						}
+
+					// Remove action
+					case "REMOVE":
+						err = cli.ContainerRemove(ctx, cid, types.ContainerRemoveOptions{
+							RemoveVolumes: true,
+							Force:         true,
+						})
+						if err == nil {
+							containerMetrics.ContainerWait(ctx, cli, cid, "removed")
+						} else {
+							errorBox.SetErrorString(fmt.Sprintf("Error removing container with ID: %s", cid), err)
+						}
+					}
+
+					// Flush out stale data
+					<-dataChannel
+					data, _ := containerMetrics.GetOverallMetrics(ctx, cli, all)
+					updateDetails(data)
+
+					// Display error box if action failed/timed out
+					if err != nil {
+						errorBox.SetErrorString(fmt.Sprint("Timeout Error"), err)
+						utilitySelected = "ERROR"
+						scrollableWidget.DisableCursor()
+						scrollableWidget = errorBox.Table
+					} else {
+						utilitySelected = ""
+						scrollableWidget.DisableCursor()
+						scrollableWidget = page.DetailsTable
+						scrollableWidget.EnableCursor()
+					}
+
+					page.DetailsTable.CursorColor = selectedStyle
+
+					updateUI()
+
+					runProc = true
 				}
 
 			// Handle sorting
 
 			// Sort Ascending
 			case "1", "2", "3", "4", "5", "6", "7":
-				page.DetailsTable.Header = append([]string{}, header...)
-				idx, _ := strconv.Atoi(e.ID)
-				sortIdx = idx - 1
-				page.DetailsTable.Header[sortIdx] = header[sortIdx] + " " + UP_ARROW
-				sortAsc = true
-				utils.SortData(page.DetailsTable.Rows, sortIdx, sortAsc, "CONTAINER")
+				if utilitySelected == "" {
+					page.DetailsTable.Header = append([]string{}, header...)
+					idx, _ := strconv.Atoi(e.ID)
+					sortIdx = idx - 1
+					page.DetailsTable.Header[sortIdx] = header[sortIdx] + " " + UP_ARROW
+					sortAsc = true
+					utils.SortData(page.DetailsTable.Rows, sortIdx, sortAsc, "CONTAINER")
+				}
 
 			// Sort Descending
 			case "<F1>", "<F2>", "<F3>", "<F4>", "<F5>", "<F6>", "<F7>":
-				page.DetailsTable.Header = append([]string{}, header...)
-				idx, _ := strconv.Atoi(e.ID[2:3])
-				sortIdx = idx - 1
-				page.DetailsTable.Header[sortIdx] = header[sortIdx] + " " + DOWN_ARROW
-				sortAsc = false
-				utils.SortData(page.DetailsTable.Rows, sortIdx, sortAsc, "CONTAINER")
+				if utilitySelected == "" {
+					page.DetailsTable.Header = append([]string{}, header...)
+					idx, _ := strconv.Atoi(e.ID[2:3])
+					sortIdx = idx - 1
+					page.DetailsTable.Header[sortIdx] = header[sortIdx] + " " + DOWN_ARROW
+					sortAsc = false
+					utils.SortData(page.DetailsTable.Rows, sortIdx, sortAsc, "CONTAINER")
+				}
 
 			// Disable Sort
 			case "0":

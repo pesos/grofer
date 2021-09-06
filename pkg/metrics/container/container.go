@@ -136,17 +136,24 @@ func ContainerWait(ctx context.Context, cli *client.Client, cid, state string) e
 	t := time.NewTicker(100 * time.Millisecond)
 	tick := t.C
 
-	for range tick {
-		data, err := cli.ContainerInspect(ctx, cid)
-		if err != nil {
-			return err
-		}
-		if data.State.Status == state {
-			return nil
+	timeout := time.NewTimer(1 * time.Minute)
+	timeoutChan := timeout.C
+
+	for {
+		select {
+		case <-timeoutChan:
+			return fmt.Errorf("failed to reach state '%s' for container %s", state, cid)
+
+		case <-tick:
+			data, err := cli.ContainerInspect(ctx, cid)
+			if err != nil {
+				return err
+			}
+			if data.State.Status == state {
+				return nil
+			}
 		}
 	}
-
-	return nil
 }
 
 // GetContainerMetrics provides per container metrics in the form of PerContainerMetrics Structs.

@@ -111,6 +111,7 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 	page := newAllProcPage()
 	utilitySelected := ""
 	var scrollableWidget viz.ScrollableWidget = page.ProcTable
+	scrollableWidget.EnableCursor()
 
 	sortIdx := -1
 	sortAsc := false
@@ -297,7 +298,7 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 					}
 					signals.Table.ScrollToIndex(scrollIdx - 1) // account for 0-indexing
 					ui.Render(signals)
-				} else {
+				} else if utilitySelected == "" {
 					switch e.ID {
 					// Sort Ascending
 					case "1", "2", "3", "4", "5", "6", "7", "8":
@@ -317,12 +318,14 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 
 			// Sort Descending
 			case "<F1>", "<F2>", "<F3>", "<F4>", "<F5>", "<F6>", "<F7>", "<F8>":
-				page.ProcTable.Header = append([]string{}, header...)
-				idx, _ := strconv.Atoi(e.ID[2:3])
-				sortIdx = idx - 1
-				page.ProcTable.Header[sortIdx] = header[sortIdx] + " " + DOWN_ARROW
-				sortAsc = false
-				utils.SortData(page.ProcTable.Rows, sortIdx, sortAsc, "PROCS")
+				if utilitySelected == "" {
+					page.ProcTable.Header = append([]string{}, header...)
+					idx, _ := strconv.Atoi(e.ID[2:3])
+					sortIdx = idx - 1
+					page.ProcTable.Header[sortIdx] = header[sortIdx] + " " + DOWN_ARROW
+					sortAsc = false
+					utils.SortData(page.ProcTable.Rows, sortIdx, sortAsc, "PROCS")
+				}
 
 			case "<Enter>":
 				if utilitySelected == "KILL" {

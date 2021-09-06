@@ -222,9 +222,10 @@ func NewSignalTable() *SignalTable {
 	sigTable.Table.Rows = allSignals
 	sigTable.Table.ColWidths = []int{4, 10}
 	sigTable.Table.ColResizer = func() {
+		x := sigTable.Table.Inner.Dx()
 		sigTable.Table.ColWidths = []int{
-			4,
-			10,
+			3 * x / 10,
+			7 * x / 10,
 		}
 	}
 	sigTable.Table.ShowCursor = true

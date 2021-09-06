@@ -62,6 +62,7 @@ func ProcVisuals(ctx context.Context,
 	page := newPerProcPage()
 	utilitySelected := ""
 	var scrollableWidget viz.ScrollableWidget = page.ChildProcsTable
+	scrollableWidget.EnableCursor()
 
 	var statusMap map[string]string = map[string]string{
 		"R": "Running",
