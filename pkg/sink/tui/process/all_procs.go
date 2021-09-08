@@ -103,6 +103,7 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 	var on sync.Once
 	var signals *misc.SignalTable = misc.NewSignalTable()
 	var help *misc.HelpMenu = misc.NewHelpMenu().ForCommand(misc.ProcCommand)
+	var errorBox *misc.ErrorBox = misc.NewErrorBox()
 
 	page := newAllProcPage()
 	utilitySelected := core.None
@@ -122,6 +123,10 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 		"Thread Count",
 	}
 
+	previousKey := ""
+	selectedStyle := page.ProcTable.CursorColor
+	killingStyle := ui.ColorMagenta
+
 	updateUI := func() {
 		// Adjust grid dimesnions
 		w, h := ui.TerminalDimensions()
@@ -135,13 +140,19 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 			help.Resize(w, h)
 			ui.Render(help)
 
+		case core.Error:
+			errorBox.Resize(w, h)
+			ui.Render(errorBox)
+
 		case core.Kill:
+			page.ProcTable.CursorColor = killingStyle
 			signals.SetRect(0, 0, w/6, h)
 			page.Grid.SetRect(w/6, 0, w, h)
 			ui.Render(signals)
 			ui.Render(page.Grid)
 
 		default:
+			page.ProcTable.CursorColor = selectedStyle
 			ui.Render(page.Grid)
 		}
 	}
@@ -157,11 +168,6 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 	uiEvents := ui.PollEvents()
 	t := time.NewTicker(time.Duration(refreshRate) * time.Millisecond)
 	tick := t.C
-
-	previousKey := ""
-	selectedStyle := page.ProcTable.CursorColor
-	killingStyle := ui.ColorMagenta
-	errorStyle := ui.ColorRed
 
 	// updates process list immediately
 	updateProcs := func() {
@@ -197,6 +203,7 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 				scrollableWidget.EnableCursor()
 				utilitySelected = core.Help
 				updateUI()
+
 			case "p":
 				pause()
 
@@ -205,8 +212,6 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 				scrollableWidget.DisableCursor()
 				scrollableWidget = page.ProcTable
 				scrollableWidget.EnableCursor()
-				page.ProcTable.CursorColor = selectedStyle
-				runAllProc = true
 				updateUI()
 
 			// handle table navigations
@@ -253,7 +258,6 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 						// Set pid to kill
 						pidToKill = int32(pid)
 						runAllProc = false
-						page.ProcTable.CursorColor = killingStyle
 
 						// open the signal selector
 						utilitySelected = core.Kill
@@ -267,11 +271,14 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 					if err == nil {
 						err = procToKill.SendSignal(syscall.SIGTERM)
 						if err != nil {
-							page.ProcTable.CursorColor = errorStyle
+							errorBox.SetErrorString(fmt.Sprintf("Error killing process: %d", pidToKill), err)
+							utilitySelected = core.Error
 						}
 					} else {
-						page.ProcTable.CursorColor = errorStyle
+						errorBox.SetErrorString(fmt.Sprintf("Process not found: %d", pidToKill), err)
+						utilitySelected = core.Error
 					}
+
 					scrollableWidget = page.ProcTable
 					scrollableWidget.EnableCursor()
 					runAllProc = true
@@ -332,16 +339,19 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 					if err == nil {
 						err = procToKill.SendSignal(signalToSend)
 						if err != nil {
-							page.ProcTable.CursorColor = errorStyle
+							errorBox.SetErrorString(fmt.Sprintf("Error killing process: %d", pidToKill), err)
+							utilitySelected = core.Error
 						}
 					} else {
-						page.ProcTable.CursorColor = errorStyle
+						errorBox.SetErrorString(fmt.Sprintf("Process not found: %d", pidToKill), err)
+						utilitySelected = core.Error
 					}
 
 					runAllProc = true
 					utilitySelected = core.None
 					updateProcs()
 				}
+
 				scrollableWidget = page.ProcTable
 				scrollableWidget.EnableCursor()
 			}
@@ -370,7 +380,6 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 				if !exists {
 					runAllProc = true
 					utilitySelected = core.None
-					page.ProcTable.CursorColor = selectedStyle
 					updateProcs()
 				}
 			} else {

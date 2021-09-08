@@ -76,6 +76,13 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 		runProc = !runProc
 	}
 
+	previousKey := ""
+
+	selectedStyle := ui.ColorCyan
+	actionStyle := ui.ColorMagenta
+
+	cid := ""
+
 	updateUI := func() {
 
 		// Get Terminal Dimensions and clear the UI
@@ -103,12 +110,14 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 			ui.Render(errorBox)
 
 		case core.Action:
+			page.DetailsTable.CursorColor = actionStyle
 			actions.SetRect(0, 0, w/6, h)
 			page.Grid.SetRect(w/6, 0, w, h)
 			ui.Render(actions)
 			ui.Render(page.Grid)
 
 		default:
+			page.DetailsTable.CursorColor = selectedStyle
 			ui.Render(page.Grid)
 		}
 	}
@@ -164,13 +173,6 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 	t := time.NewTicker(time.Duration(refreshRate) * time.Millisecond)
 	tick := t.C
 
-	previousKey := ""
-
-	selectedStyle := ui.ColorCyan
-	actionStyle := ui.ColorMagenta
-
-	cid := ""
-
 	for {
 		select {
 		case <-ctx.Done():
@@ -185,12 +187,8 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 				updateUI()
 
 			case "<Escape>":
-				if utilitySelected != core.None {
-					runProc = true
-					page.DetailsTable.CursorColor = selectedStyle
-				}
-
 				utilitySelected = core.None
+				scrollableWidget.DisableCursor()
 				scrollableWidget = page.DetailsTable
 				scrollableWidget.EnableCursor()
 				updateUI()
@@ -243,7 +241,6 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 						cid = page.DetailsTable.Rows[page.DetailsTable.SelectedRow][0]
 
 						runProc = false
-						page.DetailsTable.CursorColor = actionStyle
 
 						// open the signal selector
 						utilitySelected = core.Action
@@ -331,8 +328,6 @@ func OverallVisuals(ctx context.Context, cli *client.Client, all bool, dataChann
 						scrollableWidget = page.DetailsTable
 						scrollableWidget.EnableCursor()
 					}
-
-					page.DetailsTable.CursorColor = selectedStyle
 
 					updateUI()
 
