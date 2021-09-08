@@ -11,7 +11,7 @@ grofer
 
 [![Publish Stable Docker Image](https://github.com/pesos/grofer/actions/workflows/docker-publish-stable.yml/badge.svg)](https://github.com/pesos/grofer/actions/workflows/docker-publish-stable.yml)
 
-### Latest Stable Version: ![Version](https://img.shields.io/badge/version-v1.3.0-blue)
+### Latest Stable Version: ![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/pesos/grofer?label=latest%20version&sort=semver)
 
 A clean and modern system and resource monitor written purely in golang using [termui](https://github.com/gizak/termui) and [gopsutil](https://github.com/shirou/gopsutil)!
 
