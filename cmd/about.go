@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package cmd
 
 import (
@@ -23,6 +24,9 @@ import (
 	"github.com/gizak/termui/v3/widgets"
 	"github.com/spf13/cobra"
 )
+
+// groferVersion is the version of grofer that is loaded in during build
+const groferVersion = "1.4.0"
 
 // aboutCmd represents the about command
 var aboutCmd = &cobra.Command{
@@ -35,13 +39,14 @@ var aboutCmd = &cobra.Command{
 		}
 		defer ui.Close()
 
-		About := widgets.NewParagraph()
-		About.Title = " Grofer "
-		About.TitleStyle.Fg = ui.ColorCyan
-		About.Border = true
-		About.BorderStyle.Fg = ui.ColorBlue
-		About.Text =
+		about := widgets.NewParagraph()
+		about.Title = " Grofer "
+		about.TitleStyle.Fg = ui.ColorCyan
+		about.Border = true
+		about.BorderStyle.Fg = ui.ColorBlue
+		about.Text =
 			"\nA system profiler written purely in golang!\n\n" +
+				"version: " + groferVersion + "\n\n" +
 				"Made with [♥](fg:red) by [PES Open Source](fg:green)\n\n"
 
 		uiEvents := ui.PollEvents()
@@ -58,8 +63,8 @@ var aboutCmd = &cobra.Command{
 			case <-tick:
 				ui.Clear()
 				w, h := ui.TerminalDimensions()
-				About.SetRect((w-35)/2, (h-10)/2, (w+35)/2, (h+10)/2)
-				ui.Render(About)
+				about.SetRect((w-35)/2, (h-10)/2, (w+35)/2, (h+10)/2)
+				ui.Render(about)
 			}
 		}
 

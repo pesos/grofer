@@ -13,25 +13,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package cmd
 
 import (
-	"context"
+	"errors"
 	"fmt"
+	"log"
 
-	proc "github.com/shirou/gopsutil/process"
+	"github.com/pesos/grofer/pkg/core"
+	"github.com/pesos/grofer/pkg/metrics/factory"
+	"github.com/pesos/grofer/pkg/utils"
 	"github.com/spf13/cobra"
-
-	procGraph "github.com/pesos/grofer/src/display/process"
-	"github.com/pesos/grofer/src/general"
-	"github.com/pesos/grofer/src/process"
-	"github.com/pesos/grofer/src/utils"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
 	defaultProcRefreshRate = 3000
-	defaultProcPid         = 0
+	defaultProcPid         = ""
 )
 
 // procCmd represents the proc command
@@ -49,61 +47,70 @@ Syntax:
   grofer proc -p [PID]`,
 	Aliases: []string{"process", "processess"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) > 0 {
-			return fmt.Errorf("the proc command should have no arguments, see grofer proc --help for further info")
+		// validate args and extract flags.
+		procCmd, err := constructProcCommand(cmd, args)
+		if err != nil {
+			return err
 		}
 
-		pid, _ := cmd.Flags().GetInt32("pid")
-		procRefreshRate, _ := cmd.Flags().GetUint64("refresh")
+		// create a metric scraper factory that will help construct
+		// a process metric specific MetricScraper.
+		metricScraperFactory := factory.
+			NewMetricScraperFactory().
+			ForCommand(core.ProcCommand).
+			WithScrapeInterval(procCmd.refreshRate)
 
-		if procRefreshRate < 1000 {
-			return fmt.Errorf("invalid refresh rate: minimum refresh rate is 1000(ms)")
+		if procCmd.isPerProcess() {
+			metricScraperFactory = metricScraperFactory.ForSingularEntity(procCmd.pid)
 		}
 
-		if pid != defaultProcPid {
-			dataChannel := make(chan *process.Process, 1)
+		processMetricScraper, err := metricScraperFactory.Construct()
+		if err != nil {
+			return err
+		}
 
-			eg, ctx := errgroup.WithContext(context.Background())
-
-			proc, err := process.NewProcess(pid)
-			if err != nil {
+		err = processMetricScraper.Serve()
+		if err != nil && err != core.ErrCanceledByUser {
+			if err == core.ErrInvalidPID {
 				utils.ErrorMsg("pid")
-				return fmt.Errorf("invalid pid")
 			}
-
-			eg.Go(func() error {
-				return process.Serve(proc, dataChannel, ctx, int64(4*procRefreshRate/5))
-			})
-			eg.Go(func() error {
-				return procGraph.ProcVisuals(ctx, dataChannel, procRefreshRate)
-			})
-
-			if err := eg.Wait(); err != nil {
-				if err != general.ErrCanceledByUser {
-					fmt.Printf("Error: %v\n", err)
-				}
-			}
-		} else {
-			dataChannel := make(chan []*proc.Process, 1)
-
-			eg, ctx := errgroup.WithContext(context.Background())
-
-			eg.Go(func() error {
-				return process.ServeProcs(dataChannel, ctx, int64(4*procRefreshRate/5))
-			})
-			eg.Go(func() error {
-				return procGraph.AllProcVisuals(dataChannel, ctx, procRefreshRate)
-			})
-
-			if err := eg.Wait(); err != nil {
-				if err != general.ErrCanceledByUser {
-					fmt.Printf("Error: %v\n", err)
-				}
-			}
+			log.Printf("Error: %v\n", err)
 		}
 
 		return nil
 	},
+}
+
+type procCommand struct {
+	pid         string
+	refreshRate uint64
+}
+
+func constructProcCommand(cmd *cobra.Command, args []string) (*procCommand, error) {
+	if len(args) > 0 {
+		return nil, fmt.Errorf("the proc command should have no arguments, see grofer proc --help for further info")
+	}
+
+	pid, err := cmd.Flags().GetString("pid")
+	if err != nil {
+		return nil, errors.New("error extracting --pid flag")
+	}
+	procRefreshRate, err := cmd.Flags().GetUint64("refresh")
+	if err != nil {
+		return nil, errors.New("error extracting --refresh flag")
+	}
+	if procRefreshRate < 1000 {
+		return nil, fmt.Errorf("invalid refresh rate: minimum refresh rate is 1000(ms)")
+	}
+
+	return &procCommand{
+		refreshRate: procRefreshRate,
+		pid:         pid,
+	}, nil
+}
+
+func (pc *procCommand) isPerProcess() bool {
+	return pc.pid != defaultProcPid
 }
 
 func init() {
@@ -116,7 +123,7 @@ func init() {
 		"Process information UI refreshes rate in milliseconds greater than 1000",
 	)
 
-	procCmd.Flags().Int32P(
+	procCmd.Flags().StringP(
 		"pid",
 		"p",
 		defaultProcPid,

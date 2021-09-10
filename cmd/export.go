@@ -13,15 +13,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package cmd
 
 import (
 	"fmt"
 	"strings"
 
-	exportGeneral "github.com/pesos/grofer/src/export/general"
-	exportProc "github.com/pesos/grofer/src/export/proc"
-
+	"github.com/pesos/grofer/pkg/export"
 	"github.com/spf13/cobra"
 )
 
@@ -44,7 +43,7 @@ var providedExportTypes = map[string]bool{
 func hasValidExtension(filename, exportType string) error {
 	filename = strings.ToLower(filename)
 
-	var hasProvidedExtension bool = false
+	hasProvidedExtension := false
 
 	// Check if any one of the allowed export types is a suffix for the
 	// file name provided.
@@ -120,7 +119,7 @@ var exportCmd = &cobra.Command{
 		if exportPid == defaultExportPid {
 			switch exportType {
 			case "json":
-				return exportGeneral.ExportJSON(filename, iter, refreshRate)
+				return export.ToJSON(filename, iter, refreshRate)
 
 			default:
 				return fmt.Errorf("invalid export type, see grofer export --help")
@@ -128,7 +127,7 @@ var exportCmd = &cobra.Command{
 		} else {
 			switch exportType {
 			case "json":
-				return exportProc.ExportPidJSON(exportPid, filename, iter, refreshRate)
+				return export.PidJSON(exportPid, filename, iter, refreshRate)
 
 			default:
 				return fmt.Errorf("invalid export type, see grofer export --help")
