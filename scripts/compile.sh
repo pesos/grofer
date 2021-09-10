@@ -14,13 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cd ..
 mkdir -p bin
 
 archs=("amd64" "386" "arm" "arm64")
 
 for arch in ${archs[@]}; do
-  env GOOS=linux GOARCH=${arch} go build ./grofer.go
-  cp grofer bin/grofer_${arch}
+  go build --ldflags "-s -w"
+  env GOOS=linux GOARCH=${arch} go build --ldflags "-s -w" -a -o ./bin/grofer_${arch} ./grofer.go
   echo "Compiled grofer_${arch}"
 done
