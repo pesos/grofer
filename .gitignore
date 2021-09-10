@@ -6,3 +6,4 @@ bin/
 Vagrantfile
 *.log
 .vagrant
+vendor/
