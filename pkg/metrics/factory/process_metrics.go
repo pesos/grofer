@@ -34,7 +34,7 @@ type processMetrics struct {
 }
 
 // Serve serves metrics of all processes running in the system.
-func (pm *processMetrics) Serve(opts ...FactoryOption) error {
+func (pm *processMetrics) Serve(opts ...Option) error {
 	// apply command specific options.
 	for _, opt := range opts {
 		opt(pm)
@@ -72,8 +72,8 @@ func (pm *processMetrics) Serve(opts ...FactoryOption) error {
 }
 
 // SetSink sets the sink that consumes the produced metrics.
-func (apm *processMetrics) SetSink(sink core.Sink) {
-	apm.sink = sink
+func (pm *processMetrics) SetSink(sink core.Sink) {
+	pm.sink = sink
 }
 
 // ensure interface compliance.
@@ -87,7 +87,7 @@ type singularProcessMetrics struct {
 }
 
 // Serve serves metrics of a particular process.
-func (spm *singularProcessMetrics) Serve(opts ...FactoryOption) error {
+func (spm *singularProcessMetrics) Serve(opts ...Option) error {
 	// apply command specific options.
 	for _, opt := range opts {
 		opt(spm)

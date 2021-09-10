@@ -109,7 +109,7 @@ func (msf *MetricScraperFactory) newContainerMetrics() (*containerMetrics, error
 	cms := &containerMetrics{
 		client:      cli,
 		refreshRate: msf.scrapeIntervalMillisecond,
-		metricBus:   make(chan container.ContainerMetrics),
+		metricBus:   make(chan container.OverallMetrics),
 	}
 
 	return cms, nil

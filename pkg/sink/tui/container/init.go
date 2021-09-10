@@ -85,7 +85,8 @@ func (page *overallContainerPage) init() {
 
 	// Initialize Table for Container Details Table
 	page.DetailsTable.Title = " Details "
-	page.DetailsTable.BorderStyle.Fg = ui.ColorCyan
+	page.DetailsTable.DefaultBorderColor = ui.ColorCyan
+	page.DetailsTable.ActiveBorderColor = ui.ColorCyan
 	page.DetailsTable.TitleStyle.Fg = ui.ColorClear
 	page.DetailsTable.ColResizer = func() {
 		x := page.DetailsTable.Inner.Dx() - (12 + 10 + 10 + 17 + 23)

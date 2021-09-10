@@ -33,11 +33,11 @@ type containerMetrics struct {
 	all         bool
 	refreshRate uint64
 	sink        core.Sink // defaults to TUI.
-	metricBus   chan container.ContainerMetrics
+	metricBus   chan container.OverallMetrics
 }
 
 // Serve serves metrics for all containers running on the system.
-func (cms *containerMetrics) Serve(opts ...FactoryOption) error {
+func (cms *containerMetrics) Serve(opts ...Option) error {
 	// apply command specific options.
 	for _, opt := range opts {
 		opt(cms)
@@ -90,7 +90,7 @@ type singularContainerMetrics struct {
 }
 
 // Serve serves metrics for a particular container running on the system.
-func (scms *singularContainerMetrics) Serve(opts ...FactoryOption) error {
+func (scms *singularContainerMetrics) Serve(opts ...Option) error {
 	// apply command specific options.
 	for _, opt := range opts {
 		opt(scms)
@@ -119,7 +119,7 @@ func (scms *singularContainerMetrics) Serve(opts ...FactoryOption) error {
 	switch scms.sink {
 	case core.TUI:
 		eg.Go(func() error {
-			return containerGraph.ContainerVisuals(ctx, scms.metricBus, scms.refreshRate)
+			return containerGraph.PerContainerVisuals(ctx, scms.metricBus, scms.refreshRate)
 		})
 	}
 

@@ -23,9 +23,8 @@ import (
 	ui "github.com/gizak/termui/v3"
 )
 
-// Custom widget to print a CPU Table
-
-type CpuTableChart struct {
+// CPUTableChart is a custom widget to display a CPU Table
+type CPUTableChart struct {
 	*ui.Block
 	Data               []float64
 	NumCores           int
@@ -38,8 +37,9 @@ type CpuTableChart struct {
 	ActiveBorderColor  ui.Color // indicates active border color
 }
 
-func NewCpuTableChart() *CpuTableChart {
-	return &CpuTableChart{
+// NewCPUTableChart is a constructor for type CPUTableChart
+func NewCPUTableChart() *CPUTableChart {
+	return &CPUTableChart{
 		Block:    ui.NewBlock(),
 		Data:     []float64{0},
 		NumCores: 0,
@@ -65,102 +65,114 @@ func NewCpuTableChart() *CpuTableChart {
 	}
 }
 
-func (chart *CpuTableChart) Draw(buf *ui.Buffer) {
-	chart.Block.Draw(buf)
-	w := chart.Inner.Dx()
-	h := chart.Inner.Dy()
-	numCols := int(w / (2 * chart.CellSize))
-	numRows := int(h / chart.CellSize)
-	chart.NumCols = numCols
-	chart.NumRows = numRows
-	xCoord := chart.Inner.Min.X
-	yCoord := chart.Inner.Min.Y
-	k := numCols * chart.TopRow
-	for i := 0; i < numRows && k < len(chart.Data); i++ {
-		for j := 0; j < numCols && k < len(chart.Data); j++ {
+// Draw helps draw the CPU table Chart widget onto the UI buffer
+func (c *CPUTableChart) Draw(buf *ui.Buffer) {
+	c.Block.Draw(buf)
+	w := c.Inner.Dx()
+	h := c.Inner.Dy()
+	numCols := int(w / (2 * c.CellSize))
+	numRows := int(h / c.CellSize)
+	c.NumCols = numCols
+	c.NumRows = numRows
+	xCoord := c.Inner.Min.X
+	yCoord := c.Inner.Min.Y
+	k := numCols * c.TopRow
+	for i := 0; i < numRows && k < len(c.Data); i++ {
+		for j := 0; j < numCols && k < len(c.Data); j++ {
 			buf.Fill(
-				ui.NewCell(' ', ui.NewStyle(ui.ColorClear, chart.StatusColor[int(chart.Data[k]/10)])),
-				image.Rect(xCoord, yCoord, xCoord+2*chart.CellSize, yCoord+chart.CellSize),
+				ui.NewCell(' ', ui.NewStyle(ui.ColorClear, c.StatusColor[int(c.Data[k]/10)])),
+				image.Rect(xCoord, yCoord, xCoord+2*c.CellSize, yCoord+c.CellSize),
 			)
 			buf.SetString(
 				fmt.Sprintf("CPU%d", k),
-				ui.NewStyle(chart.StatusColor[int(chart.Data[k]/10)], ui.ColorClear, ui.ModifierReverse),
+				ui.NewStyle(c.StatusColor[int(c.Data[k]/10)], ui.ColorClear, ui.ModifierReverse),
 				image.Pt(xCoord+2, yCoord+1),
 			)
 			buf.SetString(
-				fmt.Sprintf("%.1f", chart.Data[k]),
-				ui.NewStyle(chart.StatusColor[int(chart.Data[k]/10)], ui.ColorClear, ui.ModifierReverse),
+				fmt.Sprintf("%.1f", c.Data[k]),
+				ui.NewStyle(c.StatusColor[int(c.Data[k]/10)], ui.ColorClear, ui.ModifierReverse),
 				image.Pt(xCoord+2, yCoord+2),
 			)
 			k++
-			xCoord += 2 * chart.CellSize
+			xCoord += 2 * c.CellSize
 		}
-		yCoord += chart.CellSize
-		xCoord = chart.Inner.Min.X
+		yCoord += c.CellSize
+		xCoord = c.Inner.Min.X
 	}
 }
 
-func (c *CpuTableChart) ScrollUp() {
+// ScrollUp moves the cursor one position upwards
+func (c *CPUTableChart) ScrollUp() {
 	if c.TopRow > 0 {
 		c.TopRow--
 	}
 }
 
-func (c *CpuTableChart) ScrollDown() {
+// ScrollDown moves the cursor one position downwards
+func (c *CPUTableChart) ScrollDown() {
 	if len(c.Data)-(c.TopRow+1)*c.NumCols > 0 {
 		c.TopRow++
 	}
 }
 
-func (c *CpuTableChart) ScrollTop() {
+// ScrollTop moves the cursor to the top
+func (c *CPUTableChart) ScrollTop() {
 	c.TopRow = 0
 }
 
-func (c *CpuTableChart) ScrollBottom() {
+// ScrollBottom moves the cursor to the bottom
+func (c *CPUTableChart) ScrollBottom() {
 	c.TopRow = len(c.Data) / c.NumCols
 }
 
-func (c *CpuTableChart) ScrollHalfPageUp() {
+// ScrollHalfPageUp moves the cursor half a page up
+func (c *CPUTableChart) ScrollHalfPageUp() {
 	c.TopRow = c.TopRow - (c.Inner.Dy())/(2*c.CellSize)
 	if c.TopRow < 0 {
 		c.TopRow = 0
 	}
 }
 
-func (c *CpuTableChart) ScrollHalfPageDown() {
+// ScrollHalfPageDown moves the cursor half a page down
+func (c *CPUTableChart) ScrollHalfPageDown() {
 	c.TopRow = c.TopRow + (c.Inner.Dy())/(2*c.CellSize)
 	if c.TopRow > len(c.Data)/c.NumCols {
 		c.TopRow = len(c.Data) / c.NumCols
 	}
 }
 
-func (c *CpuTableChart) ScrollPageUp() {
+// ScrollPageUp moves the cursor a page up
+func (c *CPUTableChart) ScrollPageUp() {
 	c.TopRow = c.TopRow - (c.Inner.Dy())/(c.CellSize)
 	if c.TopRow < 0 {
 		c.TopRow = 0
 	}
 }
 
-func (c *CpuTableChart) ScrollPageDown() {
+// ScrollPageDown moves the cursor a page down
+func (c *CPUTableChart) ScrollPageDown() {
 	c.TopRow = c.TopRow + (c.Inner.Dy())/(c.CellSize)
 	if c.TopRow > len(c.Data)/c.NumCols {
 		c.TopRow = len(c.Data) / c.NumCols
 	}
 }
 
-func (c *CpuTableChart) ScrollToIndex(idx int) {
+// ScrollToIndex moves the cursor to a specified index
+func (c *CPUTableChart) ScrollToIndex(idx int) {
 	if idx >= 0 && idx <= len(c.Data)/c.NumCols {
 		c.TopRow = idx
 	}
 }
 
-func (c *CpuTableChart) DisableCursor() {
+// DisableCursor turns off the cursor and un highlights the table
+func (c *CPUTableChart) DisableCursor() {
 	c.BorderStyle.Fg = c.DefaultBorderColor
 }
 
-func (c *CpuTableChart) EnableCursor() {
+// EnableCursor turns on the cursor and highlights the table
+func (c *CPUTableChart) EnableCursor() {
 	c.BorderStyle.Fg = c.ActiveBorderColor
 }
 
 // ensure interface compliance.
-var _ ui.Drawable = (*CpuTableChart)(nil)
+var _ ui.Drawable = (*CPUTableChart)(nil)

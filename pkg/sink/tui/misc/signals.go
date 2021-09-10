@@ -222,9 +222,10 @@ func NewSignalTable() *SignalTable {
 	sigTable.Table.Rows = allSignals
 	sigTable.Table.ColWidths = []int{4, 10}
 	sigTable.Table.ColResizer = func() {
+		x := sigTable.Table.Inner.Dx()
 		sigTable.Table.ColWidths = []int{
-			4,
-			10,
+			3 * x / 10,
+			7 * x / 10,
 		}
 	}
 	sigTable.Table.ShowCursor = true
@@ -233,10 +234,12 @@ func NewSignalTable() *SignalTable {
 	return sigTable
 }
 
+// SignalFromRow returns the symbol at a given row index
 func (sigTable *SignalTable) SignalFromRow(rowIndex int) syscall.Signal {
 	return signalMap[sigTable.Rows[rowIndex][sigNameIdx]]
 }
 
+// SelectedSignal returns the signal at the currently selected row index
 func (sigTable *SignalTable) SelectedSignal() syscall.Signal {
 	return signalMap[sigTable.Rows[sigTable.SelectedRow][sigNameIdx]]
 }

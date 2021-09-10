@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package process
 
 import (
@@ -41,6 +42,7 @@ type Process struct {
 	Background     bool
 }
 
+// NewProcess return a Process variable for a given PID
 func NewProcess(pid int32) (*Process, error) {
 	process, err := proc.NewProcess(pid)
 	if err != nil {
@@ -142,7 +144,7 @@ func (p *Process) UpdateProcInfo() {
 
 // InitAllProcs initialises the set of currently running processes in the system.
 func InitAllProcs() (map[int32]*Process, error) {
-	var processes map[int32]*Process = make(map[int32]*Process)
+	processes := make(map[int32]*Process)
 	pids, err := proc.Processes()
 
 	if err != nil {

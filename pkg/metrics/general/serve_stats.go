@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package general
 
 import (
@@ -128,7 +129,7 @@ func ServeCPURates(ctx context.Context, cpuChannel chan AggregatedMetrics) error
 		return err
 	}
 	data := AggregatedMetrics{
-		CpuStats: cpuRates,
+		CPUStats: cpuRates,
 		FieldSet: "CPU",
 	}
 
@@ -173,11 +174,11 @@ func ServeTemperatureRates(ctx context.Context, dataChannel chan AggregatedMetri
 	tempRates := [][]string{{"Sensor", "Temp(°C)"}}
 	for _, sensor := range sensors {
 		if strings.Contains(sensor.SensorKey, "input") && sensor.Temperature != 0 {
-			temp_label := sensor.SensorKey
+			tempLabel := sensor.SensorKey
 			// Only read input sensors
 			label := strings.TrimSuffix(sensor.SensorKey, "_input")
 			label = strings.TrimSuffix(label, "_thermal")
-			if temp_label != label {
+			if tempLabel != label {
 				temp := fmt.Sprintf("%.1f °C", sensor.Temperature)
 				row := []string{label, temp}
 				tempRates = append(tempRates, row)

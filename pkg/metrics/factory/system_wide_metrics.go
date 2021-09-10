@@ -32,7 +32,7 @@ type systemWideMetrics struct {
 }
 
 // Serve serves system wide metrics.
-func (swm *systemWideMetrics) Serve(opts ...FactoryOption) error {
+func (swm *systemWideMetrics) Serve(opts ...Option) error {
 	// apply command specific options.
 	for _, opt := range opts {
 		opt(swm)

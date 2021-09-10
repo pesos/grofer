@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 // This particularar widget is inspired and borrowed from the implementation of https://github.com/cjbassi/gotop
+
 package utils
 
 import (
@@ -25,7 +26,14 @@ import (
 	ui "github.com/gizak/termui/v3"
 )
 
-// Custom table widget
+const (
+	// UpArrow is a symbol used when sorting tables
+	UpArrow = "▲"
+	// DownArrow is a symbol used when sorting tables
+	DownArrow = "▼"
+)
+
+// Table is a custom table widget
 type Table struct {
 	*ui.Block
 
@@ -75,6 +83,7 @@ func NewTable() *Table {
 	}
 }
 
+// Draw helps draw the Table widget onto the UI buffer
 func (t *Table) Draw(buf *ui.Buffer) {
 	t.Block.Draw(buf)
 
@@ -209,46 +218,55 @@ func (t *Table) calcPos() {
 	}
 }
 
+// ScrollUp moves the cursor one position upwards
 func (t *Table) ScrollUp() {
 	t.SelectedRow--
 	t.calcPos()
 }
 
+// ScrollDown moves the cursor one position downwards
 func (t *Table) ScrollDown() {
 	t.SelectedRow++
 	t.calcPos()
 }
 
+// ScrollTop moves the cursor to the top
 func (t *Table) ScrollTop() {
 	t.SelectedRow = 0
 	t.calcPos()
 }
 
+// ScrollBottom moves the cursor to the bottom
 func (t *Table) ScrollBottom() {
 	t.SelectedRow = len(t.Rows) - 1
 	t.calcPos()
 }
 
+// ScrollHalfPageUp moves the cursor half a page up
 func (t *Table) ScrollHalfPageUp() {
 	t.SelectedRow = t.SelectedRow - (t.Inner.Dy()-2)/2
 	t.calcPos()
 }
 
+// ScrollHalfPageDown moves the cursor half a page down
 func (t *Table) ScrollHalfPageDown() {
 	t.SelectedRow = t.SelectedRow + (t.Inner.Dy()-2)/2
 	t.calcPos()
 }
 
+// ScrollPageUp moves the cursor a page up
 func (t *Table) ScrollPageUp() {
 	t.SelectedRow -= (t.Inner.Dy() - 2)
 	t.calcPos()
 }
 
+// ScrollPageDown moves the cursor a page down
 func (t *Table) ScrollPageDown() {
 	t.SelectedRow += (t.Inner.Dy() - 2)
 	t.calcPos()
 }
 
+// ScrollToIndex moves the cursor to a specified index
 func (t *Table) ScrollToIndex(idx int) {
 	if idx < 0 || idx >= len(t.Rows) {
 		return
@@ -257,20 +275,13 @@ func (t *Table) ScrollToIndex(idx int) {
 	t.calcPos()
 }
 
-func (t *Table) HandleClick(x, y int) {
-	x = x - t.Min.X
-	y = y - t.Min.Y
-	if (x > 0 && x <= t.Inner.Dx()) && (y > 0 && y <= t.Inner.Dy()) {
-		t.SelectedRow = (t.TopRow + y) - 2
-		t.calcPos()
-	}
-}
-
+// DisableCursor turns off the cursor and un highlights the table
 func (t *Table) DisableCursor() {
 	t.ShowCursor = false
 	t.BorderStyle.Fg = t.DefaultBorderColor
 }
 
+// EnableCursor turns on the cursor and highlights the table
 func (t *Table) EnableCursor() {
 	t.ShowCursor = true
 	t.BorderStyle.Fg = t.ActiveBorderColor

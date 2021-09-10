@@ -48,6 +48,7 @@ func NewSparkline() *Sparkline {
 	}
 }
 
+// NewSparklineGroup is a constructor for the type SparklineGroup
 func NewSparklineGroup(sls ...*Sparkline) *SparklineGroup {
 	return &SparklineGroup{
 		Block:      ui.NewBlock(),
@@ -55,6 +56,7 @@ func NewSparklineGroup(sls ...*Sparkline) *SparklineGroup {
 	}
 }
 
+// Draw helps draw the Sparkline widget onto the UI buffer
 func (s *SparklineGroup) Draw(buf *ui.Buffer) {
 	s.Block.Draw(buf)
 

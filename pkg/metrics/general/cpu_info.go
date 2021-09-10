@@ -70,10 +70,9 @@ func (c *CPULoad) readCPULoad() error {
 		curr, err := strconv.Atoi(x)
 		if err != nil {
 			return err
-		} else {
-			avg[i] = float64(curr)
-			sum += curr
 		}
+		avg[i] = float64(curr)
+		sum += curr
 	}
 	// Calculate average values
 	for i, x := range avg {

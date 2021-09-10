@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package cmd
 
 import (
@@ -25,7 +26,7 @@ import (
 )
 
 // groferVersion is the version of grofer that is loaded in during build
-var groferVersion string = "1.3.0"
+const groferVersion = "1.4.0"
 
 // aboutCmd represents the about command
 var aboutCmd = &cobra.Command{

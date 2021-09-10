@@ -13,19 +13,21 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package container
 
 import (
 	"context"
 	"encoding/json"
+	"runtime"
 	"strings"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 )
 
-// Holds metrics for all existing containers
-type ContainerMetrics struct {
+// OverallMetrics holds metrics for all existing containers
+type OverallMetrics struct {
 	TotalCPU     float64
 	TotalMem     float64
 	TotalNet     netStat
@@ -33,9 +35,9 @@ type ContainerMetrics struct {
 	PerContainer []PerContainerMetrics
 }
 
-// GetOverallMetrics provides metrics about all running containers in the form of ContainerMetrics structs
-func GetOverallMetrics(ctx context.Context, cli *client.Client, all bool) (ContainerMetrics, error) {
-	metrics := ContainerMetrics{}
+// GetOverallMetrics provides metrics about all running containers in the form of OverallMetrics structs
+func GetOverallMetrics(ctx context.Context, cli *client.Client, all bool) (OverallMetrics, error) {
+	metrics := OverallMetrics{}
 
 	// Get list of containers
 	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{All: all})
@@ -58,7 +60,7 @@ func GetOverallMetrics(ctx context.Context, cli *client.Client, all bool) (Conta
 	for range containers {
 		metric := <-metrcisChan
 
-		totalCPU += metric.Cpu
+		totalCPU += metric.CPU
 
 		totalMem += metric.Mem
 
@@ -71,7 +73,10 @@ func GetOverallMetrics(ctx context.Context, cli *client.Client, all bool) (Conta
 		metrics.PerContainer = append(metrics.PerContainer, metric)
 	}
 
-	metrics.TotalCPU = totalCPU
+	// Get number of cores in machine
+	numCores := runtime.NumCPU()
+
+	metrics.TotalCPU = totalCPU / float64(numCores)
 	metrics.TotalMem = totalMem
 	metrics.TotalNet = totalNet
 	metrics.TotalBlk = totalBlk
@@ -133,7 +138,7 @@ func getMetrics(ctx context.Context, cli *client.Client, c types.Container, ch c
 		Name:   strings.TrimLeft(strings.Join(c.Names, ","), "/"),
 		Status: c.Status,
 		State:  c.State,
-		Cpu:    cpuPercent,
+		CPU:    cpuPercent,
 		Mem:    memPercent,
 		Net:    netStat{Rx: rx, Tx: tx},
 		Blk:    blkStat{Read: blkRead, Write: blkWrite},

@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package process
 
 import (
@@ -60,10 +61,11 @@ func ProcVisuals(ctx context.Context,
 
 	// Create new page and select default table
 	page := newPerProcPage()
-	utilitySelected := ""
+	utilitySelected := core.None
 	var scrollableWidget viz.ScrollableWidget = page.ChildProcsTable
+	scrollableWidget.EnableCursor()
 
-	var statusMap map[string]string = map[string]string{
+	var statusMap = map[string]string{
 		"R": "Running",
 		"S": "Sleep",
 		"Z": "Zombie",
@@ -99,7 +101,7 @@ func ProcVisuals(ctx context.Context,
 		// Clear UI
 		ui.Clear()
 		switch utilitySelected {
-		case "HELP":
+		case core.Help:
 			help.Resize(w, h)
 			ui.Render(help)
 
@@ -131,14 +133,14 @@ func ProcVisuals(ctx context.Context,
 				scrollableWidget.DisableCursor()
 				scrollableWidget = help.Table
 				scrollableWidget.EnableCursor()
-				utilitySelected = "HELP"
+				utilitySelected = core.Help
 				updateUI()
 
 			case "p":
 				pause()
 
 			case "<Escape>":
-				utilitySelected = ""
+				utilitySelected = core.None
 				scrollableWidget.DisableCursor()
 				scrollableWidget = page.ChildProcsTable
 				scrollableWidget.EnableCursor()
@@ -231,7 +233,7 @@ func ProcVisuals(ctx context.Context,
 			}
 
 		case <-tick:
-			if utilitySelected == "" {
+			if utilitySelected == core.None {
 				ui.Render(page.Grid)
 			}
 		}

@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package general
 
 import (
@@ -27,7 +28,7 @@ import (
 type AggregatedMetrics struct {
 	NetStats       map[string][]float64
 	FieldSet       string
-	CpuStats       []float64
+	CPUStats       []float64
 	MemStats       []float64
 	DiskStats      [][]string
 	TempStats      [][]string

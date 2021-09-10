@@ -33,8 +33,8 @@ import (
 	viz "github.com/pesos/grofer/pkg/utils/visualization"
 )
 
-// ContainerVisuals provides the UI for per container metrics
-func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContainerMetrics, refreshRate uint64) error {
+// PerContainerVisuals provides the UI for per container metrics
+func PerContainerVisuals(ctx context.Context, dataChannel chan container.PerContainerMetrics, refreshRate uint64) error {
 
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
@@ -59,7 +59,7 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 		"6": page.ProcTable,
 	}
 
-	utilitySelected := ""
+	utilitySelected := core.None
 
 	// variables to pause UI rendering
 	runProc := true
@@ -85,7 +85,7 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 		ui.Clear()
 
 		switch utilitySelected {
-		case "HELP":
+		case core.Help:
 			help.Resize(w, h)
 			ui.Render(help)
 
@@ -118,21 +118,21 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 				scrollableWidget.DisableCursor()
 				scrollableWidget = help.Table
 				scrollableWidget.EnableCursor()
-				utilitySelected = "HELP"
+				utilitySelected = core.Help
 				updateUI()
 
 			case "p":
 				pause()
 
 			case "<Escape>":
-				utilitySelected = ""
+				utilitySelected = core.None
 				scrollableWidget = page.DetailsTable
 				scrollableWidget.EnableCursor()
 				updateUI()
 
 			// handle table selection
 			case "1", "2", "3", "4", "5", "6":
-				if utilitySelected == "" {
+				if utilitySelected == core.None {
 					scrollableWidget.DisableCursor()
 					scrollableWidget = tableMap[e.ID]
 					scrollableWidget.EnableCursor()
@@ -181,7 +181,7 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 			// page.BodyList.SelectedRowStyle = selectedStyle
 			if runProc {
 				// update cpu %
-				page.CPUChart.Percent = int(data.Cpu)
+				page.CPUChart.Percent = int(data.CPU)
 
 				// update mem %
 				page.MemChart.Percent = int(data.Mem)
@@ -223,7 +223,7 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 					netData = append(netData, []string{
 						n.Name,
 						n.Driver,
-						n.Ip,
+						n.IP,
 						strconv.FormatBool(n.Ingress),
 					})
 				}
@@ -266,7 +266,7 @@ func ContainerVisuals(ctx context.Context, dataChannel chan container.PerContain
 			}
 
 		case <-tick:
-			if utilitySelected == "" {
+			if utilitySelected == core.None {
 				ui.Render(page.Grid)
 			}
 		}

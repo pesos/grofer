@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package general
 
 import (
@@ -23,13 +24,13 @@ import (
 	viz "github.com/pesos/grofer/pkg/utils/visualization"
 )
 
-// MainPage contains the ui widgets for the ui rendered by the grofer command
+// MainPage contains the UI widgets for the UI rendered by the grofer command
 type MainPage struct {
 	Grid             *ui.Grid
 	MemoryChart      *viz.HorizontalBarChart
 	DiskChart        *viz.Table
 	NetworkChart     *viz.SparklineGroup
-	CPUTable         *viz.CpuTableChart
+	CPUTable         *viz.CPUTableChart
 	CPUChart         *viz.LineGraph
 	TemperatureTable *viz.Table
 	InfoTable        *viz.Table
@@ -38,6 +39,7 @@ type MainPage struct {
 	cpuTableVisible  bool
 }
 
+// CPUPage contains the UI widgets for the UI rendered by the grofer -c command
 type CPUPage struct {
 	Grid        *ui.Grid
 	UsrChart    *widgets.Gauge
@@ -64,7 +66,7 @@ func NewPage(numCores int) *MainPage {
 		MemoryChart:      viz.NewHorizontalBarChart(),
 		DiskChart:        viz.NewTable(),
 		NetworkChart:     viz.NewSparklineGroup(rxSparkLine, txSparkLine),
-		CPUTable:         viz.NewCpuTableChart(),
+		CPUTable:         viz.NewCPUTableChart(),
 		CPUChart:         viz.NewLineGraph(),
 		TemperatureTable: viz.NewTable(),
 		InfoTable:        viz.NewTable(),
@@ -74,6 +76,7 @@ func NewPage(numCores int) *MainPage {
 	return page
 }
 
+// NewCPUPage is a constructor for the CPUPage type
 func NewCPUPage(numCores int) *CPUPage {
 	page := &CPUPage{
 		Grid:        ui.NewGrid(),
@@ -110,9 +113,9 @@ func (page *MainPage) init(numCores int) {
 	page.initBatteryGauge()
 
 	if page.cpuTableVisible {
-		page.initCpuTableWidget(numCores)
+		page.initCPUTableWidget(numCores)
 	} else {
-		page.initCpuChartWidget(numCores)
+		page.initCPUChartWidget(numCores)
 	}
 	// Initialize Graph for Temperature Table
 	page.initTemperatureTableWidget()
@@ -127,10 +130,9 @@ func (page *MainPage) ToggleCPUWidget() viz.ScrollableWidget {
 	if page.cpuTableVisible {
 		page.cpuTableVisible = false
 		return page.DiskChart
-	} else {
-		page.cpuTableVisible = true
-		return page.CPUTable
 	}
+	page.cpuTableVisible = true
+	return page.CPUTable
 }
 
 func (page *MainPage) initPageGrid() {
@@ -247,7 +249,7 @@ func (page *MainPage) initNetworkChartWidget() {
 	page.NetworkChart.Sparklines[1].Reverse = true
 }
 
-func (page *MainPage) initCpuChartWidget(numCores int) {
+func (page *MainPage) initCPUChartWidget(numCores int) {
 	page.CPUChart.Title = " CPU Usage "
 	page.CPUChart.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.CPUChart.BorderStyle.Fg = ui.ColorCyan
@@ -260,27 +262,26 @@ func (page *MainPage) initCpuChartWidget(numCores int) {
 	}
 }
 
-func (page *MainPage) initCpuTableWidget(numCores int) {
+func (page *MainPage) initCPUTableWidget(numCores int) {
 	page.CPUTable.Title = " Per CPU Usage "
 	page.CPUTable.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.CPUTable.BorderStyle.Fg = ui.ColorCyan
 	page.CPUTable.NumCores = numCores
 }
 
-func (page *MainPage) SwitchTableLeft(cpuTableVisible bool) viz.ScrollableWidget {
+func (page *MainPage) switchTableLeft(cpuTableVisible bool) viz.ScrollableWidget {
 	if cpuTableVisible {
 		scrollableWidgets := []viz.ScrollableWidget{page.InfoTable, page.CPUTable, page.DiskChart, page.TemperatureTable}
 		page.selectedTable = (page.selectedTable + 1) % len(scrollableWidgets)
 		return scrollableWidgets[page.selectedTable]
-
-	} else {
-		scrollableWidgets := []viz.ScrollableWidget{page.InfoTable, page.DiskChart, page.TemperatureTable}
-		page.selectedTable = (page.selectedTable + 1) % len(scrollableWidgets)
-		return scrollableWidgets[page.selectedTable]
 	}
+
+	scrollableWidgets := []viz.ScrollableWidget{page.InfoTable, page.DiskChart, page.TemperatureTable}
+	page.selectedTable = (page.selectedTable + 1) % len(scrollableWidgets)
+	return scrollableWidgets[page.selectedTable]
 }
 
-func (page *MainPage) SwitchTableRight(cpuTableVisible bool) viz.ScrollableWidget {
+func (page *MainPage) switchTableRight(cpuTableVisible bool) viz.ScrollableWidget {
 	if cpuTableVisible {
 		scrollableWidgets := []viz.ScrollableWidget{page.InfoTable, page.TemperatureTable, page.DiskChart, page.CPUTable}
 		page.selectedTable = (page.selectedTable - 1)
@@ -288,15 +289,14 @@ func (page *MainPage) SwitchTableRight(cpuTableVisible bool) viz.ScrollableWidge
 			page.selectedTable = len(scrollableWidgets) - 1
 		}
 		return scrollableWidgets[page.selectedTable]
-
-	} else {
-		scrollableWidgets := []viz.ScrollableWidget{page.InfoTable, page.DiskChart, page.TemperatureTable}
-		page.selectedTable = (page.selectedTable - 1)
-		if page.selectedTable < 0 {
-			page.selectedTable = len(scrollableWidgets) - 1
-		}
-		return scrollableWidgets[page.selectedTable]
 	}
+
+	scrollableWidgets := []viz.ScrollableWidget{page.InfoTable, page.DiskChart, page.TemperatureTable}
+	page.selectedTable = (page.selectedTable - 1)
+	if page.selectedTable < 0 {
+		page.selectedTable = len(scrollableWidgets) - 1
+	}
+	return scrollableWidgets[page.selectedTable]
 }
 
 func (page *CPUPage) init(numCores int) {

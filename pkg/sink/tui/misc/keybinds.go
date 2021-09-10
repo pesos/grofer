@@ -70,7 +70,7 @@ func getDefaultHelpKeybinding() [][]string {
 func getMainCommandKeybindings() [][]string {
 	return [][]string{
 		{"Quit: q or <C-c>"},
-		{"Pause Rendering: s"},
+		{"Pause Rendering: p"},
 		{""},
 		{"Table Navigation"},
 		{"  - <Left>/h: select table to left "},
@@ -89,7 +89,7 @@ func getMainCommandKeybindings() [][]string {
 func getProcCommandKeybindings() [][]string {
 	return [][]string{
 		{"Quit: q or <C-c>"},
-		{"Pause Rendering: s"},
+		{"Pause Rendering: p"},
 		{""},
 		{"Process table navigation"},
 		{"  - k and <Up>: scroll up"},
@@ -125,7 +125,7 @@ func getProcCommandKeybindings() [][]string {
 func getPerProcCommandKeybindings() [][]string {
 	return [][]string{
 		{"Quit: q or <C-c>"},
-		{"Pause Rendering: s"},
+		{"Pause Rendering: p"},
 		{""},
 		{""},
 		{"Table navigation"},
@@ -145,7 +145,7 @@ func getPerProcCommandKeybindings() [][]string {
 func getContainerCommandKeybindings() [][]string {
 	return [][]string{
 		{"Quit: q or <C-c>"},
-		{"Pause Rendering: s"},
+		{"Pause Rendering: p"},
 		{""},
 		{"Container table navigation"},
 		{"  - k and <Up>: scroll up"},
@@ -164,12 +164,13 @@ func getContainerCommandKeybindings() [][]string {
 		{"  - 0: Disable Sort"},
 		{""},
 		{"Container actions"},
-		{"  - P: pause a container"},
-		{"  - U: unpause a container"},
-		{"  - R: restart a container"},
-		{"  - S: stop a container"},
-		{"  - K: kill a container"},
-		{"  - X: remove a container (removes links & volumes)"},
+		{"  - <Enter>: Open action selector menu"},
+		{""},
+		{"Action selection"},
+		{"  - k and <Up>: up"},
+		{"  - j and <Down>: down"},
+		{"  - <Enter>: perform highlighted action"},
+		{"  - <Esc>: close action selector"},
 		{""},
 		{"To close this prompt: <Esc>"},
 	}
@@ -178,7 +179,7 @@ func getContainerCommandKeybindings() [][]string {
 func getPerContainerCommandKeybindings() [][]string {
 	return [][]string{
 		{"Quit: q or <C-c>"},
-		{"Pause Rendering: s"},
+		{"Pause Rendering: p"},
 		{""},
 		{"Table Selection"},
 		{"  - 1: Details Table"},

@@ -45,7 +45,7 @@ type memPidStats struct {
 	Swap  uint64 `json:"Swap"`
 }
 
-type ProcDetails struct {
+type procDetails struct {
 	Name              string `json:"Name"`
 	Command           string `json:"Command"`
 	Status            string `json:"Status"`
@@ -57,17 +57,17 @@ type ProcDetails struct {
 	ChildProcessCount string `json:"ChildProcessCount"`
 }
 
-type PidStats struct {
+type pidStats struct {
 	ChildProcs  map[int]string  `json:"childProcs"`
-	PidDetails  ProcDetails     `json:"pid"`
+	PidDetails  procDetails     `json:"pid"`
 	MemStats    memPidStats     `json:"memStats"`
 	CtxSwitches contextSwitches `json:"ctxSwitches"`
 	PageFaults  pageFaults      `json:"pageFaults"`
 	Mem         float64         `json:"mem"`
-	Cpu         float64         `json:"cpu"`
+	CPU         float64         `json:"cpu"`
 }
 
-var statusMap map[string]string = map[string]string{
+var statusMap = map[string]string{
 	"R": "Running",
 	"S": "Sleep",
 	"Z": "Zombie",
@@ -77,15 +77,15 @@ var statusMap map[string]string = map[string]string{
 	"L": "Lock",
 }
 
-// getPidDataJSON returns a PidStats structure populated with information about the process specified by pid
-func getPidDataJSON(pid int32) (PidStats, error) {
+// getPidDataJSON returns a pidStats structure populated with information about the process specified by pid
+func getPidDataJSON(pid int32) (pidStats, error) {
 	proc, err := procInfo.NewProcess(pid)
 	if err != nil {
-		return PidStats{}, err
+		return pidStats{}, err
 	}
 	proc.UpdateProcInfo()
 
-	pidDetails := ProcDetails{
+	pidDetails := procDetails{
 		Name:              proc.Name,
 		Command:           proc.Exe,
 		Status:            statusMap[proc.Status],
@@ -114,8 +114,8 @@ func getPidDataJSON(pid int32) (PidStats, error) {
 		Swap:  proc.MemoryInfo.Swap,
 	}
 
-	pidData := PidStats{
-		Cpu:         utils.RoundFloat(proc.CPUPercent, "NONE", 2),
+	pidData := pidStats{
+		CPU:         utils.RoundFloat(proc.CPUPercent, "NONE", 2),
 		Mem:         utils.RoundFloat(float64(proc.MemoryPercent), "NONE", 2),
 		PidDetails:  pidDetails,
 		CtxSwitches: ctxSwitches,
@@ -125,9 +125,9 @@ func getPidDataJSON(pid int32) (PidStats, error) {
 	return pidData, nil
 }
 
-// ExportJSON exports data particular to a given process (given by pid) to a JSON
+// PidJSON exports data particular to a given process (given by pid) to a JSON
 // file for a specified number of iterations and a specified refresh rate.
-func ExportPidJSON(pid int32, filename string, iter uint32, refreshRate uint64) error {
+func PidJSON(pid int32, filename string, iter uint32, refreshRate uint64) error {
 	// Verify if previous profile exists and whether or not to overwrite
 	if _, err := os.Stat(filename); err == nil {
 		fmt.Printf("Previous profile with name %s exists. Overwrite? (Y/N) ", filename)
@@ -137,9 +137,8 @@ func ExportPidJSON(pid int32, filename string, iter uint32, refreshRate uint64) 
 		choice = strings.ToLower(choice)
 		if choice != "y" {
 			return nil
-		} else {
-			os.Remove(filename)
 		}
+		os.Remove(filename)
 	}
 
 	// Open file pointer to file to be written

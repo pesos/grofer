@@ -1,4 +1,8 @@
-Grofer
+<p align="center">
+  <img src="images/README/logo.png" style="width:300px;" />
+</p>
+
+grofer
 ======
 
 [![Go Checks](https://github.com/pesos/grofer/actions/workflows/go-checks.yml/badge.svg)](https://github.com/pesos/grofer/actions/workflows/go-checks.yml) [![License Check](https://github.com/pesos/grofer/actions/workflows/license-check.yml/badge.svg)](https://github.com/pesos/grofer/actions/workflows/license-check.yml) [![Go Report Card](https://goreportcard.com/badge/github.com/pesos/grofer)](https://goreportcard.com/report/github.com/pesos/grofer) [![GoDoc reference example](https://img.shields.io/badge/godoc-reference-blue.svg)](https://pkg.go.dev/github.com/pesos/grofer)
@@ -7,7 +11,7 @@ Grofer
 
 [![Publish Stable Docker Image](https://github.com/pesos/grofer/actions/workflows/docker-publish-stable.yml/badge.svg)](https://github.com/pesos/grofer/actions/workflows/docker-publish-stable.yml)
 
-### Latest Stable Version: ![Version](https://img.shields.io/badge/version-v1.3.0-blue)
+### Latest Stable Version: ![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/pesos/grofer?label=latest%20version&sort=semver)
 
 A clean and modern system and resource monitor written purely in golang using [termui](https://github.com/gizak/termui) and [gopsutil](https://github.com/shirou/gopsutil)!
 
@@ -409,3 +413,8 @@ To load completions for each session, the generated script must be moved to the 
 ```sh
 grofer completion fish > ~/.config/fish/completions/grofer.fish
 ```
+
+Credits
+=======
+
+-	Gopher [artwork](images/README/logo.png) credits to [Amandeep Kaur](https://instagram.com/_amankaur._)
