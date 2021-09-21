@@ -16,12 +16,12 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/moby/term v0.0.0-20201216013528-df9cb8a40635 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
-	github.com/shirou/gopsutil v2.20.6+incompatible
+	github.com/shirou/gopsutil v3.21.8+incompatible
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.1
+	github.com/tklauser/go-sysconf v0.3.9 // indirect
 	golang.org/x/net v0.0.0-20210505024714-0287a6fb4125 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/sys v0.0.0-20210503173754-0981d6026fa6 // indirect
 	google.golang.org/genproto v0.0.0-20210504143626-3b2ad6ccc450 // indirect
 	google.golang.org/grpc v1.37.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
