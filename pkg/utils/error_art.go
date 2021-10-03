@@ -34,7 +34,7 @@ func ErrorMsg(id string) {
 
 	}
 	rand.Seed(time.Now().UnixNano())
-	num := rand.Intn(7) //gives a pseudorandom number in the range [0, n) (n not included).
+	num := rand.Intn(8) //gives a pseudorandom number in the range [0, n) (n not included).
 	switch num {
 	case 0:
 		errorDoggo(errorID)
@@ -50,6 +50,8 @@ func ErrorMsg(id string) {
 		errorMoose(errorID)
 	case 6:
 		errorElephant(errorID)
+	case 7:
+		errorParrot(errorID)
 	}
 }
 
@@ -189,4 +191,24 @@ func errorElephant(errorID string) {
 \|, '_:::\  . ..  '_:::\ ..\).    Plz give Elephant a valid ID.
   `
 	fmt.Println(strings.ReplaceAll(elephant, "ID", errorID))
+}
+
+func errorParrot(errorID string) {
+	parrot := `     
+   __,---.
+  /__|o\  )
+   '-\ / /
+     ,) (,
+    //   \\
+   {(     )}
+ ===""===""===
+     |||||
+      |||
+       |
+  
+Uh-Oh. 
+Mr. Parrot says, it's an invalid ID.
+Please enter a valid ID.     
+`
+	fmt.Println(strings.ReplaceAll(parrot, "ID", errorID))
 }
