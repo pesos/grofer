@@ -7,3 +7,4 @@ Vagrantfile
 *.log
 .vagrant
 vendor/
+coverage.txt
