@@ -250,7 +250,7 @@ func ServeNetRates(ctx context.Context, dataChannel chan AggregatedMetrics) erro
 	}
 	IO := make(map[string][]float64)
 	for _, IOStat := range netStats {
-		nic := []float64{float64(IOStat.BytesSent) / (1024), float64(IOStat.BytesRecv) / (1024)}
+		nic := []float64{float64(IOStat.BytesSent), float64(IOStat.BytesRecv)}
 		IO[IOStat.Name] = nic
 	}
 
