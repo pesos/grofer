@@ -6,7 +6,7 @@ require (
 	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/cjbassi/gotop v0.0.0-20200829004927-65d76af83079
-	github.com/containerd/containerd v1.5.7 // indirect
+	github.com/containerd/containerd v1.5.9 // indirect
 	github.com/docker/docker v20.10.8+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/gizak/termui/v3 v3.1.0
