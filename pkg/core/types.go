@@ -30,6 +30,8 @@ const (
 	ContainerCommand
 	// ExportCommand is `grofer export` and its variants.
 	ExportCommand
+	// KubernetesCommand is `grofer kube` and its variants.
+	KubernetesCommand
 )
 
 // Sink represents any entity that consumes generated metrics.
