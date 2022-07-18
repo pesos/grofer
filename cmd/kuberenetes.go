@@ -1,19 +1,3 @@
-/*
-Copyright © 2020 The PES Open Source Team pesos@pes.edu
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package cmd
 
 import (
@@ -32,15 +16,16 @@ const (
 	defaultContainerRefreshRate = 1000
 )
 
-// containerCmd represents the container command
-var containerCmd = &cobra.Command{
-	Use:     "container",
-	Short:   "container command is used to get information related to docker containers",
-	Long:    `container command is used to get information related to docker containers. It provides both overall and per container metrics.`,
-	Aliases: []string{"containers", "docker"},
+// k8sCmd represents the kubernetes command
+var k8sCmd = &cobra.Command{
+	Use:     "kubernetes",
+	Short:   "kubernetes command is used to get information related to the local kubernetes cluster",
+	Long:    `kubernetes command is used to get information related to the local kubernetes cluster. It provides both overall and per pod metrics.`,
+	Aliases: []string{"k8s", "kubernetes"},
 	RunE: func(cmd *cobra.Command, args []string) error {
+
 		// validate args and extract flags.
-		containerCmd, err := constructKubernetesCommand(cmd, args)
+		containerCmd, err := constructContainerCommand(cmd, args)
 		if err != nil {
 			return err
 		}
@@ -49,23 +34,25 @@ var containerCmd = &cobra.Command{
 		// a container metric specific MetricScraper.
 		metricScraperFactory := factory.
 			NewMetricScraperFactory().
-			ForCommand(core.ContainerCommand).
+			ForCommand(core.KubernetesCommand).
 			WithScrapeInterval(containerCmd.refreshRate)
 
+		/*
 		if containerCmd.isPerContainer() {
 			metricScraperFactory = metricScraperFactory.ForSingularEntity(containerCmd.cid)
 		}
+		*/
 
 		// construct a container specific MetricScraper.
-		containerMetricScraper, err := metricScraperFactory.Construct()
+		kubeMetricScraper, err := metricScraperFactory.Construct()
 		if err != nil {
 			return err
 		}
 
 		if containerCmd.all {
-			err = containerMetricScraper.Serve(factory.WithAllAs(containerCmd.all))
+			err = kubeMetricScraper.Serve(factory.WithAllAs(containerCmd.all))
 		} else {
-			err = containerMetricScraper.Serve()
+			err = kubeMetricScraper.Serve()
 		}
 
 		if err != nil && err != core.ErrCanceledByUser {
@@ -79,15 +66,13 @@ var containerCmd = &cobra.Command{
 	},
 }
 
-type kubernetesCommand struct {
+type k8sCommand struct {
 	refreshRate uint64
 	cid         string
 	all         bool
 }
 
-func constructKubernetesCommand(cmd *cobra.Command, args []string) (*kubernetesCommand, error) {
-	// This is the individual command parsing logic
-	// TODO leave this untouched as of now, since we'll be using defaults
+func constructK8sCommand(cmd *cobra.Command, args []string) (*containerCommand, error) {
 	if len(args) > 0 {
 		return nil, fmt.Errorf("the container command should have no arguments, see grofer container --help for further info")
 	}
@@ -110,7 +95,7 @@ func constructKubernetesCommand(cmd *cobra.Command, args []string) (*kubernetesC
 		return nil, errors.New("invalid refresh rate: minimum refresh rate is 1000(ms)")
 	}
 
-	containerCmd := &kubernetesCommand{
+	containerCmd := &containerCommand{
 		refreshRate: containerRefreshRate,
 		cid:         cid,
 		all:         allFlag,
@@ -119,7 +104,7 @@ func constructKubernetesCommand(cmd *cobra.Command, args []string) (*kubernetesC
 	return containerCmd, nil
 }
 
-func (cc *kubernetesCommand) isPerContainer() bool {
+func (cc *containerCommand) isPerContainer() bool {
 	return cc.cid != defaultCid
 }
 

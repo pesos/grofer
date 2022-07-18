@@ -22,10 +22,15 @@ import (
 
 	proc "github.com/shirou/gopsutil/process"
 
+	// TODO add client-go import
 	"github.com/docker/docker/client"
 	"github.com/pesos/grofer/pkg/core"
 	"github.com/pesos/grofer/pkg/metrics/container"
+	kubernetes_metrics "github.com/pesos/grofer/pkg/metrics/kubernetes"
 	"github.com/pesos/grofer/pkg/metrics/process"
+
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 // MetricScraperFactory constructs a MetricScaper for a command
@@ -84,8 +89,44 @@ func (msf *MetricScraperFactory) Construct() (MetricScraper, error) {
 		return msf.constructContainerMetricScraper()
 	case core.ProcCommand:
 		return msf.constructProcessMetricScraper()
+	case core.KubernetesCommand:
+		return msf.constructKubernetesMetricScraper()
 	}
 	return nil, errors.New("command not recognized")
+}
+
+func (msf* MetricScraperFactory) constructKubernetesMetricScraper() (MetricScraper, error) {
+	// TODO Construct a new metrics scraper here
+	return msf.newKubernetesMetrics()
+}
+
+func (msf* MetricScraperFactory) newKubernetesMetrics() (*kubernetes_metrics.KubernetesMetricsScraper, error) {
+
+	var kubeconfig string
+
+	// Default kubeconfig in ~/.kube/config
+	// TODO take this in as a CLI argument, and use homedir to find it
+	kubeconfig = "~/.kube/config"
+	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	if err != nil {
+		// TODO propagate error
+		panic(err.Error())
+	}
+	// create the clientset
+	// TODO pass the clientset into the struct here
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// construct the actual metrics struct here
+	kubeMetricsStruct := &kubernetes_metrics.KubernetesMetricsScraper{
+		Clientset: 		clientset,
+		RefreshRate: 	msf.scrapeIntervalMillisecond,
+		MetricBus: make(chan kubernetes_metrics.KubernetesMetrics),
+	}
+
+	return kubeMetricsStruct, nil
 }
 
 func (msf *MetricScraperFactory) constructSystemWideMetricScraper() (MetricScraper, error) {
@@ -159,3 +200,4 @@ func (msf *MetricScraperFactory) newSingluarProcessMetrics() (*singularProcessMe
 
 	return spm, nil
 }
+
