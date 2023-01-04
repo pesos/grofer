@@ -425,3 +425,82 @@ func RenderCPUinfo(ctx context.Context, dataChannel chan *general.CPULoad, refre
 		}
 	}
 }
+
+// RenderBatteryinfo displays the Battery info page
+func RenderBatteryinfo(ctx context.Context, dataChannel chan general.BatteryData, refreshRate uint64) error {
+	var on sync.Once
+	var help *misc.HelpMenu = misc.NewHelpMenu().ForCommand(misc.RootCommand)
+
+	if err := ui.Init(); err != nil {
+		return fmt.Errorf("failed to initialize termui: %v", err)
+	}
+	defer ui.Close()
+
+	page := NewBatteryPage()
+
+	utilitySelected := core.None
+
+	// Pause to pause updating data
+	pause := func() {
+		run = !run
+	}
+
+	// Re render UI
+	updateUI := func() {
+		w, h := ui.TerminalDimensions()
+		page.Grid.SetRect(0, 0, 200, 55)
+
+		ui.Clear()
+
+		switch utilitySelected {
+		case core.Help:
+			help.Resize(w, h)
+			ui.Render(help)
+		default:
+			ui.Render(page.Grid)
+		}
+	}
+
+	updateUI()
+
+	uiEvents := ui.PollEvents()
+	t := time.NewTicker(time.Duration(refreshRate) * time.Millisecond)
+	tick := t.C
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case e := <-uiEvents: // For keyboard events
+			switch e.ID {
+			case "q", "<C-c>": // q or Ctrl-C to quit
+				return core.ErrCanceledByUser
+
+			case "<Resize>":
+				updateUI()
+
+			case "<Escape>":
+				utilitySelected = core.None
+
+			case "p":
+				pause()
+
+			case "?":
+				utilitySelected = core.Help
+			}
+			updateUI()
+		case data := <-dataChannel:
+			if run {
+				header, rows := data.Battery[0], data.Battery[1:]
+				page.Battery.Header = header
+				page.Battery.Rows = rows
+				on.Do(updateUI)
+			}
+		case <-tick:
+			if utilitySelected != core.Help {
+				ui.Render(page.Grid)
+			}
+		}
+	}
+
+}

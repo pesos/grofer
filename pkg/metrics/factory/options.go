@@ -34,3 +34,11 @@ func WithCPUInfoAs(cpuInfo bool) Option {
 		swm.cpuInfo = cpuInfo
 	}
 }
+
+// WithBatteryInfoAs sets the battery flag value for the RootCommand.
+func WithBatteryInfoAs(batteryInfo bool) Option {
+	return func(ms MetricScraper) {
+		swm := ms.(*systemWideMetrics)
+		swm.batteryInfo = batteryInfo
+	}
+}

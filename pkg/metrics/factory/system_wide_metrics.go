@@ -27,6 +27,7 @@ import (
 
 type systemWideMetrics struct {
 	cpuInfo     bool
+	batteryInfo bool
 	sink        core.Sink // defaults to TUI.
 	refreshRate uint64
 }
@@ -40,6 +41,10 @@ func (swm *systemWideMetrics) Serve(opts ...Option) error {
 
 	if swm.cpuInfo {
 		return swm.serveCPUInfo()
+	}
+
+	if swm.batteryInfo {
+		return swm.serveBatteryInfo()
 	}
 	return swm.serveGenericMetrics()
 }
@@ -85,6 +90,30 @@ func (swm *systemWideMetrics) serveCPUInfo() error {
 	case core.TUI:
 		eg.Go(func() error {
 			return overallGraph.RenderCPUinfo(ctx, metricBus, swm.refreshRate)
+		})
+	}
+
+	return eg.Wait()
+}
+
+// serveBatteryInfo serves battery stats such as the name of the manufacturer
+// and other battery specific information.
+func (swm *systemWideMetrics) serveBatteryInfo() error {
+	eg, ctx := errgroup.WithContext(context.Background())
+	metricBus := make(chan general.BatteryData, 1)
+
+	// start producing metrics.
+	eg.Go(func() error {
+		batteryInfo := general.NewBatteryInfo()
+		alteredRefreshRate := uint64(4 * swm.refreshRate / 5)
+		return general.GetBatteryInfo(ctx, batteryInfo, metricBus, alteredRefreshRate)
+	})
+
+	// start consuming metrics.
+	switch swm.sink {
+	case core.TUI:
+		eg.Go(func() error {
+			return overallGraph.RenderBatteryinfo(ctx, metricBus, swm.refreshRate)
 		})
 	}
 

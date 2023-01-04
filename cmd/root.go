@@ -31,6 +31,7 @@ const (
 	defaultOverallRefreshRate = 1000
 	defaultConfigFileLocation = ""
 	defaultCPUBehavior        = false
+	defaultBatteryBehaviour   = false
 )
 
 var cfgFile string
@@ -60,9 +61,16 @@ While using a TUI based command, press ? to get information about key bindings (
 			return err
 		}
 
-		err = systemWideMetricScraper.Serve(factory.WithCPUInfoAs(rootCmd.cpuInfo))
-		if err != nil && err != core.ErrCanceledByUser {
-			fmt.Printf("Error: %v\n", err)
+		if !rootCmd.batteryInfo {
+			err = systemWideMetricScraper.Serve(factory.WithCPUInfoAs(rootCmd.cpuInfo))
+			if err != nil && err != core.ErrCanceledByUser {
+				fmt.Printf("Error: %v\n", err)
+			}
+		} else {
+			err = systemWideMetricScraper.Serve(factory.WithBatteryInfoAs(rootCmd.batteryInfo))
+			if err != nil && err != core.ErrCanceledByUser {
+				fmt.Printf("Error: %v\n", err)
+			}
 		}
 
 		return nil
@@ -72,6 +80,7 @@ While using a TUI based command, press ? to get information about key bindings (
 type rootCommand struct {
 	refreshRate uint64
 	cpuInfo     bool
+	batteryInfo bool
 }
 
 func constructRootCommand(cmd *cobra.Command, args []string) (*rootCommand, error) {
@@ -89,9 +98,15 @@ func constructRootCommand(cmd *cobra.Command, args []string) (*rootCommand, erro
 		return nil, err
 	}
 
+	batteryInfo, err := cmd.Flags().GetBool("battery")
+	if err != nil {
+		return nil, err
+	}
+
 	return &rootCommand{
 		refreshRate: refreshRate,
 		cpuInfo:     cpuInfo,
+		batteryInfo: batteryInfo,
 	}, nil
 }
 
@@ -123,6 +138,13 @@ func init() {
 		"c",
 		defaultCPUBehavior,
 		"Info about the CPU Load over all CPUs",
+	)
+
+	rootCmd.Flags().BoolP(
+		"battery",
+		"b",
+		defaultBatteryBehaviour,
+		"All stats about the battery.",
 	)
 }
 
