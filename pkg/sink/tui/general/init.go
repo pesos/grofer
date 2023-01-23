@@ -442,7 +442,7 @@ func (page *CPUPage) init(numCores int) {
 }
 
 func (page *BatteryPage) initBatteryTableWidget() {
-	page.Battery.Title = " Battery Info"
+	page.Battery.Title = " Battery Stats Not Found "
 	page.Battery.TitleStyle = ui.NewStyle(ui.ColorClear)
 	page.Battery.BorderStyle.Fg = ui.ColorCyan
 	page.Battery.HeaderStyle = ui.NewStyle(ui.ColorClear, ui.ColorClear, ui.ModifierBold)
@@ -461,8 +461,8 @@ func (page *BatteryPage) initPageGrid() {
 			ui.NewRow(0.3, page.Battery),
 		),
 	)
-	// w, h := ui.TerminalDimensions()
-	page.Grid.SetRect(0, 0, 200, 55)
+	w, h := ui.TerminalDimensions()
+	page.Grid.SetRect(0, 0, w, h)
 }
 
 func (page *BatteryPage) init() {

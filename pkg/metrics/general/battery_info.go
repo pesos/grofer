@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/pesos/grofer/pkg/core"
 	"github.com/pesos/grofer/pkg/utils"
 )
 
@@ -27,7 +28,8 @@ type BatteryInfo struct {
 }
 
 type BatteryData struct {
-	Battery [][]string
+	FieldSet string
+	Battery  [][]string
 }
 
 // NewBatteryInfo is a constructor for the BatteryInfo type.
@@ -38,10 +40,21 @@ func NewBatteryInfo() *BatteryInfo {
 // GetBatteryInfo updates the BatteryInfo struct and serves the data to the data channel.
 func GetBatteryInfo(ctx context.Context, batteryInfo *BatteryInfo, dataChannel chan BatteryData, refreshRate uint64) error {
 	return utils.TickUntilDone(ctx, refreshRate, func() error {
+		var batteryFound bool = true
+		var batteryData BatteryData = BatteryData{
+			FieldSet: "NO BATTERY DATA",
+		}
 		err := batteryInfo.UpdateBatteryInfo()
-		batteryData := batteryInfo.getBatteryData()
 		if err != nil {
-			return err
+			if err == core.ErrBatteryNotFound {
+				batteryFound = false
+			} else {
+				return err
+			}
+		}
+
+		if batteryFound {
+			batteryData = batteryInfo.getBatteryData()
 		}
 
 		select {
@@ -66,23 +79,31 @@ func (c *BatteryInfo) UpdateBatteryInfo() error {
 // ReadBatteryInfo reads files from /sys/class/power_supply/BAT0
 // and returns battery specific stats
 func (c *BatteryInfo) readBatteryInfo() error {
-	val := reflect.ValueOf(c).Elem()
-	for i := 0; i < val.Type().NumField(); i++ {
-		fileName := val.Type().Field(i).Tag.Get("json")
-		file, err := os.Open("/sys/class/power_supply/BAT0/" + fileName)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-		reader := bufio.NewReader(file)
+	_, err1 := os.Stat("/sys/class/power_supply/BAT0/manufacturer")
+	_, err2 := os.Stat("/sys/class/power_supply/BAT0/technology")
+	_, err3 := os.Stat("/sys/class/power_supply/BAT0/model_name")
 
-		// Read first line containing load values
-		data, err := reader.ReadBytes(byte('\n'))
-		if err != nil {
-			return err
+	if err1 == nil && err2 == nil && err3 == nil {
+		val := reflect.ValueOf(c).Elem()
+		for i := 0; i < val.Type().NumField(); i++ {
+			fileName := val.Type().Field(i).Tag.Get("json")
+			file, err := os.Open("/sys/class/power_supply/BAT0/" + fileName)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+			reader := bufio.NewReader(file)
+
+			// Read first line containing load values
+			data, err := reader.ReadBytes(byte('\n'))
+			if err != nil {
+				return err
+			}
+			vals := strings.Fields(string(data))
+			val.FieldByName(val.Type().Field(i).Name).SetString(vals[0])
 		}
-		vals := strings.Fields(string(data))
-		val.FieldByName(val.Type().Field(i).Name).SetString(vals[0])
+	} else if os.IsNotExist(err1) || os.IsNotExist(err2) || os.IsNotExist(err3) {
+		return core.ErrBatteryNotFound
 	}
 	return nil
 }
@@ -90,6 +111,7 @@ func (c *BatteryInfo) readBatteryInfo() error {
 // getBatteryData structures all the battery stats into the Battery data struct.
 func (c *BatteryInfo) getBatteryData() BatteryData {
 	var bData BatteryData = BatteryData{
+		FieldSet: "BATTERY",
 		Battery: [][]string{
 			{"Stats", "Info"},
 			{"manufacturer", c.Manufacturer},
