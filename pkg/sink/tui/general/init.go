@@ -54,6 +54,12 @@ type CPUPage struct {
 	CPUTable    *viz.Table
 }
 
+// BatteryPage contains the UI widgets for the UI rendered by the grofer -b command
+type BatteryPage struct {
+	Grid    *ui.Grid
+	Battery *viz.Table
+}
+
 // NewPage returns a new page initialized from the MainPage struct
 func NewPage(numCores int) *MainPage {
 	rxSparkLine := viz.NewSparkline()
@@ -92,6 +98,16 @@ func NewCPUPage(numCores int) *CPUPage {
 		CPUTable:    viz.NewTable(),
 	}
 	page.init(numCores)
+	return page
+}
+
+// NewBatteryPage is a constructor for the BatteryPage type
+func NewBatteryPage() *BatteryPage {
+	page := &BatteryPage{
+		Grid:    ui.NewGrid(),
+		Battery: viz.NewTable(),
+	}
+	page.init()
 	return page
 }
 
@@ -423,4 +439,33 @@ func (page *CPUPage) init(numCores int) {
 	w, h := ui.TerminalDimensions()
 	page.Grid.SetRect(0, 0, w, h)
 
+}
+
+func (page *BatteryPage) initBatteryTableWidget() {
+	page.Battery.Title = " Battery Stats Not Found "
+	page.Battery.TitleStyle = ui.NewStyle(ui.ColorClear)
+	page.Battery.BorderStyle.Fg = ui.ColorCyan
+	page.Battery.HeaderStyle = ui.NewStyle(ui.ColorClear, ui.ColorClear, ui.ModifierBold)
+	page.Battery.ShowCursor = false
+	page.Battery.ColResizer = func() {
+		x := page.Battery.Inner.Dx()
+		page.Battery.ColWidths = []int{x / 2, x / 2}
+	}
+}
+
+func (page *BatteryPage) initPageGrid() {
+	page.Grid = ui.NewGrid()
+	page.Grid.Set(
+		ui.NewCol(
+			0.3,
+			ui.NewRow(0.3, page.Battery),
+		),
+	)
+	w, h := ui.TerminalDimensions()
+	page.Grid.SetRect(0, 0, w, h)
+}
+
+func (page *BatteryPage) init() {
+	page.initBatteryTableWidget()
+	page.initPageGrid()
 }
