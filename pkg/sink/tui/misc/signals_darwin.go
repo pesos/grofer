@@ -1,5 +1,3 @@
-//go:build android || aix || dragonfly || freebsd || (js && wasm) || linux || nacl || netbsd || plan9 || windows
-
 /*
 Copyright © 2020 The PES Open Source Team pesos@pes.edu
 
@@ -173,7 +171,6 @@ var signalMap = map[string]syscall.Signal{
 	"SIGALRM":   syscall.SIGALRM,
 	"SIGBUS":    syscall.SIGBUS,
 	"SIGCHLD":   syscall.SIGCHLD,
-	"SIGCLD":    syscall.SIGCLD,
 	"SIGCONT":   syscall.SIGCONT,
 	"SIGFPE":    syscall.SIGFPE,
 	"SIGHUP":    syscall.SIGHUP,
@@ -183,12 +180,9 @@ var signalMap = map[string]syscall.Signal{
 	"SIGIOT":    syscall.SIGIOT,
 	"SIGKILL":   syscall.SIGKILL,
 	"SIGPIPE":   syscall.SIGPIPE,
-	"SIGPOLL":   syscall.SIGPOLL,
 	"SIGPROF":   syscall.SIGPROF,
-	"SIGPWR":    syscall.SIGPWR,
 	"SIGQUIT":   syscall.SIGQUIT,
 	"SIGSEGV":   syscall.SIGSEGV,
-	"SIGSTKFLT": syscall.SIGSTKFLT,
 	"SIGSTOP":   syscall.SIGSTOP,
 	"SIGSYS":    syscall.SIGSYS,
 	"SIGTERM":   syscall.SIGTERM,
@@ -196,7 +190,6 @@ var signalMap = map[string]syscall.Signal{
 	"SIGTSTP":   syscall.SIGTSTP,
 	"SIGTTIN":   syscall.SIGTTIN,
 	"SIGTTOU":   syscall.SIGTTOU,
-	"SIGUNUSED": syscall.SIGUNUSED,
 	"SIGURG":    syscall.SIGURG,
 	"SIGUSR1":   syscall.SIGUSR1,
 	"SIGUSR2":   syscall.SIGUSR2,
