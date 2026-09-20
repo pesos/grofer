@@ -175,6 +175,9 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 			procs, err := proc.Processes()
 			if err == nil {
 				page.ProcTable.Rows = getData(procs)
+				if page.ProcTable.SelectedRow >= len(page.ProcTable.Rows) {
+					page.ProcTable.SelectedRow = len(page.ProcTable.Rows) - 1
+				}
 			}
 		}
 	}
@@ -368,6 +371,9 @@ func AllProcVisuals(ctx context.Context, dataChannel chan []*proc.Process, refre
 				page.ProcTable.CursorColor = selectedStyle
 				procData := getData(data)
 				page.ProcTable.Rows = procData
+				if page.ProcTable.SelectedRow >= len(page.ProcTable.Rows) {
+					page.ProcTable.SelectedRow = len(page.ProcTable.Rows) - 1
+				}
 				if sortIdx != -1 {
 					utils.SortData(page.ProcTable.Rows, sortIdx, sortAsc, "PROCS")
 				}
